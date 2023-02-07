@@ -1,7 +1,7 @@
 #pragma once
 #include "framework.h"
 #include "Window.h"
-#include "DirectX.h"
+#include "Pipeline.h"
 
 class Game
 {
@@ -19,5 +19,5 @@ public:
 	//game 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
 	Window mWindow;
-	DirectX mDirectX;
+	Pipeline mDirectX;
 };

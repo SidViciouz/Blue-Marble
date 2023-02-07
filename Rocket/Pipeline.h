@@ -1,6 +1,6 @@
 #pragma once
 
-class DirectX
+class Pipeline
 {
 public:
 	void Initialize();
