@@ -4,7 +4,9 @@
 #include "framework.h"
 #include "Rocket.h"
 #include "Game.h"
+#include "IfError.h"
 #include <string>
+#include <iostream>
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -24,9 +26,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         return 0;
     }
-    catch(const std::string& e)
+    catch(const IfError& e)
     {
-
+        MessageBox(nullptr, e.errorMsg.c_str(), nullptr, 0);
         return 0;
     }
 }

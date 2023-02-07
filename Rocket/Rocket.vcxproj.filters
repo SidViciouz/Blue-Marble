@@ -36,6 +36,12 @@
     <ClInclude Include="Pipeline.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Util.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="IfError.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rocket.cpp">
