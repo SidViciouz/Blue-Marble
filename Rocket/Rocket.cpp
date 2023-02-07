@@ -3,6 +3,8 @@
 
 #include "framework.h"
 #include "Rocket.h"
+#include "Game.h"
+#include <string>
 
 #define MAX_LOADSTRING 100
 
@@ -26,6 +28,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 여기에 코드를 입력합니다.
+    try
+    {
+        Game gameInstance(hInstance);
+
+        return 0;
+    }
+    catch(const std::string& e)
+    {
+
+        return 0;
+    }
 
     // 전역 문자열을 초기화합니다.
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
