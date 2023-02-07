@@ -5,7 +5,7 @@
 
 struct IfError
 {
-	static void Throw(HRESULT hr,std::wstring msg)
+	static void Throw(HRESULT&& hr,std::wstring msg)
 	{
 		if (hr != S_OK)
 			throw IfError{ msg,hr };
