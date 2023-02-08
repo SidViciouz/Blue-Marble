@@ -14,7 +14,8 @@ private:
 	UINT64 mFenceValue = 0;
 	DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_FORMAT mDepthStencilBufferFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
+	bool mMsaaEnable = false;
+	UINT mMsaaQuality = 0;
 
 public:
 	void Initialize();
