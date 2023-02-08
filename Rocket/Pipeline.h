@@ -11,6 +11,8 @@ class Pipeline
 {
 private:
 	void CreateCommandObjects();
+	void CreateDescriptorHeaps();
+	void CreateSwapChain();
 
 	ComPtr<ID3D12Device> mDevice = nullptr;
 
@@ -29,6 +31,9 @@ private:
 
 	ComPtr<ID3D12CommandQueue> mCommandQueue;
 	ComPtr<ID3D12CommandList> mCommandList;
+
+	ComPtr<ID3D12DescriptorHeap> mRtvHeap;
+	ComPtr<ID3D12DescriptorHeap> mDsvHeap;
 
 public:
 	void Initialize();

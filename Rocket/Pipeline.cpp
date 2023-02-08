@@ -27,6 +27,8 @@ void Pipeline::Initialize()
 	}
 
 	CreateCommandObjects();
+
+	CreateDescriptorHeaps();
 }
 
 void Pipeline::CreateCommandObjects()
@@ -44,4 +46,29 @@ void Pipeline::CreateCommandObjects()
 		0,D3D12_COMMAND_LIST_TYPE_DIRECT,mFrames[mCurrentFrame]->Get(),
 		nullptr,IID_PPV_ARGS(mCommandList.GetAddressOf())),
 		L"create command list error!");
+}
+
+void Pipeline::CreateDescriptorHeaps()
+{
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtvHeapDesc.NodeMask = 0;
+	rtvHeapDesc.NumDescriptors = 2;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+
+	IfError::Throw(mDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())),
+	L"create renter target descriptor heap error!");
+
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dsvHeapDesc.NodeMask = 0;
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+
+	IfError::Throw(mDevice->CreateDescriptorHeap(&dsvHeapDesc,IID_PPV_ARGS(mDsvHeap.GetAddressOf())),
+	L"create depth stencil descriptor heap error!");
+}
+void Pipeline::CreateSwapChain()
+{
+
 }
