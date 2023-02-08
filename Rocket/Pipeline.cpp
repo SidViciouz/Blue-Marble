@@ -18,4 +18,9 @@ void Pipeline::Initialize()
 		L"check feature support error!");
 
 	mMsaaQuality = qualityLevels.NumQualityLevels;
+
+	for (int i = 0; i < mNumberOfFrames; ++i)
+	{
+		mFrames.push_back(make_unique<Frame>(mDevice.Get()));
+	}
 }

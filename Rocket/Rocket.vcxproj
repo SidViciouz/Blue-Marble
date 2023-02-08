@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Frame.h" />
     <ClInclude Include="IfError.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="framework.h" />
@@ -150,6 +151,7 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Frame.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Rocket.cpp" />
