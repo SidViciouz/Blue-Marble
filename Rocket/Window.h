@@ -5,13 +5,13 @@
 class Window
 {
 public:
-	Window(HINSTANCE hInstance);
+	Window(HINSTANCE hInstance,const int& width,const int& height);
 	void Initialize();
 
 private:
 	HINSTANCE mInstance;
 	HWND mWindowHandle = nullptr;
-	int mWidth = 800;
-	int mHeight = 600;
+	const int& mWidth;
+	const int& mHeight;
 	std::wstring mWindowCaption = L"Rocket Game";
 };

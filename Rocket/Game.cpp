@@ -1,6 +1,7 @@
 #include "Game.h"
 
-Game::Game(HINSTANCE hInstance) : mWindow(hInstance)
+Game::Game(HINSTANCE hInstance)
+	: mWindow(hInstance,mWidth,mHeight), mDirectX(mWidth,mHeight)
 {
 
 }

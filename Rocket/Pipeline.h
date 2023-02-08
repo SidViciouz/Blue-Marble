@@ -9,10 +9,15 @@ using namespace std;
 
 class Pipeline
 {
+public:
+	Pipeline(const int& width,const int& height);
 private:
 	void CreateCommandObjects();
 	void CreateDescriptorHeaps();
 	void CreateSwapChain();
+
+	const int& mWidth;
+	const int& mHeight;
 
 	ComPtr<ID3D12Device> mDevice = nullptr;
 
@@ -34,6 +39,8 @@ private:
 
 	ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 	ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+
+	ComPtr<IDXGISwapChain> mSwapChain;
 
 public:
 	void Initialize();

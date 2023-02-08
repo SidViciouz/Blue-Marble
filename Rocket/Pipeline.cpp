@@ -1,5 +1,12 @@
 #include "Pipeline.h"
 
+Pipeline::Pipeline(const int& width, const int& height):
+	mWidth(width), mHeight(height)
+{
+
+}
+
+
 void Pipeline::Initialize()
 {
 	IfError::Throw(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS(&mDevice)),
@@ -70,5 +77,13 @@ void Pipeline::CreateDescriptorHeaps()
 }
 void Pipeline::CreateSwapChain()
 {
-
+	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+	swapChainDesc.BufferCount = 2;
+	swapChainDesc.BufferDesc.Width = mWidth;
+	swapChainDesc.BufferDesc.Height = mHeight;
+	swapChainDesc.BufferDesc.Format = mBackBufferFormat;
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 }

@@ -20,4 +20,6 @@ public:
 private:
 	Window mWindow;
 	Pipeline mDirectX;
+	int mWidth = 800;
+	int mHeight = 600;
 };

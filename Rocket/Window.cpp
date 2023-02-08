@@ -6,8 +6,8 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-Window::Window(HINSTANCE hInstance) :
-	mInstance(hInstance)
+Window::Window(HINSTANCE hInstance, const int& width, const int& height) :
+	mInstance(hInstance), mWidth(width), mHeight(height)
 {
 
 }
