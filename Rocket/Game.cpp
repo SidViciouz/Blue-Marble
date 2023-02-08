@@ -9,7 +9,7 @@ Game::Game(HINSTANCE hInstance)
 void Game::Initialize()
 {
 	mWindow.Initialize();
-	mDirectX.Initialize();
+	mDirectX.Initialize(mWindow.GetWindowHandle());
 }
 
 void Game::Run()

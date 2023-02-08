@@ -46,3 +46,8 @@ void Window::Initialize()
 	ShowWindow(mWindowHandle, SW_SHOW);
 	UpdateWindow(mWindowHandle);
 }
+
+HWND Window::GetWindowHandle()
+{
+	return mWindowHandle;
+}

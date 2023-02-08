@@ -7,8 +7,11 @@ Pipeline::Pipeline(const int& width, const int& height):
 }
 
 
-void Pipeline::Initialize()
+void Pipeline::Initialize(HWND windowHandle)
 {
+	IfError::Throw(CreateDXGIFactory1(IID_PPV_ARGS(mFactory.GetAddressOf())),
+		L"create factory error!");
+
 	IfError::Throw(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS(&mDevice)),
 		L"create device error!");
 
@@ -36,6 +39,8 @@ void Pipeline::Initialize()
 	CreateCommandObjects();
 
 	CreateDescriptorHeaps();
+
+	CreateSwapChain(windowHandle);
 }
 
 void Pipeline::CreateCommandObjects()
@@ -75,7 +80,7 @@ void Pipeline::CreateDescriptorHeaps()
 	IfError::Throw(mDevice->CreateDescriptorHeap(&dsvHeapDesc,IID_PPV_ARGS(mDsvHeap.GetAddressOf())),
 	L"create depth stencil descriptor heap error!");
 }
-void Pipeline::CreateSwapChain()
+void Pipeline::CreateSwapChain(HWND windowHandle)
 {
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
 	swapChainDesc.BufferCount = 2;
@@ -86,4 +91,14 @@ void Pipeline::CreateSwapChain()
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0; // dx12에서는 swapchain생성시에 msaa를 지원하지 않는다.
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.Windowed = true;
+	swapChainDesc.OutputWindow = windowHandle;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+	IfError::Throw(mFactory->CreateSwapChain(mCommandQueue.Get(), &swapChainDesc, mSwapChain.GetAddressOf()),
+		L"create swap chain error!");
 }

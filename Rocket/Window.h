@@ -7,6 +7,7 @@ class Window
 public:
 	Window(HINSTANCE hInstance,const int& width,const int& height);
 	void Initialize();
+	HWND GetWindowHandle();
 
 private:
 	HINSTANCE mInstance;

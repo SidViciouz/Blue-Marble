@@ -14,12 +14,14 @@ public:
 private:
 	void CreateCommandObjects();
 	void CreateDescriptorHeaps();
-	void CreateSwapChain();
+	void CreateSwapChain(HWND windowHandle);
 
 	const int& mWidth;
 	const int& mHeight;
 
 	ComPtr<ID3D12Device> mDevice = nullptr;
+
+	ComPtr<IDXGIFactory4> mFactory = nullptr;
 
 	ComPtr<ID3D12Fence> mFence = nullptr;
 	UINT64 mFenceValue = 0;
@@ -43,5 +45,5 @@ private:
 	ComPtr<IDXGISwapChain> mSwapChain;
 
 public:
-	void Initialize();
+	void Initialize(HWND windowHandle);
 };
