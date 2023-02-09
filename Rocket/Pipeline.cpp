@@ -43,6 +43,7 @@ void Pipeline::Initialize(HWND windowHandle)
 	CreateSwapChain(windowHandle);
 
 	Model m("../Model/car.obj");
+
 }
 
 void Pipeline::CreateCommandObjects()
