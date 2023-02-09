@@ -1,4 +1,5 @@
 #include "Buffer.h"
+#include "d3dx12.h"
 
 Buffer::Buffer(ID3D12Device* device, int byteSize) // template에서는 declaration과 definition을 구분할 수 없다.
 {
@@ -36,7 +37,27 @@ Buffer::Buffer(ID3D12Device* device, int byteSize) // template에서는 declaration
 		L"create buffer error!");
 }
 
-void Buffer::Copy(const void* data, int byteSize)
+void Buffer::Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList)
 {
+	D3D12_SUBRESOURCE_DATA subresourceData = {};
+	subresourceData.pData = data;
+	subresourceData.RowPitch = byteSize;
+	subresourceData.SlicePitch = byteSize;
 
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Transition.pResource = mBuffer.Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+	commandList->ResourceBarrier(1, &barrier);
+
+	UpdateSubresources<1>(commandList, mBuffer.Get(), mUploadBuffer.Get(), 0, 0, 1, &subresourceData);
+
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
+
+	commandList->ResourceBarrier(1, &barrier);
 }

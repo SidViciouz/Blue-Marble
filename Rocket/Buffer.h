@@ -13,7 +13,7 @@ public:
 	Buffer& operator=(const Buffer& buffer) = delete;
 	Buffer& operator=(Buffer&& buffer) = delete;
 
-	void Copy(const void* data, int byteSize);
+	void Copy(const void* data, int byteSize,ID3D12GraphicsCommandList* commandList);
 
 private:
 	ComPtr<ID3D12Resource> mBuffer;

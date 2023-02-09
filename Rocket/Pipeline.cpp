@@ -42,8 +42,13 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	CreateSwapChain(windowHandle);
 
-	Model m(mDevice.Get(),"../Model/car.obj");
+	Model m(mDevice.Get(),"../Model/car.obj",mCommandList.Get());
+	
+	mCommandList->Close();
 
+	ID3D12CommandList* lists[] = { mCommandList.Get() };
+
+	mCommandQueue->ExecuteCommandLists(1,lists);
 }
 
 void Pipeline::CreateCommandObjects()

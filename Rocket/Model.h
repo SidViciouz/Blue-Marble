@@ -21,7 +21,7 @@ struct Vertex
 class Model
 {
 public:
-	Model(ID3D12Device* device,const char* fileName);
+	Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList);
 	Model(const Model& model) = delete;
 	Model(Model&& model) = delete;
 	Model& operator=(const Model& model) = delete;

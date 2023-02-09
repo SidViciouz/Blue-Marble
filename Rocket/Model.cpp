@@ -1,7 +1,7 @@
 #include "Model.h"
 #include "IfError.h"
 
-Model::Model(ID3D12Device* device,const char* fileName)
+Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList)
 {
 	char type[10];
 
@@ -71,6 +71,6 @@ Model::Model(ID3D12Device* device,const char* fileName)
 	mVertexBuffer = make_unique<Buffer>(device,sizeof(Vertex) * mVertices.size());
 	mIndexBuffer = make_unique<Buffer>(device, sizeof(uint16_t) * mIndices.size());
 
-	mVertexBuffer->Copy(mVertices.data(), sizeof(Vertex) * mVertices.size());
-	mIndexBuffer->Copy(mIndices.data(), sizeof(uint16_t) * mIndices.size());
+	mVertexBuffer->Copy(mVertices.data(), sizeof(Vertex) * mVertices.size(),commandList);
+	mIndexBuffer->Copy(mIndices.data(), sizeof(uint16_t) * mIndices.size(), commandList);
 }

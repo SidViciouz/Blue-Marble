@@ -38,7 +38,7 @@ private:
 	int mCurrentFrame = 0;
 
 	ComPtr<ID3D12CommandQueue> mCommandQueue;
-	ComPtr<ID3D12CommandList> mCommandList;
+	ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
 	ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 	ComPtr<ID3D12DescriptorHeap> mDsvHeap;
