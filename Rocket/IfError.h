@@ -11,6 +11,11 @@ struct IfError
 			throw IfError{ msg,hr };
 	}
 
+	static void Throw(std::wstring msg)
+	{
+		throw IfError{ msg,0 };
+	}
+
 	std::wstring errorMsg;
 	HRESULT errorCode;
 };

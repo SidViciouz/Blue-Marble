@@ -41,6 +41,8 @@ void Pipeline::Initialize(HWND windowHandle)
 	CreateDescriptorHeaps();
 
 	CreateSwapChain(windowHandle);
+
+	Model m("../Model/car.obj");
 }
 
 void Pipeline::CreateCommandObjects()

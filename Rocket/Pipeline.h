@@ -3,6 +3,7 @@
 #include "Util.h"
 #include "IfError.h"
 #include "Frame.h"
+#include "Model.h"
 
 using namespace Microsoft::WRL;
 using namespace std;
