@@ -42,7 +42,7 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	CreateSwapChain(windowHandle);
 
-	Model m("../Model/car.obj");
+	Model m(mDevice.Get(),"../Model/car.obj");
 
 }
 

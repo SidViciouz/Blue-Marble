@@ -5,6 +5,7 @@
 #include <vector>
 #include <DirectXMath.h>
 #include "Util.h"
+#include "Buffer.h"
 
 using namespace std;
 using namespace DirectX;
@@ -19,17 +20,17 @@ struct Vertex
 
 class Model
 {
-private:
-	vector<Vertex> mVertices;
-	ComPtr<ID3D12Resource> mVertexBuffer;
-	ComPtr<ID3D12Resource> mIndexBuffer;
-
 public:
-	Model(const char* fileName);
+	Model(ID3D12Device* device,const char* fileName);
 	Model(const Model& model) = delete;
 	Model(Model&& model) = delete;
 	Model& operator=(const Model& model) = delete;
 	Model& operator=(Model&& model) = delete;
 
 	void Draw();
+
+private:
+	vector<Vertex> mVertices;
+	unique_ptr<Buffer> mVertexBuffer;
+	unique_ptr<Buffer> mIndexBuffer;
 };

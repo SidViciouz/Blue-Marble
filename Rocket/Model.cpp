@@ -1,7 +1,7 @@
 #include "Model.h"
 #include "IfError.h"
 
-Model::Model(const char* fileName)
+Model::Model(ID3D12Device* device,const char* fileName)
 {
 	char type[10];
 
@@ -16,7 +16,7 @@ Model::Model(const char* fileName)
 	vector<XMFLOAT3> positions;
 	vector<XMFLOAT2> uvs;
 	vector<XMFLOAT3> normals;
-	
+
 	while (!ifs.eof())
 	{
 		ifs >> type;
@@ -64,4 +64,7 @@ Model::Model(const char* fileName)
 		}
 	}
 	ifs.close();
+
+	mVertexBuffer = make_unique<Buffer>(device);
+	mIndexBuffer = make_unique<Buffer>(device);
 }
