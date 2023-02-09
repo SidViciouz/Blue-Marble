@@ -16,6 +16,7 @@ Model::Model(ID3D12Device* device,const char* fileName)
 	vector<XMFLOAT3> positions;
 	vector<XMFLOAT2> uvs;
 	vector<XMFLOAT3> normals;
+	uint16_t j = 0;
 
 	while (!ifs.eof())
 	{
@@ -60,11 +61,16 @@ Model::Model(ID3D12Device* device,const char* fileName)
 				ss >> ni;
 
 				mVertices.push_back({ positions[vi - 1],uvs[uvi - 1],normals[ni - 1] });
+				mIndices.push_back(j);
+				++j;
 			}
 		}
 	}
 	ifs.close();
 
-	mVertexBuffer = make_unique<Buffer>(device);
-	mIndexBuffer = make_unique<Buffer>(device);
+	mVertexBuffer = make_unique<Buffer>(device,sizeof(Vertex) * mVertices.size());
+	mIndexBuffer = make_unique<Buffer>(device, sizeof(uint16_t) * mIndices.size());
+
+	mVertexBuffer->Copy(mVertices.data(), sizeof(Vertex) * mVertices.size());
+	mIndexBuffer->Copy(mIndices.data(), sizeof(uint16_t) * mIndices.size());
 }

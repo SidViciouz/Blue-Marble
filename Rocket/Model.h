@@ -31,6 +31,7 @@ public:
 
 private:
 	vector<Vertex> mVertices;
-	unique_ptr<Buffer> mVertexBuffer;
-	unique_ptr<Buffer> mIndexBuffer;
+	vector<uint16_t> mIndices;
+	unique_ptr<Buffer> mVertexBuffer = nullptr;
+	unique_ptr<Buffer> mIndexBuffer = nullptr;
 };
