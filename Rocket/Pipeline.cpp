@@ -43,7 +43,7 @@ void Pipeline::Initialize(HWND windowHandle)
 	CreateSwapChain(windowHandle);
 
 	//CommandList를 통해 버퍼에 업로드하는 command포함.
-	Model m(mDevice.Get(),"../Model/car.obj",mCommandList.Get());
+	LoadModel();
 	
 	CreateShaderAndRootSignature();
 
@@ -156,4 +156,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"create root signature error!");
 
 	mRootSignatures["default"] = move(rs);
+}
+
+void Pipeline::LoadModel()
+{
+	unique_ptr<Model> m = make_unique<Model>(mDevice.Get(), "../Model/car.obj", mCommandList.Get());
+	mModels["car"] = move(m);
 }

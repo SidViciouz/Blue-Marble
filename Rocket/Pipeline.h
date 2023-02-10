@@ -19,6 +19,7 @@ private:
 	void CreateDescriptorHeaps();
 	void CreateSwapChain(HWND windowHandle);
 	void CreateShaderAndRootSignature();
+	void LoadModel();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -47,6 +48,8 @@ private:
 	ComPtr<ID3D12DescriptorHeap> mDsvHeap;
 
 	ComPtr<IDXGISwapChain> mSwapChain;
+
+	unordered_map<string, unique_ptr<Model>> mModels;
 
 	unordered_map<string, ComPtr<ID3DBlob>> mShaders;
 
