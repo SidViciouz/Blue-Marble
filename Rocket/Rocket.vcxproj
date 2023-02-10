@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="Constant.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="IfError.h" />

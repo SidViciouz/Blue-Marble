@@ -1,4 +1,5 @@
 #include "Pipeline.h"
+#include "Constant.h"
 
 Pipeline::Pipeline(const int& width, const int& height):
 	mWidth(width), mHeight(height)
@@ -168,5 +169,6 @@ void Pipeline::LoadModel()
 
 void Pipeline::CreateConstantBuffer()
 {
-
+	mObjConstantBuffer = make_unique<UploadBuffer>(mDevice.Get(),sizeof(obj));
+	mTransConstantBuffer = make_unique<UploadBuffer>(mDevice.Get(),sizeof(trans));
 }

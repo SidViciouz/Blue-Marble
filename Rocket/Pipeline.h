@@ -56,6 +56,9 @@ private:
 
 	unordered_map<string,ComPtr<ID3D12RootSignature>> mRootSignatures;
 
+	unique_ptr<UploadBuffer> mObjConstantBuffer = nullptr;
+	unique_ptr<UploadBuffer> mTransConstantBuffer = nullptr;
+
 public:
 	void Initialize(HWND windowHandle);
 };

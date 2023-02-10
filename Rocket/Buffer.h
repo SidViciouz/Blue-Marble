@@ -12,8 +12,6 @@ public:
 	BufferInterface& operator=(const BufferInterface& buffer) = delete;
 	BufferInterface& operator=(BufferInterface&& buffer) = delete;
 
-	virtual void Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList) = 0;
-
 protected:
 	BufferInterface(ID3D12Device* device, int byteSize);
 
@@ -44,7 +42,7 @@ public:
 	Buffer& operator=(const Buffer& buffer) = delete;
 	Buffer& operator=(Buffer&& buffer) = delete;
 
-	virtual void Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList) override;
+	virtual void Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList);
 
 protected:
 	ComPtr<ID3D12Resource> mBuffer;
