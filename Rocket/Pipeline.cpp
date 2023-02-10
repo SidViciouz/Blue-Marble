@@ -42,9 +42,10 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	CreateSwapChain(windowHandle);
 
+	//CommandList를 통해 버퍼에 업로드하는 command포함.
 	Model m(mDevice.Get(),"../Model/car.obj",mCommandList.Get());
 	
-	CreateShader();
+	CreateShaderAndRootSignature();
 
 	mCommandList->Close();
 
@@ -113,12 +114,46 @@ void Pipeline::CreateSwapChain(HWND windowHandle)
 		L"create swap chain error!");
 }
 
-void Pipeline::CreateShader()
+void Pipeline::CreateShaderAndRootSignature()
 {
+	//shader compile.
 	ComPtr<ID3DBlob> blob = nullptr;
 	
 	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_0", 0, 0, &blob, nullptr),
 		L"compile shader error!");
 
 	mShaders["default"] = move(blob);
+	
+	//shader에 대응되는 root signature 생성.
+	ComPtr<ID3D12RootSignature> rs = nullptr;
+	
+	ComPtr<ID3DBlob> serialized;
+
+	D3D12_DESCRIPTOR_RANGE range;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	range.NumDescriptors = 2;
+	range.BaseShaderRegister = 0;
+	range.RegisterSpace = 0;
+	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	D3D12_ROOT_PARAMETER rootParameter[1];
+	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[0].DescriptorTable.pDescriptorRanges = &range;
+
+	D3D12_ROOT_SIGNATURE_DESC rsDesc = {};
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	rsDesc.NumParameters = 1;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.pStaticSamplers = nullptr;
+	rsDesc.pParameters = rootParameter;
+
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+
+	mRootSignatures["default"] = move(rs);
 }

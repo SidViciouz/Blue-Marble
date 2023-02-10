@@ -18,7 +18,7 @@ private:
 	void CreateCommandObjects();
 	void CreateDescriptorHeaps();
 	void CreateSwapChain(HWND windowHandle);
-	void CreateShader();
+	void CreateShaderAndRootSignature();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -49,6 +49,8 @@ private:
 	ComPtr<IDXGISwapChain> mSwapChain;
 
 	unordered_map<string, ComPtr<ID3DBlob>> mShaders;
+
+	unordered_map<string,ComPtr<ID3D12RootSignature>> mRootSignatures;
 
 public:
 	void Initialize(HWND windowHandle);
