@@ -4,6 +4,7 @@
 #include "IfError.h"
 #include "Frame.h"
 #include "Model.h"
+#include <map>
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -12,10 +13,12 @@ class Pipeline
 {
 public:
 	Pipeline(const int& width,const int& height);
+
 private:
 	void CreateCommandObjects();
 	void CreateDescriptorHeaps();
 	void CreateSwapChain(HWND windowHandle);
+	void CreateShader();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -44,6 +47,8 @@ private:
 	ComPtr<ID3D12DescriptorHeap> mDsvHeap;
 
 	ComPtr<IDXGISwapChain> mSwapChain;
+
+	unordered_map<string, ComPtr<ID3DBlob>> mShaders;
 
 public:
 	void Initialize(HWND windowHandle);

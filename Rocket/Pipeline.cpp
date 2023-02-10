@@ -44,6 +44,8 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	Model m(mDevice.Get(),"../Model/car.obj",mCommandList.Get());
 	
+	CreateShader();
+
 	mCommandList->Close();
 
 	ID3D12CommandList* lists[] = { mCommandList.Get() };
@@ -109,4 +111,14 @@ void Pipeline::CreateSwapChain(HWND windowHandle)
 
 	IfError::Throw(mFactory->CreateSwapChain(mCommandQueue.Get(), &swapChainDesc, mSwapChain.GetAddressOf()),
 		L"create swap chain error!");
+}
+
+void Pipeline::CreateShader()
+{
+	ComPtr<ID3DBlob> blob = nullptr;
+	
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_0", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+
+	mShaders["default"] = move(blob);
 }
