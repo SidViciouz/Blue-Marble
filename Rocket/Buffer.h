@@ -28,11 +28,11 @@ public:
 	UploadBuffer(UploadBuffer&& buffer) = delete;
 	UploadBuffer& operator=(const UploadBuffer& buffer) = delete;
 	UploadBuffer& operator=(UploadBuffer&& buffer) = delete;
-
-	virtual void Copy(const void* data, int byteSize,ID3D12GraphicsCommandList* commandList) override;
+	~UploadBuffer();
+	virtual void Copy(const void* data, int byteSize);
 
 protected:
-
+	BYTE* mMapped = nullptr;
 };
 
 class Buffer : public BufferInterface

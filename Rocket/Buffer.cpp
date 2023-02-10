@@ -32,12 +32,22 @@ BufferInterface::BufferInterface(ID3D12Device* device, int byteSize)
 UploadBuffer::UploadBuffer(ID3D12Device* device, int byteSize)
 	: BufferInterface(device,byteSize)
 {
-
+	mUploadBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMapped));
 }
 
-void UploadBuffer::Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList)
+UploadBuffer::~UploadBuffer()
 {
+	if (mUploadBuffer != nullptr)
+	{
+		mUploadBuffer->Unmap(0, nullptr);
+	}
 
+	mMapped = nullptr;
+}
+
+void UploadBuffer::Copy(const void* data, int byteSize)
+{
+	memcpy(mMapped, data, byteSize);
 }
 
 Buffer::Buffer(ID3D12Device* device, int byteSize) // template에서는 declaration과 definition을 구분할 수 없다.
