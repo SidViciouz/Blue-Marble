@@ -20,6 +20,7 @@ private:
 	void CreateSwapChain(HWND windowHandle);
 	void CreateShaderAndRootSignature();
 	void LoadModel();
+	void CreateConstantBuffer();
 
 	const int& mWidth;
 	const int& mHeight;

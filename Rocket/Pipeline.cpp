@@ -47,6 +47,8 @@ void Pipeline::Initialize(HWND windowHandle)
 	
 	CreateShaderAndRootSignature();
 
+	CreateConstantBuffer();
+
 	mCommandList->Close();
 
 	ID3D12CommandList* lists[] = { mCommandList.Get() };
@@ -162,4 +164,9 @@ void Pipeline::LoadModel()
 {
 	unique_ptr<Model> m = make_unique<Model>(mDevice.Get(), "../Model/car.obj", mCommandList.Get());
 	mModels["car"] = move(m);
+}
+
+void Pipeline::CreateConstantBuffer()
+{
+
 }
