@@ -20,7 +20,6 @@ private:
 	void CreateSwapChain(HWND windowHandle);
 	void CreateShaderAndRootSignature();
 	void LoadModel();
-	void CreateConstantBuffer();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -47,17 +46,15 @@ private:
 
 	ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 	ComPtr<ID3D12DescriptorHeap> mDsvHeap;
-
+	
 	ComPtr<IDXGISwapChain> mSwapChain;
+	ComPtr<ID3D12Resource> mDepthBuffer;
 
 	unordered_map<string, unique_ptr<Model>> mModels;
 
 	unordered_map<string, ComPtr<ID3DBlob>> mShaders;
 
 	unordered_map<string,ComPtr<ID3D12RootSignature>> mRootSignatures;
-
-	unique_ptr<UploadBuffer> mObjConstantBuffer = nullptr;
-	unique_ptr<UploadBuffer> mTransConstantBuffer = nullptr;
 
 public:
 	void Initialize(HWND windowHandle);

@@ -34,4 +34,6 @@ private:
 	vector<uint16_t> mIndices;
 	unique_ptr<Buffer> mVertexBuffer = nullptr;
 	unique_ptr<Buffer> mIndexBuffer = nullptr;
+
+	//world transform, obj constant buffer index를 가져야함.
 };

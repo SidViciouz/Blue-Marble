@@ -39,16 +39,14 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	CreateCommandObjects();
 
-	CreateDescriptorHeaps();
-
 	CreateSwapChain(windowHandle);
+	
+	CreateDescriptorHeaps();
 
 	//CommandList를 통해 버퍼에 업로드하는 command포함.
 	LoadModel();
 	
 	CreateShaderAndRootSignature();
-
-	CreateConstantBuffer();
 
 	mCommandList->Close();
 
@@ -132,22 +130,19 @@ void Pipeline::CreateShaderAndRootSignature()
 	
 	ComPtr<ID3DBlob> serialized;
 
-	D3D12_DESCRIPTOR_RANGE range;
-	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	range.NumDescriptors = 2;
-	range.BaseShaderRegister = 0;
-	range.RegisterSpace = 0;
-	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	D3D12_ROOT_PARAMETER rootParameter[1];
-	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	D3D12_ROOT_PARAMETER rootParameter[2];
+	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
-	rootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameter[0].DescriptorTable.pDescriptorRanges = &range;
+	rootParameter[0].Descriptor.RegisterSpace = 0;
+	rootParameter[0].Descriptor.ShaderRegister = 0;
+	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[1].Descriptor.RegisterSpace = 0;
+	rootParameter[1].Descriptor.ShaderRegister = 1;
 
 	D3D12_ROOT_SIGNATURE_DESC rsDesc = {};
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-	rsDesc.NumParameters = 1;
+	rsDesc.NumParameters = 2;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.pStaticSamplers = nullptr;
 	rsDesc.pParameters = rootParameter;
@@ -165,10 +160,4 @@ void Pipeline::LoadModel()
 {
 	unique_ptr<Model> m = make_unique<Model>(mDevice.Get(), "../Model/car.obj", mCommandList.Get());
 	mModels["car"] = move(m);
-}
-
-void Pipeline::CreateConstantBuffer()
-{
-	mObjConstantBuffer = make_unique<UploadBuffer>(mDevice.Get(),sizeof(obj));
-	mTransConstantBuffer = make_unique<UploadBuffer>(mDevice.Get(),sizeof(trans));
 }
