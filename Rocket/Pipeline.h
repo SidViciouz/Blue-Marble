@@ -16,6 +16,7 @@ public:
 
 private:
 	void CreateCommandObjects();
+	void CreateBackBuffersAndDepthBufferAndViews();
 	void CreateDescriptorHeaps();
 	void CreateSwapChain(HWND windowHandle);
 	void CreateShaderAndRootSignature();
@@ -48,6 +49,8 @@ private:
 	ComPtr<ID3D12DescriptorHeap> mDsvHeap;
 	
 	ComPtr<IDXGISwapChain> mSwapChain;
+	int mCurrentBackBuffer = 0;
+	ComPtr<ID3D12Resource> mBackBuffers[2];
 	ComPtr<ID3D12Resource> mDepthBuffer;
 
 	unordered_map<string, unique_ptr<Model>> mModels;
