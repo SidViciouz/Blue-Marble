@@ -23,5 +23,9 @@ void Game::Run()
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		else
+		{
+			
+		}
 	}
 }
