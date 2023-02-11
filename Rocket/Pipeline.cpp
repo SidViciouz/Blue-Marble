@@ -45,9 +45,6 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	CreateBackBuffersAndDepthBufferAndViews();
 
-	//CommandList를 통해 버퍼에 업로드하는 command포함.
-	LoadModel();
-	
 	CreateShaderAndRootSignature();
 
 	mCommandList->Close();
@@ -55,6 +52,16 @@ void Pipeline::Initialize(HWND windowHandle)
 	ID3D12CommandList* lists[] = { mCommandList.Get() };
 
 	mCommandQueue->ExecuteCommandLists(1,lists);
+}
+
+ID3D12Device* Pipeline::GetDevice()
+{
+	return mDevice.Get();
+}
+
+ID3D12GraphicsCommandList* Pipeline::GetCommandList()
+{
+	return mCommandList.Get();
 }
 
 void Pipeline::CreateCommandObjects()
@@ -218,10 +225,4 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"create root signature error!");
 
 	mRootSignatures["default"] = move(rs);
-}
-
-void Pipeline::LoadModel()
-{
-	unique_ptr<Model> m = make_unique<Model>(mDevice.Get(), "../Model/car.obj", mCommandList.Get());
-	mModels["car"] = move(m);
 }

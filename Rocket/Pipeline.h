@@ -3,8 +3,6 @@
 #include "Util.h"
 #include "IfError.h"
 #include "Frame.h"
-#include "Model.h"
-#include <map>
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -13,6 +11,9 @@ class Pipeline
 {
 public:
 	Pipeline(const int& width,const int& height);
+	void Initialize(HWND windowHandle);
+	ID3D12Device* GetDevice();
+	ID3D12GraphicsCommandList* GetCommandList();
 
 private:
 	void CreateCommandObjects();
@@ -20,7 +21,6 @@ private:
 	void CreateDescriptorHeaps();
 	void CreateSwapChain(HWND windowHandle);
 	void CreateShaderAndRootSignature();
-	void LoadModel();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -53,12 +53,7 @@ private:
 	ComPtr<ID3D12Resource> mBackBuffers[2];
 	ComPtr<ID3D12Resource> mDepthBuffer;
 
-	unordered_map<string, unique_ptr<Model>> mModels;
-
 	unordered_map<string, ComPtr<ID3DBlob>> mShaders;
 
 	unordered_map<string,ComPtr<ID3D12RootSignature>> mRootSignatures;
-
-public:
-	void Initialize(HWND windowHandle);
 };

@@ -2,6 +2,8 @@
 #include "framework.h"
 #include "Window.h"
 #include "Pipeline.h"
+#include "Model.h"
+#include <map>
 
 class Game
 {
@@ -15,6 +17,7 @@ public:
 	Game(HINSTANCE hInstance);
 	void Initialize();
 	void Run();
+	void LoadModel();
 
 	//game 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
@@ -22,4 +25,8 @@ private:
 	Pipeline mDirectX;
 	int mWidth = 800;
 	int mHeight = 600;
+	unique_ptr<Buffer> mVertexBuffer = nullptr;
+	unique_ptr<Buffer> mIndexBuffer = nullptr;
+	unordered_map<string, unique_ptr<Model>> mModels;
+	
 };
