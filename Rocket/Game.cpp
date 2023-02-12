@@ -1,7 +1,7 @@
 #include "Game.h"
 
 Game::Game(HINSTANCE hInstance)
-	: mWindow(hInstance,mWidth,mHeight), mDirectX(mWidth,mHeight), mCamera(make_unique<Camera>())
+	: mWindow(hInstance,mWidth,mHeight), mDirectX(mWidth,mHeight), mCamera(make_unique<Camera>(mWidth,mHeight))
 {
 
 }
@@ -68,7 +68,7 @@ void Game::CreateVertexIndexBuffer()
 
 void Game::Update()
 {
-
+	
 }
 
 void Game::Draw()
