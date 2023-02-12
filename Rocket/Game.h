@@ -26,6 +26,8 @@ public:
 private:
 	void LoadModel();
 	void CreateVertexIndexBuffer();
+	void Update();
+	void Draw();
 
 	Window mWindow;
 

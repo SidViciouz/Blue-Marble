@@ -1,22 +1,24 @@
 #include "Game.h"
 
 Game::Game(HINSTANCE hInstance)
-	: mWindow(hInstance,mWidth,mHeight), mDirectX(mWidth,mHeight)
+	: mWindow(hInstance,mWidth,mHeight), mDirectX(mWidth,mHeight), mCamera(make_unique<Camera>())
 {
 
 }
 
 void Game::Initialize()
 {
+	//윈도우 초기화
 	mWindow.Initialize();
+
+	//DirectX 객체들 초기화 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
 	mDirectX.Initialize(mWindow.GetWindowHandle());
 	
+	//모델 로드 (버텍스, 인덱스)
 	LoadModel();
 
 	//버퍼 생성, 모델 데이터 카피
 	CreateVertexIndexBuffer();
-
-
 }
 
 void Game::Run()
@@ -32,7 +34,9 @@ void Game::Run()
 		}
 		else
 		{
-			
+			//Timer를 추가해야함.
+			Update();
+			Draw();
 		}
 	}
 }
@@ -60,4 +64,14 @@ void Game::CreateVertexIndexBuffer()
 	//vertex buffer와 index buffer에 값을 차곡차곡 쌓을 수 있도록 수정해야함. 아마 Copy함수도 수정해야할 듯.
 	mVertexBuffer->Copy(mModels["car"]->mVertices.data(), sizeof(Vertex) * vertexSize, mDirectX.GetCommandList());
 	mIndexBuffer->Copy(mModels["car"]->mIndices.data(), sizeof(uint16_t) * indexSize, mDirectX.GetCommandList());
+}
+
+void Game::Update()
+{
+
+}
+
+void Game::Draw()
+{
+
 }
