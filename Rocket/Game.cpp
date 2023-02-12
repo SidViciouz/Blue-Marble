@@ -68,7 +68,25 @@ void Game::CreateVertexIndexBuffer()
 
 void Game::Update()
 {
-	
+	//Model의 position으로부터 world, Camera의 데이터로부터 view와 projection matrix를 설정한다.
+
+	//model의 world matrix를 업데이트
+	for (auto it = mModels.begin(); it != mModels.end(); it++)
+	{
+		XMFLOAT3 pos = it->second->mPosition;
+		XMMATRIX world = XMMatrixTranslation(pos.x, pos.y, pos.z);
+		XMStoreFloat4x4(&it->second->mWorld, world);
+	}
+
+	XMVECTOR eye = XMLoadFloat3(&mCamera->mPosition);
+	XMVECTOR lookAt = XMLoadFloat3(&mCamera->mLookAt);
+	XMVECTOR up = XMLoadFloat3(&mCamera->mUp);
+
+	XMMATRIX view = XMMatrixLookAtLH(eye,lookAt,up);
+
+	XMMATRIX projection = XMMatrixPerspectiveFovLH(mCamera->mAngle, mCamera->mRatio, mCamera->mNear, mCamera->mFar);
+
+	XMStoreFloat4x4(&mCamera->mViewProjection,XMMatrixMultiply(view, projection));
 }
 
 void Game::Draw()

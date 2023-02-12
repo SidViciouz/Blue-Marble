@@ -33,4 +33,10 @@ public:
 	vector<uint16_t> mIndices;
 
 	//world transform, obj constant buffer index를 가져야함.
+	XMFLOAT3 mPosition = { 0.0f,0.0f,0.0f };
+	XMFLOAT4X4 mWorld = {1.0f,0.0f,0.0f,0.0f,
+						0.0f,1.0f,0.0f,0.0f,
+						0.0f,0.0f,1.0f,0.0f,
+						0.0f,0.0f,0.0f,1.0f
+	};
 };

@@ -16,5 +16,12 @@ public:
 	float mNear;
 	float mFar;
 	float mAngle;
-	float ratio;
+	float mRatio;
+
+	XMFLOAT4X4 mViewProjection ={
+						1.0f,0.0f,0.0f,0.0f,
+						0.0f,1.0f,0.0f,0.0f,
+						0.0f,0.0f,1.0f,0.0f,
+						0.0f,0.0f,0.0f,1.0f
+	};
 };
