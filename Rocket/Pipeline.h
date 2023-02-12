@@ -26,6 +26,7 @@ private:
 	void CreateDescriptorHeaps();
 	void CreateSwapChain(HWND windowHandle);
 	void CreateShaderAndRootSignature();
+	void CreatePso();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -61,4 +62,6 @@ private:
 	unordered_map<string, ComPtr<ID3DBlob>> mShaders;
 
 	unordered_map<string,ComPtr<ID3D12RootSignature>> mRootSignatures;
+
+	unordered_map<string, ComPtr< ID3D12PipelineState>> mPSOs;
 };

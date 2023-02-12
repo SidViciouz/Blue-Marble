@@ -47,6 +47,7 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	CreateShaderAndRootSignature();
 	
+	CreatePso();
 }
 
 ID3D12Device* Pipeline::GetDevice()
@@ -234,12 +235,19 @@ void Pipeline::CreateSwapChain(HWND windowHandle)
 void Pipeline::CreateShaderAndRootSignature()
 {
 	//shader compile.
-	ComPtr<ID3DBlob> blob = nullptr;
+	ComPtr<ID3DBlob> blobVS = nullptr;
 	
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_0", 0, 0, &blob, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_0", 0, 0, &blobVS, nullptr),
 		L"compile shader error!");
 
-	mShaders["default"] = move(blob);
+	mShaders["defaultVS"] = move(blobVS);
+
+	ComPtr<ID3DBlob> blobPS = nullptr;
+
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "PS", "ps_5_0", 0, 0, &blobPS, nullptr),
+		L"compile shader error!");
+
+	mShaders["defaultPS"] = move(blobPS);
 	
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
@@ -270,4 +278,81 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"create root signature error!");
 
 	mRootSignatures["default"] = move(rs);
+}
+
+void Pipeline::CreatePso()
+{
+	ComPtr<ID3D12PipelineState> pso;
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+
+	D3D12_INPUT_ELEMENT_DESC inputElements[3];
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,16,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[2] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,28,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+
+	psoDesc.InputLayout.NumElements = 3;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+
+	psoDesc.pRootSignature = mRootSignatures["default"].Get();
+
+	psoDesc.VS.pShaderBytecode = mShaders["defaultVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["defaultVS"]->GetBufferSize();
+
+	psoDesc.PS.pShaderBytecode = mShaders["defaultPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["defaultPS"]->GetBufferSize();
+
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
+	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+	psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+	psoDesc.RasterizerState.SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+	psoDesc.RasterizerState.DepthClipEnable = TRUE;
+	psoDesc.RasterizerState.MultisampleEnable = FALSE;
+	psoDesc.RasterizerState.AntialiasedLineEnable = FALSE;
+	psoDesc.RasterizerState.ForcedSampleCount = 0;
+	psoDesc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+
+	psoDesc.BlendState.AlphaToCoverageEnable = FALSE;
+	psoDesc.BlendState.IndependentBlendEnable = FALSE;
+	const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc =
+	{
+		FALSE,FALSE,
+		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+		D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+		D3D12_LOGIC_OP_NOOP,
+		D3D12_COLOR_WRITE_ENABLE_ALL,
+	};
+	for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+		psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
+
+	psoDesc.DepthStencilState.DepthEnable = TRUE;
+	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.DepthStencilState.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+	psoDesc.DepthStencilState.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
+	const D3D12_DEPTH_STENCILOP_DESC defaultStencilOp =
+	{ D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS };
+	psoDesc.DepthStencilState.FrontFace = defaultStencilOp;
+	psoDesc.DepthStencilState.BackFace = defaultStencilOp;
+
+	psoDesc.SampleMask = UINT_MAX;
+	
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+	psoDesc.NumRenderTargets = 1;
+
+	psoDesc.RTVFormats[0] = mBackBufferFormat;
+
+	psoDesc.SampleDesc.Count = 1;
+	psoDesc.SampleDesc.Quality = 0;
+
+	psoDesc.DSVFormat = mDepthStencilBufferFormat;
+
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc,IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+
+	mPSOs["default"] = move(pso);
 }
