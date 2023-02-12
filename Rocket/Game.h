@@ -5,6 +5,7 @@
 #include "Model.h"
 #include <map>
 #include "Camera.h"
+#include "Constant.h"
 
 class Game
 {

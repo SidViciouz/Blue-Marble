@@ -45,9 +45,10 @@ UploadBuffer::~UploadBuffer()
 	mMapped = nullptr;
 }
 
-void UploadBuffer::Copy(const void* data, int byteSize)
+void UploadBuffer::Copy(int index,const void* data, int byteSize)
 {
-	memcpy(mMapped, data, byteSize);
+	//같은 크기의 객체들이 계속 입력될 것이라는 가정하에 [index*byteSize]주소에 값을 넣는다.
+	memcpy(&mMapped[index*byteSize], data, byteSize);
 }
 
 Buffer::Buffer(ID3D12Device* device, int byteSize) // template에서는 declaration과 definition을 구분할 수 없다.

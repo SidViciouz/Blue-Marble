@@ -69,6 +69,45 @@ void Pipeline::CloseAndExecute()
 	mCommandQueue->ExecuteCommandLists(1, lists);
 }
 
+void Pipeline::Update()
+{
+	mCurrentFrame = (mCurrentFrame + 1) % mNumberOfFrames;
+
+	auto currentFrame = mFrames[mCurrentFrame].get();
+
+	if (mFence->GetCompletedValue() < currentFrame->mFenceValue)
+	{
+		HANDLE event = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+		IfError::Throw(mFence->SetEventOnCompletion(currentFrame->mFenceValue, event),
+			L"set event on completion error!");
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
+}
+
+void Pipeline::Draw()
+{
+	IfError::Throw(mFrames[mCurrentFrame]->Get()->Reset(),
+		L"frame command allocator reset error!");
+
+	//PSO 필요
+	//mCommandList->Reset(mFrames[mCurrentFrame]->Get(), );
+
+	//Viewports, ScissorRects 필요
+
+
+	
+}
+
+void Pipeline::SetObjConstantBuffer(int index, const void* data, int byteSize)
+{
+	mFrames[mCurrentFrame]->mObjConstantBuffer->Copy(index, data, byteSize);
+}
+
+void Pipeline::SetTransConstantBuffer(int index, const void* data, int byteSize)
+{
+	mFrames[mCurrentFrame]->mTransConstantBuffer->Copy(index, data, byteSize);
+}
 
 void Pipeline::CreateCommandObjects()
 {

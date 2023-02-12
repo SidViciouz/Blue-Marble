@@ -12,12 +12,12 @@ struct VertexIn
 	float2 tex : TEXTURE;
 };
 
-cbuffer obj : register(b1)
+cbuffer obj : register(b0)
 {
 	float4x4 world;
 }
 
-cbuffer trans : register(b2)
+cbuffer trans : register(b1)
 {
 	float4x4 viewProjection;
 }

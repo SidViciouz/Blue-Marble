@@ -27,7 +27,7 @@ public:
 	UploadBuffer& operator=(const UploadBuffer& buffer) = delete;
 	UploadBuffer& operator=(UploadBuffer&& buffer) = delete;
 	~UploadBuffer();
-	virtual void Copy(const void* data, int byteSize);
+	virtual void Copy(int index,const void* data, int byteSize);
 
 protected:
 	BYTE* mMapped = nullptr;

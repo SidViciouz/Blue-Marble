@@ -70,6 +70,9 @@ void Game::CreateVertexIndexBuffer()
 
 void Game::Update()
 {
+	//현재 프레임이 gpu에서 전부 draw되지 않았을 시 기다리고, 완료된 경우에는 다음 frame으로 넘어가는 역할.
+	mDirectX.Update();
+
 	//Model의 position으로부터 world, Camera의 데이터로부터 view와 projection matrix를 설정한다.
 
 	//model의 world matrix를 업데이트
@@ -89,9 +92,18 @@ void Game::Update()
 	XMMATRIX projection = XMMatrixPerspectiveFovLH(mCamera->mAngle, mCamera->mRatio, mCamera->mNear, mCamera->mFar);
 
 	XMStoreFloat4x4(&mCamera->mViewProjection,XMMatrixMultiply(view, projection));
+
+	//constant buffer update, 모델별로 인덱스 추가해서 그것을 사용해야함.
+	mDirectX.SetObjConstantBuffer(0, &mModels["car"]->mWorld, sizeof(obj));
+
+	mDirectX.SetTransConstantBuffer(0, &mCamera->mViewProjection, sizeof(obj));
 }
 
 void Game::Draw()
 {
-	
+	mDirectX.Draw();
+
+	//vertex buffer, index buffer 바인딩.
+
+	//mDirectX.CloseAndExecute();
 }

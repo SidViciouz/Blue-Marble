@@ -32,11 +32,15 @@ public:
 	vector<Vertex> mVertices;
 	vector<uint16_t> mIndices;
 
-	//world transform, obj constant buffer index를 가져야함.
 	XMFLOAT3 mPosition = { 0.0f,0.0f,0.0f };
+
+	//struct obj로 바꿔야함.
 	XMFLOAT4X4 mWorld = {1.0f,0.0f,0.0f,0.0f,
 						0.0f,1.0f,0.0f,0.0f,
 						0.0f,0.0f,1.0f,0.0f,
 						0.0f,0.0f,0.0f,1.0f
 	};
+
+
+	//obj constant buffer index를 가져야함.
 };

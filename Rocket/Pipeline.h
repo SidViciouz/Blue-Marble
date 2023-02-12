@@ -15,6 +15,10 @@ public:
 	ID3D12Device* GetDevice();
 	ID3D12GraphicsCommandList* GetCommandList();
 	void CloseAndExecute();
+	void Update(); // current frame 값을 업데이트.
+	void Draw();
+	void SetObjConstantBuffer(int index, const void* data, int byteSize);
+	void SetTransConstantBuffer(int index, const void* data, int byteSize);
 
 private:
 	void CreateCommandObjects();
