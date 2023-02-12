@@ -46,12 +46,7 @@ void Pipeline::Initialize(HWND windowHandle)
 	CreateBackBuffersAndDepthBufferAndViews();
 
 	CreateShaderAndRootSignature();
-
-	mCommandList->Close();
-
-	ID3D12CommandList* lists[] = { mCommandList.Get() };
-
-	mCommandQueue->ExecuteCommandLists(1,lists);
+	
 }
 
 ID3D12Device* Pipeline::GetDevice()
@@ -63,6 +58,17 @@ ID3D12GraphicsCommandList* Pipeline::GetCommandList()
 {
 	return mCommandList.Get();
 }
+
+void Pipeline::CloseAndExecute()
+{
+	IfError::Throw(mCommandList->Close(),
+		L"command list close error!");
+
+	ID3D12CommandList* lists[] = { mCommandList.Get() };
+
+	mCommandQueue->ExecuteCommandLists(1, lists);
+}
+
 
 void Pipeline::CreateCommandObjects()
 {

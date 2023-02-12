@@ -14,6 +14,7 @@ public:
 	void Initialize(HWND windowHandle);
 	ID3D12Device* GetDevice();
 	ID3D12GraphicsCommandList* GetCommandList();
+	void CloseAndExecute();
 
 private:
 	void CreateCommandObjects();

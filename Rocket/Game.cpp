@@ -17,8 +17,10 @@ void Game::Initialize()
 	//모델 로드 (버텍스, 인덱스)
 	LoadModel();
 
-	//버퍼 생성, 모델 데이터 카피
+	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	CreateVertexIndexBuffer();
+
+	mDirectX.CloseAndExecute();
 }
 
 void Game::Run()
@@ -91,5 +93,5 @@ void Game::Update()
 
 void Game::Draw()
 {
-
+	
 }
