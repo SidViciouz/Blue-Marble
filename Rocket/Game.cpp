@@ -45,7 +45,7 @@ void Game::Run()
 
 void Game::LoadModel()
 {
-	unique_ptr<Model> m = make_unique<Model>(mDirectX.GetDevice(), "../Model/car.obj", mDirectX.GetCommandList());
+	unique_ptr<Model> m = make_unique<Model>(mDirectX.GetDevice(), "../Model/Wood_Table.obj", mDirectX.GetCommandList());
 	mModels["car"] = move(m);
 }
 
@@ -83,9 +83,9 @@ void Game::Update()
 		XMStoreFloat4x4(&it->second->mWorld, world);
 	}
 
-	XMVECTOR eye = XMLoadFloat3(&mCamera->mPosition);
-	XMVECTOR lookAt = XMLoadFloat3(&mCamera->mLookAt);
-	XMVECTOR up = XMLoadFloat3(&mCamera->mUp);
+	XMVECTOR eye = XMVectorSet(mCamera->mPosition.x, mCamera->mPosition.y, mCamera->mPosition.z,1.0f);
+	XMVECTOR lookAt = XMVectorSet(mCamera->mLookAt.x, mCamera->mLookAt.y, mCamera->mLookAt.z,0.0f);
+	XMVECTOR up = XMVectorSet(mCamera->mUp.x, mCamera->mUp.y, mCamera->mUp.z,0.0f);
 
 	XMMATRIX view = XMMatrixLookAtLH(eye,lookAt,up);
 

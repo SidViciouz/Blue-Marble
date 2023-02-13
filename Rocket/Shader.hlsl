@@ -7,7 +7,7 @@ struct VertexOut
 
 struct VertexIn
 {
-	float4 pos : POSITION;
+	float3 pos : POSITION;
 	float3 normal : NORMAL;
 	float2 tex : TEXTURE;
 };
@@ -26,7 +26,7 @@ VertexOut VS(VertexIn vin)
 {
 	VertexOut vout;
 	
-	float4 posW = mul(vin.pos, world);
+	float4 posW = mul(float4(vin.pos,1.0f), world);
 
 	//homogeneous clip space로 ps에 보내야함.(SV_POSITION semantic으로 지정된 값)
 	vout.pos = mul(posW, viewProjection);

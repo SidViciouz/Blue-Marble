@@ -337,9 +337,9 @@ void Pipeline::CreatePso()
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
 	D3D12_INPUT_ELEMENT_DESC inputElements[3];
-	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	inputElements[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,16,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	inputElements[2] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,28,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,12,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[2] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,24,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
 
 	psoDesc.InputLayout.NumElements = 3;
 	psoDesc.InputLayout.pInputElementDescs = inputElements;
@@ -352,7 +352,7 @@ void Pipeline::CreatePso()
 	psoDesc.PS.pShaderBytecode = mShaders["defaultPS"]->GetBufferPointer();
 	psoDesc.PS.BytecodeLength = mShaders["defaultPS"]->GetBufferSize();
 
-	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
 	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;

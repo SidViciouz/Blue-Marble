@@ -3,7 +3,7 @@
 
 Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList)
 {
-	char type[10];
+	char type[30];
 
 	ifstream ifs;
 	ifs.open(fileName,ios_base::in);

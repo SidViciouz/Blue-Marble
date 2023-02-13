@@ -2,10 +2,11 @@
 
 Camera::Camera(int width,int height)
 {
-	mPosition = { 0.0f,10.0f,-20.0f };
+	
+	mPosition = { 0.0f,0.0f,-5.0f };
 	mUp = { 0.0f,1.0f,0.0f };
 	mLookAt = { 0.0f,0.0f,0.0f };
-
+	
 	mNear = 1.0f;
 	mFar = 1000.0f;
 	mAngle = XMConvertToRadians(45.0f);
