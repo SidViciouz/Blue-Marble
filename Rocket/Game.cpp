@@ -20,7 +20,7 @@ void Game::Initialize()
 	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	CreateVertexIndexBuffer();
 
-	mDirectX.CloseAndExecute();
+	//mDirectX.CloseAndExecute();
 }
 
 void Game::Run()
@@ -103,7 +103,27 @@ void Game::Draw()
 {
 	mDirectX.Draw();
 
-	//vertex buffer, index buffer 바인딩.
+	D3D12_VERTEX_BUFFER_VIEW vbv = {};
+	vbv.BufferLocation = mVertexBuffer->GetGpuAddress();
+	vbv.StrideInBytes = sizeof(Vertex);
+	vbv.SizeInBytes = sizeof(Vertex)*mModels["car"]->mVertices.size();
 
-	//mDirectX.CloseAndExecute();
+	D3D12_INDEX_BUFFER_VIEW ibv = {};
+	ibv.BufferLocation = mIndexBuffer->GetGpuAddress();
+	ibv.Format = DXGI_FORMAT_R16_UINT;
+	ibv.SizeInBytes = sizeof(uint16_t)*mModels["car"]->mIndices.size();
+
+	//vertex buffer, index buffer 바인딩.
+	ID3D12GraphicsCommandList* cmdList = mDirectX.GetCommandList();
+
+	cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	cmdList->IASetVertexBuffers(0, 1, &vbv);
+	cmdList->IASetIndexBuffer(&ibv);
+
+	cmdList->DrawIndexedInstanced(mModels["car"]->mIndices.size(), 1, 0, 0, 0);
+
+	mDirectX.TransitionToPresent();
+	mDirectX.CloseAndExecute();
+
+	mDirectX.DrawFinish();
 }

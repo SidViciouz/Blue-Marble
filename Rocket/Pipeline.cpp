@@ -48,6 +48,8 @@ void Pipeline::Initialize(HWND windowHandle)
 	CreateShaderAndRootSignature();
 	
 	CreatePso();
+
+	SetViewportAndScissor();
 }
 
 ID3D12Device* Pipeline::GetDevice()
@@ -76,7 +78,7 @@ void Pipeline::Update()
 
 	auto currentFrame = mFrames[mCurrentFrame].get();
 
-	if (mFence->GetCompletedValue() < currentFrame->mFenceValue)
+	if (currentFrame->mFenceValue != 0 && mFence->GetCompletedValue() < currentFrame->mFenceValue)
 	{
 		HANDLE event = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
 		IfError::Throw(mFence->SetEventOnCompletion(currentFrame->mFenceValue, event),
@@ -88,16 +90,39 @@ void Pipeline::Update()
 
 void Pipeline::Draw()
 {
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.pResource = mBackBuffers[mCurrentBackBuffer].Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
 	IfError::Throw(mFrames[mCurrentFrame]->Get()->Reset(),
 		L"frame command allocator reset error!");
 
-	//PSO 필요
-	//mCommandList->Reset(mFrames[mCurrentFrame]->Get(), );
-
-	//Viewports, ScissorRects 필요
-
-
+	mCommandList->Reset(mFrames[mCurrentFrame]->Get(),mPSOs["default"].Get());
 	
+	mCommandList->RSSetScissorRects(1, &mScissor);
+	mCommandList->RSSetViewports(1, &mViewport);
+
+	mCommandList->ResourceBarrier(1, &barrier);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+	rtvHandle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * mCurrentBackBuffer;
+	float rgba[4] = { 0.0f,0.1f,0.0f,1.0f };
+	mCommandList->ClearRenderTargetView(rtvHandle,rgba, 0, nullptr);
+	mCommandList->ClearDepthStencilView(dsvHandle,
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+	mCommandList->OMSetRenderTargets(1, &rtvHandle, true, &dsvHandle);
+	
+	mCommandList->SetGraphicsRootSignature(mRootSignatures["default"].Get());
+
+	mCommandList->SetGraphicsRootConstantBufferView(1,mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
+
+	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress());
 }
 
 void Pipeline::SetObjConstantBuffer(int index, const void* data, int byteSize)
@@ -108,6 +133,31 @@ void Pipeline::SetObjConstantBuffer(int index, const void* data, int byteSize)
 void Pipeline::SetTransConstantBuffer(int index, const void* data, int byteSize)
 {
 	mFrames[mCurrentFrame]->mTransConstantBuffer->Copy(index, data, byteSize);
+}
+
+void Pipeline::TransitionToPresent()
+{
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.pResource = mBackBuffers[mCurrentBackBuffer].Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+
+	mCommandList->ResourceBarrier(1, &barrier);
+}
+
+void Pipeline::DrawFinish()
+{
+	IfError::Throw(mSwapChain->Present(0, 0),
+		L"swap chain present error!");
+
+	mCurrentBackBuffer = (mCurrentBackBuffer + 1) % 2;
+
+	mFrames[mCurrentFrame]->mFenceValue = ++mFenceValue;
+
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
 }
 
 void Pipeline::CreateCommandObjects()
@@ -355,4 +405,19 @@ void Pipeline::CreatePso()
 		L"create graphics pso error!");
 
 	mPSOs["default"] = move(pso);
+}
+
+void Pipeline::SetViewportAndScissor()
+{
+	mViewport.TopLeftX = 0;
+	mViewport.TopLeftY = 0;
+	mViewport.Width = static_cast<float>(mWidth);
+	mViewport.Height = static_cast<float>(mHeight);
+	mViewport.MinDepth = 0.0f;
+	mViewport.MaxDepth = 1.0f;
+
+	mScissor.left = 0;
+	mScissor.top = 0;
+	mScissor.right = mWidth;
+	mScissor.bottom = mHeight;
 }

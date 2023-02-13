@@ -51,6 +51,11 @@ void UploadBuffer::Copy(int index,const void* data, int byteSize)
 	memcpy(&mMapped[index*byteSize], data, byteSize);
 }
 
+D3D12_GPU_VIRTUAL_ADDRESS UploadBuffer::GetGpuAddress()
+{
+	return mUploadBuffer->GetGPUVirtualAddress();
+}
+
 Buffer::Buffer(ID3D12Device* device, int byteSize) // template에서는 declaration과 definition을 구분할 수 없다.
 	: BufferInterface(device, byteSize)
 {
@@ -104,4 +109,9 @@ void Buffer::Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* com
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
 
 	commandList->ResourceBarrier(1, &barrier);
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS Buffer::GetGpuAddress()
+{
+	return mBuffer->GetGPUVirtualAddress();
 }

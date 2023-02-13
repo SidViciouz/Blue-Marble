@@ -11,6 +11,12 @@ public:
 	BufferInterface(BufferInterface&& buffer) = delete;
 	BufferInterface& operator=(const BufferInterface& buffer) = delete;
 	BufferInterface& operator=(BufferInterface&& buffer) = delete;
+	static UINT ConstantBufferByteSize(UINT byteSize)
+	{
+		return (byteSize + 255) & ~255;
+	}
+	virtual D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() = 0;
+
 
 protected:
 	BufferInterface(ID3D12Device* device, int byteSize);
@@ -27,8 +33,9 @@ public:
 	UploadBuffer& operator=(const UploadBuffer& buffer) = delete;
 	UploadBuffer& operator=(UploadBuffer&& buffer) = delete;
 	~UploadBuffer();
-	virtual void Copy(int index,const void* data, int byteSize);
 
+	virtual void Copy(int index,const void* data, int byteSize);
+	virtual D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() override;
 protected:
 	BYTE* mMapped = nullptr;
 };
@@ -43,7 +50,8 @@ public:
 	Buffer& operator=(Buffer&& buffer) = delete;
 
 	virtual void Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList);
-
+	virtual D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() override;
 protected:
 	ComPtr<ID3D12Resource> mBuffer;
 };
+

@@ -19,6 +19,8 @@ public:
 	void Draw();
 	void SetObjConstantBuffer(int index, const void* data, int byteSize);
 	void SetTransConstantBuffer(int index, const void* data, int byteSize);
+	void TransitionToPresent();
+	void DrawFinish();
 
 private:
 	void CreateCommandObjects();
@@ -27,6 +29,7 @@ private:
 	void CreateSwapChain(HWND windowHandle);
 	void CreateShaderAndRootSignature();
 	void CreatePso();
+	void SetViewportAndScissor();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -64,4 +67,8 @@ private:
 	unordered_map<string,ComPtr<ID3D12RootSignature>> mRootSignatures;
 
 	unordered_map<string, ComPtr< ID3D12PipelineState>> mPSOs;
+
+	D3D12_VIEWPORT mViewport;
+
+	D3D12_RECT mScissor;
 };
