@@ -352,7 +352,7 @@ void Pipeline::CreatePso()
 	psoDesc.PS.pShaderBytecode = mShaders["defaultPS"]->GetBufferPointer();
 	psoDesc.PS.BytecodeLength = mShaders["defaultPS"]->GetBufferSize();
 
-	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
 	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;

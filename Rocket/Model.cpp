@@ -60,7 +60,20 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 				ss.ignore();
 				ss >> ni;
 
-				mVertices.push_back({ positions[vi - 1],uvs[uvi - 1],normals[ni - 1] });
+				XMFLOAT3 position = { 0.0f,0.0f,0.0f };
+				XMFLOAT2 uv = { 0.0f,0.0f };
+				XMFLOAT3 normal = { 0.0f,0.0f,0.0f };
+
+				if (uvs.size() >= uvi)
+					uv = uvs[uvi - 1];
+
+				if (normals.size() >= ni)
+					normal = normals[ni - 1];
+
+				if (positions.size() >= vi)
+					position = positions[vi - 1];
+				
+				mVertices.push_back({ position,uv,normal});
 				mIndices.push_back(j);
 				++j;
 			}

@@ -45,8 +45,11 @@ void Game::Run()
 
 void Game::LoadModel()
 {
-	unique_ptr<Model> m = make_unique<Model>(mDirectX.GetDevice(), "../Model/Wood_Table.obj", mDirectX.GetCommandList());
-	mModels["car"] = move(m);
+	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList());
+	mModels["table"] = move(table);
+
+	unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList());
+	mModels["house"] = move(house);
 }
 
 void Game::CreateVertexIndexBuffer()
@@ -64,8 +67,8 @@ void Game::CreateVertexIndexBuffer()
 
 	//Vertex, Index 버퍼에 Model 데이터 copy
 	//vertex buffer와 index buffer에 값을 차곡차곡 쌓을 수 있도록 수정해야함. 아마 Copy함수도 수정해야할 듯.
-	mVertexBuffer->Copy(mModels["car"]->mVertices.data(), sizeof(Vertex) * vertexSize, mDirectX.GetCommandList());
-	mIndexBuffer->Copy(mModels["car"]->mIndices.data(), sizeof(uint16_t) * indexSize, mDirectX.GetCommandList());
+	mVertexBuffer->Copy(mModels["table"]->mVertices.data(), sizeof(Vertex) * mModels["table"]->mVertices.size(), mDirectX.GetCommandList());
+	mIndexBuffer->Copy(mModels["table"]->mIndices.data(), sizeof(uint16_t) * mModels["table"]->mIndices.size(), mDirectX.GetCommandList());
 }
 
 void Game::Update()
@@ -94,7 +97,7 @@ void Game::Update()
 	XMStoreFloat4x4(&mCamera->mViewProjection,XMMatrixMultiply(view, projection));
 
 	//constant buffer update, 모델별로 인덱스 추가해서 그것을 사용해야함.
-	mDirectX.SetObjConstantBuffer(0, &mModels["car"]->mWorld, sizeof(obj));
+	mDirectX.SetObjConstantBuffer(0, &mModels["table"]->mWorld, sizeof(obj));
 
 	mDirectX.SetTransConstantBuffer(0, &mCamera->mViewProjection, sizeof(obj));
 }
@@ -106,12 +109,12 @@ void Game::Draw()
 	D3D12_VERTEX_BUFFER_VIEW vbv = {};
 	vbv.BufferLocation = mVertexBuffer->GetGpuAddress();
 	vbv.StrideInBytes = sizeof(Vertex);
-	vbv.SizeInBytes = sizeof(Vertex)*mModels["car"]->mVertices.size();
+	vbv.SizeInBytes = sizeof(Vertex)*mModels["table"]->mVertices.size();
 
 	D3D12_INDEX_BUFFER_VIEW ibv = {};
 	ibv.BufferLocation = mIndexBuffer->GetGpuAddress();
 	ibv.Format = DXGI_FORMAT_R16_UINT;
-	ibv.SizeInBytes = sizeof(uint16_t)*mModels["car"]->mIndices.size();
+	ibv.SizeInBytes = sizeof(uint16_t)*mModels["table"]->mIndices.size();
 
 	//vertex buffer, index buffer 바인딩.
 	ID3D12GraphicsCommandList* cmdList = mDirectX.GetCommandList();
@@ -120,7 +123,7 @@ void Game::Draw()
 	cmdList->IASetVertexBuffers(0, 1, &vbv);
 	cmdList->IASetIndexBuffer(&ibv);
 
-	cmdList->DrawIndexedInstanced(mModels["car"]->mIndices.size(), 1, 0, 0, 0);
+	cmdList->DrawIndexedInstanced(mModels["table"]->mIndices.size(), 1, 0, 0, 0);
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();
