@@ -1,7 +1,7 @@
 #include "Model.h"
 #include "IfError.h"
 
-string getToken(string& aLine, bool isFirst);
+string getToken(string& aLine, bool isFirst); 
 int getNumber(string& aWord, bool isFirst);
 
 Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList)
@@ -93,6 +93,9 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 	//ofs.close();
 }
 
+// string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환
+// 입력 문자열의 시작부터 token을 반환하려면 isFirst = true를 입력
+// 토큰을 반환한 적 있고, 그 다음부터 이어서 반환하려면 isFirst = false를 입력한다.
 string getToken(string& aLine,bool isFirst)
 {
 	static int startPosition = 0;
@@ -121,6 +124,9 @@ string getToken(string& aLine,bool isFirst)
 	return aLine.substr(start,length);
 }
 
+// a/b/c와 같은 형태에서 '/'전까지 반환 끝이라면 " "를 반환
+// 입력 문자열의 시작부터 token을 반환하려면 isFirst = true를 입력
+// 토큰을 반환한 적 있고, 그 다음부터 이어서 반환하려면 isFirst = false를 입력한다.
 int getNumber(string& aWord, bool isFirst)
 {
 	static int startPosition = 0;
