@@ -36,6 +36,7 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 		}
 		else if (strcmp(type, "vt") == 0) // uv texture coordinate
 		{
+			//텍스처 좌표 반대로 저장해야함. y = 1-y
 			ifs >> x >> y;
 			uvs.push_back({ x,y });
 		}
@@ -46,6 +47,7 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 		}
 		else if (strcmp(type, "f") == 0) // face indices (position/uv/normal)
 		{
+			//face 가 점 4개로 구성된 경우도 있음. 이를 처리해야함.
 			for (int i = 0; i < 3; ++i)
 			{
 				string temp;

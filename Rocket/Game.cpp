@@ -45,11 +45,11 @@ void Game::Run()
 
 void Game::LoadModel()
 {
-	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList());
+	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/box.obj", mDirectX.GetCommandList());
 	mModels["table"] = move(table);
 
-	unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList());
-	mModels["house"] = move(house);
+	//unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList());
+	//mModels["house"] = move(house);
 }
 
 void Game::CreateVertexIndexBuffer()
