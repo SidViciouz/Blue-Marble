@@ -48,7 +48,7 @@ UploadBuffer::~UploadBuffer()
 void UploadBuffer::Copy(int index,const void* data, int byteSize)
 {
 	//같은 크기의 객체들이 계속 입력될 것이라는 가정하에 [index*byteSize]주소에 값을 넣는다.
-	memcpy(&mMapped[index*byteSize], data, byteSize);
+	memcpy(&mMapped[index*BufferInterface::ConstantBufferByteSize(byteSize)], data, byteSize);
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS UploadBuffer::GetGpuAddress()

@@ -20,12 +20,13 @@ void Game::Initialize()
 	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	CreateVertexIndexBuffer();
 
-	//mDirectX.CloseAndExecute();
+	mTimer.Reset();
 }
 
 void Game::Run()
 {
 	MSG msg = { 0 };
+
 
 	while (msg.message != WM_QUIT)
 	{
@@ -36,7 +37,7 @@ void Game::Run()
 		}
 		else
 		{
-			//Timer를 추가해야함.
+			mTimer.Tick();
 			Update();
 			Draw();
 		}
@@ -101,7 +102,7 @@ void Game::Update()
 
 	int i = 0;
 	for (auto model = mModels.begin(); model != mModels.end(); model++,++i)
-		mDirectX.SetObjConstantBuffer(i, &model->second->mWorld, BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		mDirectX.SetObjConstantBuffer(i, &model->second->mWorld, sizeof(obj));
 	
 	mDirectX.SetTransConstantBuffer(0, &mCamera->mViewProjection, sizeof(obj));
 }

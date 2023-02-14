@@ -6,6 +6,7 @@
 #include <map>
 #include "Camera.h"
 #include "Constant.h"
+#include "Timer.h"
 
 class Game
 {
@@ -29,6 +30,8 @@ private:
 	void CreateVertexIndexBuffer();
 	void Update();
 	void Draw();
+
+	Timer mTimer;
 
 	Window mWindow;
 
