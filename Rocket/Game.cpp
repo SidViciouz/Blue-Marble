@@ -45,7 +45,7 @@ void Game::Run()
 
 void Game::LoadModel()
 {
-	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/box.obj", mDirectX.GetCommandList());
+	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/Wood_Table.obj", mDirectX.GetCommandList());
 	mModels["table"] = move(table);
 
 	//unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList());
