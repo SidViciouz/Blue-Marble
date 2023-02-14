@@ -121,8 +121,6 @@ void Pipeline::Draw()
 	mCommandList->SetGraphicsRootSignature(mRootSignatures["default"].Get());
 
 	mCommandList->SetGraphicsRootConstantBufferView(1,mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
-
-	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress());
 }
 
 void Pipeline::SetObjConstantBuffer(int index, const void* data, int byteSize)
@@ -158,6 +156,12 @@ void Pipeline::DrawFinish()
 	mFrames[mCurrentFrame]->mFenceValue = ++mFenceValue;
 
 	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+}
+
+void Pipeline::SetObjConstantIndex(int index)
+{
+	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		+ index * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 }
 
 void Pipeline::CreateCommandObjects()

@@ -21,6 +21,7 @@ public:
 	void SetTransConstantBuffer(int index, const void* data, int byteSize);
 	void TransitionToPresent();
 	void DrawFinish();
+	void SetObjConstantIndex(int index);
 
 private:
 	void CreateCommandObjects();
