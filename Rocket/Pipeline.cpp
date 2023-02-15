@@ -292,14 +292,14 @@ void Pipeline::CreateShaderAndRootSignature()
 	//shader compile.
 	ComPtr<ID3DBlob> blobVS = nullptr;
 	
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_0", 0, 0, &blobVS, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blobVS, nullptr),
 		L"compile shader error!");
 
 	mShaders["defaultVS"] = move(blobVS);
 
 	ComPtr<ID3DBlob> blobPS = nullptr;
 
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "PS", "ps_5_0", 0, 0, &blobPS, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blobPS, nullptr),
 		L"compile shader error!");
 
 	mShaders["defaultPS"] = move(blobPS);
@@ -343,8 +343,8 @@ void Pipeline::CreatePso()
 
 	D3D12_INPUT_ELEMENT_DESC inputElements[3];
 	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	inputElements[1] = { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT,12,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	inputElements[2] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,24,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "TEXTURE", 0, DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
 
 	psoDesc.InputLayout.NumElements = 3;
 	psoDesc.InputLayout.pInputElementDescs = inputElements;
@@ -357,7 +357,7 @@ void Pipeline::CreatePso()
 	psoDesc.PS.pShaderBytecode = mShaders["defaultPS"]->GetBufferPointer();
 	psoDesc.PS.BytecodeLength = mShaders["defaultPS"]->GetBufferSize();
 	
-	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
 	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;

@@ -11,20 +11,22 @@ struct Light
 struct VertexOut
 {
 	float4 pos : SV_POSITION;
-	float3 normal : NORMAL;
 	float2 tex : TEXTURE;
+	float3 normal : NORMAL;
 };
 
 struct VertexIn
 {
 	float3 pos : POSITION;
-	float3 normal : NORMAL;
 	float2 tex : TEXTURE;
+	float3 normal : NORMAL;
 };
 
 cbuffer obj : register(b0)
 {
 	float4x4 world;
+	float3 diffuseAlbedo;
+	int pad1;
 }
 
 cbuffer trans : register(b1)
@@ -45,7 +47,7 @@ VertexOut VS(VertexIn vin)
 
 	//non uniform scaling이라고 가정했을때 world matrix를 곱한다. 그렇지 않은 경우에는 inverse-transpose를 이용해야함.
 	//빛 계산에 이용할 것이므로 world space로 변환
-	vout.normal = mul(vin.normal, (float3x3)world);
+	vout.normal = mul(vin.normal,transpose((float3x3)world));
 	
 	//uv좌표계
 	vout.tex = vin.tex;
@@ -55,6 +57,9 @@ VertexOut VS(VertexIn vin)
 
 float4 PS(VertexOut pin) : SV_Target
 {
-	return float4(lights[2].color,1.0f);
-	return float4(0.5f,0.5f,0.5f,1.0f);
+	//normal vector 정규화를 해야하나?
+	float3 L = normalize(lights[0].position - pin.pos);
+	float factor = max(dot(L, pin.normal),0.0f);
+
+	return float4(factor*lights[0].color*diffuseAlbedo,1.0f);
 }

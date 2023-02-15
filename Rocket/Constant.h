@@ -7,6 +7,8 @@ using namespace DirectX;
 struct obj
 {
 	XMFLOAT4X4 world;
+	XMFLOAT3 diffuseAlbedo;
+	int pad1;
 };
 
 struct trans
