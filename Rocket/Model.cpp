@@ -16,7 +16,6 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 		IfError::Throw(L"model file open error!");
 
 	float x, y, z;
-	unsigned int vi, uvi, ni;
 	vector<XMFLOAT3> positions;
 	vector<XMFLOAT2> uvs;
 	vector<XMFLOAT3> normals;

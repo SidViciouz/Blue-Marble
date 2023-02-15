@@ -53,7 +53,7 @@ void Game::LoadModel()
 	mModels["triangle"] = move(house);
 
 	unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList());
-	mModels["WoodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
+	mModels["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
 }
 
 void Game::CreateVertexIndexBuffer()
@@ -84,7 +84,7 @@ void Game::Update()
 	for (auto it = mModels.begin(); it != mModels.end(); it++)
 	{
 		XMFLOAT3 pos = it->second->mPosition;
-		XMMATRIX world = XMMatrixScaling(0.3f,0.3f,0.3f)* XMMatrixTranslation(pos.x, pos.y, pos.z);
+		XMMATRIX world = XMMatrixScaling(0.5f,0.5f,0.5f)*XMMatrixTranslation(pos.x, pos.y, pos.z);
 		XMStoreFloat4x4(&it->second->mWorld, world);
 	}
 
@@ -104,7 +104,17 @@ void Game::Update()
 	for (auto model = mModels.begin(); model != mModels.end(); model++,++i)
 		mDirectX.SetObjConstantBuffer(i, &model->second->mWorld, sizeof(obj));
 	
-	mDirectX.SetTransConstantBuffer(0, &mCamera->mViewProjection, sizeof(obj));
+	trans env = {};
+	env.viewProjection = mCamera->mViewProjection;
+	env.lights[0].mPosition = {1.0f,0.0f,0.0f};
+	env.lights[0].mDirection = { -1.0f,0.0f,0.0f };
+	env.lights[1].mPosition = { 0.0f,1.0f,0.0f };
+	env.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
+	env.lights[2].mPosition = { 0.0f,0.0f,-1.0f };
+	env.lights[2].mDirection = { 0.0f,0.0f,1.0f };
+	env.lights[2].mColor = { 0.3f,0.5f,0.7f };
+	//mDirectX.SetTransConstantBuffer(0, &mCamera->mViewProjection, sizeof(trans));
+	mDirectX.SetTransConstantBuffer(0, &env, sizeof(trans));
 }
 
 void Game::Draw()
