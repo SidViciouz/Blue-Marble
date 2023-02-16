@@ -13,7 +13,8 @@ public:
 
 	XMFLOAT3 mPosition;
 	XMFLOAT3 mUp;
-	XMFLOAT3 mLookAt;
+	XMFLOAT3 mFront;
+	XMFLOAT3 mRight;
 
 	float mNear;
 	float mFar;

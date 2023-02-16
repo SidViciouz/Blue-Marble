@@ -3,9 +3,10 @@
 Camera::Camera(int width,int height)
 {
 	
-	mPosition = { 5.0f,3.0f,-5.0f };
+	mPosition = { 3.0f,3.0f,-5.0f };
 	mUp = { 0.0f,1.0f,0.0f };
-	mLookAt = { 0.0f,0.0f,0.0f };
+	mFront = { 0.0f,0.0f,1.0f };
+	mRight = { 1.0f,0.0f,0.0f };
 	
 	mNear = 1.0f;
 	mFar = 1000.0f;
@@ -20,14 +21,16 @@ void Camera::Resize(int width, int height)
 
 void Camera::GoFront(float a)
 {
-	XMFLOAT3 look = { 0.0f,0.0f,1.0f };
 	XMVECTOR d = XMVectorReplicate(a);
-	XMVECTOR l = XMLoadFloat3(&look);
+	XMVECTOR l = XMLoadFloat3(&mFront);
 	XMVECTOR p = XMLoadFloat3(&mPosition);
 	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(d, l, p));
 }
 
 void Camera::GoRight(float a)
 {
-
+	XMVECTOR d = XMVectorReplicate(a);
+	XMVECTOR l = XMLoadFloat3(&mRight);
+	XMVECTOR p = XMLoadFloat3(&mPosition);
+	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(d, l, p));
 }

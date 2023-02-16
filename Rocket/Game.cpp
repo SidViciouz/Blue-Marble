@@ -52,6 +52,21 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	//다음과 같은 카메라 움직임 업데이트는 버벅임이 생긴다.
+	/*
+	switch (msg)
+	{
+	case WM_KEYDOWN :
+		if(wParam == 0x57)
+			mCamera->GoFront(10.0f * mTimer.GetDeltaTime());
+		else if(wParam == 0x53)
+			mCamera->GoFront(-10.0f * mTimer.GetDeltaTime());
+		else if (wParam == 0x41)
+			mCamera->GoRight(-10.0f*mTimer.GetDeltaTime());
+		else if(wParam == 0x44)
+			mCamera->GoRight(10.0f * mTimer.GetDeltaTime());
+	}
+	*/
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
@@ -144,11 +159,30 @@ void Game::Update()
 		XMStoreFloat4x4(&it->second->mWorld, world);
 	}
 
-	XMVECTOR eye = XMVectorSet(mCamera->mPosition.x, mCamera->mPosition.y, mCamera->mPosition.z,1.0f);
-	XMVECTOR lookAt = XMVectorSet(mCamera->mLookAt.x, mCamera->mLookAt.y, mCamera->mLookAt.z,0.0f);
-	XMVECTOR up = XMVectorSet(mCamera->mUp.x, mCamera->mUp.y, mCamera->mUp.z,0.0f);
+	XMVECTOR right = XMLoadFloat3(&mCamera->mRight);
+	XMVECTOR up = XMLoadFloat3(&mCamera->mUp);
+	XMVECTOR front = XMVector3Normalize(XMLoadFloat3(&mCamera->mFront));
+	XMVECTOR position = XMLoadFloat3(&mCamera->mPosition);
 
-	XMMATRIX view = XMMatrixLookAtLH(eye,lookAt,up);
+	up = XMVector3Normalize(XMVector3Cross(front, right));
+	right = XMVector3Cross(up, front);
+
+	XMStoreFloat3(&mCamera->mRight, right);
+	XMStoreFloat3(&mCamera->mUp, up);
+	XMStoreFloat3(&mCamera->mFront,front);
+
+	float x = -XMVectorGetX(XMVector3Dot(position, right));
+	float y = -XMVectorGetX(XMVector3Dot(position, up));
+	float z = -XMVectorGetX(XMVector3Dot(position, front));
+
+	XMFLOAT4X4 viewMatrix = {
+		mCamera->mRight.x, mCamera->mUp.x, mCamera->mFront.x, 0.0f,
+		mCamera->mRight.y, mCamera->mUp.y, mCamera->mFront.y, 0.0f,
+		mCamera->mRight.z, mCamera->mUp.z, mCamera->mFront.z, 0.0f,
+		x,y,z,1.0f
+	};
+
+	XMMATRIX view = XMLoadFloat4x4(&viewMatrix);
 
 	XMMATRIX projection = XMMatrixPerspectiveFovLH(mCamera->mAngle, mCamera->mRatio, mCamera->mNear, mCamera->mFar);
 
@@ -230,4 +264,10 @@ void Game::Input()
 
 	if (GetAsyncKeyState('S') & 0x8000)
 		mCamera->GoFront(-10.0f * deltaTime);
+
+	if (GetAsyncKeyState('D') & 0x8000)
+		mCamera->GoRight(10.0f * deltaTime);
+
+	if (GetAsyncKeyState('A') & 0x8000)
+		mCamera->GoRight(-10.0f * deltaTime);
 }
