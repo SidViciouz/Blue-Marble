@@ -45,12 +45,15 @@ public:
 	int mIndexBufferSize = 0;
 	int mVertexBufferOffset = 0;
 	int mIndexBufferOffset = 0;
+	
+	int mObjConstantIndex = mNextObjConstantIndex++;
 
 	static unique_ptr<Buffer> mVertexBuffer;
 	static unique_ptr<Buffer> mIndexBuffer;
 
-	static vector<Vertex> allVertices;
-	static vector<uint16_t> allIndices;
+	static vector<Vertex> mAllVertices;
+	static vector<uint16_t> mAllIndices;
 
+	static int mNextObjConstantIndex;
 	//obj constant buffer index를 가져야함.
 };

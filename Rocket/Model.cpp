@@ -88,11 +88,11 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 	mVertexBufferSize = mVertices.size();
 	mIndexBufferSize = mIndices.size();
 
-	mVertexBufferOffset = allVertices.size();
-	mIndexBufferOffset = allIndices.size();
+	mVertexBufferOffset = mAllVertices.size();
+	mIndexBufferOffset = mAllIndices.size();
 
-	allVertices.insert(allVertices.end(), mVertices.begin(), mVertices.end());
-	allIndices.insert(allIndices.end(), mIndices.begin(), mIndices.end());
+	mAllVertices.insert(mAllVertices.end(), mVertices.begin(), mVertices.end());
+	mAllIndices.insert(mAllIndices.end(), mIndices.begin(), mIndices.end());
 }
 
 // string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환
@@ -153,8 +153,10 @@ int getNumber(string& aWord, bool isFirst)
 	return stoi(numberString);
 }
 
-unique_ptr<Buffer> Model::mVertexBuffer = nullptr;
-unique_ptr<Buffer> Model::mIndexBuffer = nullptr;
+unique_ptr<Buffer> Model::mVertexBuffer;
+unique_ptr<Buffer> Model::mIndexBuffer;
 
-vector<Vertex> Model::allVertices;
-vector<uint16_t> Model::allIndices;
+vector<Vertex> Model::mAllVertices;
+vector<uint16_t> Model::mAllIndices;
+
+int Model::mNextObjConstantIndex = 0;

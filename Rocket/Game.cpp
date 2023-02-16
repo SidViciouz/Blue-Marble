@@ -128,12 +128,12 @@ void Game::CreateVertexIndexBuffer()
 {
 
 	//Vertex, Index 버퍼 생성
-	Model::mVertexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(Vertex) * Model::allVertices.size());
-	Model::mIndexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(uint16_t) * Model::allIndices.size());
+	Model::mVertexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(Vertex) * Model::mAllVertices.size());
+	Model::mIndexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(uint16_t) * Model::mAllIndices.size());
 
 	//Vertex, Index 버퍼에 Model 데이터 copy
-	Model::mVertexBuffer->Copy(Model::allVertices.data(), sizeof(Vertex) * Model::allVertices.size(), mDirectX.GetCommandList());
-	Model::mIndexBuffer->Copy(Model::allIndices.data(), sizeof(uint16_t) * Model::allIndices.size(), mDirectX.GetCommandList());
+	Model::mVertexBuffer->Copy(Model::mAllVertices.data(), sizeof(Vertex) * Model::mAllVertices.size(), mDirectX.GetCommandList());
+	Model::mIndexBuffer->Copy(Model::mAllIndices.data(), sizeof(uint16_t) * Model::mAllIndices.size(), mDirectX.GetCommandList());
 }
 
 void Game::Update()
@@ -191,7 +191,7 @@ void Game::Update()
 		objFeature.diffuseAlbedo = { 0.7f,0.9f,0.75f };
 		objFeature.roughness = 0.3f;
 		objFeature.fresnel = { 0.1f,0.1f,0.1f };
-		mDirectX.SetObjConstantBuffer(i, &objFeature, sizeof(obj));
+		mDirectX.SetObjConstantBuffer(model->second->mObjConstantIndex, &objFeature, sizeof(obj));
 	}
 	
 	trans env = {};
@@ -218,12 +218,12 @@ void Game::Draw()
 	D3D12_VERTEX_BUFFER_VIEW vbv = {};
 	vbv.BufferLocation = Model::mVertexBuffer->GetGpuAddress();
 	vbv.StrideInBytes = sizeof(Vertex);
-	vbv.SizeInBytes = sizeof(Vertex)*Model::allVertices.size();
+	vbv.SizeInBytes = sizeof(Vertex)*Model::mAllVertices.size();
 
 	D3D12_INDEX_BUFFER_VIEW ibv = {};
 	ibv.BufferLocation = Model::mIndexBuffer->GetGpuAddress();
 	ibv.Format = DXGI_FORMAT_R16_UINT;
-	ibv.SizeInBytes = sizeof(uint16_t)* Model::allIndices.size();
+	ibv.SizeInBytes = sizeof(uint16_t)* Model::mAllIndices.size();
 
 	//vertex buffer, index buffer 바인딩.
 	ID3D12GraphicsCommandList* cmdList = mDirectX.GetCommandList();
@@ -237,7 +237,7 @@ void Game::Draw()
 	for (auto model = mModels.begin(); model != mModels.end(); model++, ++i)
 	{
 		//모델마다 obj constant index 멤버변수를 만들어야함.
-		mDirectX.SetObjConstantIndex(i);
+		mDirectX.SetObjConstantIndex(model->second->mObjConstantIndex);
 		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 
