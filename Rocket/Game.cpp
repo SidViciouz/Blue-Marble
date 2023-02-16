@@ -126,20 +126,14 @@ void Game::LoadModel()
 
 void Game::CreateVertexIndexBuffer()
 {
-	//make_move_iterator로 바꿔서 move해야 성능이 올라감.
-	for (auto model = mModels.begin(); model != mModels.end(); model++)
-	{
-		allVertices.insert(allVertices.end(), model->second->mVertices.begin(), model->second->mVertices.end());
-		allIndices.insert(allIndices.end(), model->second->mIndices.begin(), model->second->mIndices.end());
-	}
 
 	//Vertex, Index 버퍼 생성
-	mVertexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(Vertex) * allVertices.size());
-	mIndexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(uint16_t) * allIndices.size());
+	Model::mVertexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(Vertex) * Model::allVertices.size());
+	Model::mIndexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(uint16_t) * Model::allIndices.size());
 
 	//Vertex, Index 버퍼에 Model 데이터 copy
-	mVertexBuffer->Copy(allVertices.data(), sizeof(Vertex) * allVertices.size(), mDirectX.GetCommandList());
-	mIndexBuffer->Copy(allIndices.data(), sizeof(uint16_t) * allIndices.size(), mDirectX.GetCommandList());
+	Model::mVertexBuffer->Copy(Model::allVertices.data(), sizeof(Vertex) * Model::allVertices.size(), mDirectX.GetCommandList());
+	Model::mIndexBuffer->Copy(Model::allIndices.data(), sizeof(uint16_t) * Model::allIndices.size(), mDirectX.GetCommandList());
 }
 
 void Game::Update()
@@ -222,14 +216,14 @@ void Game::Draw()
 	mDirectX.Draw();
  
 	D3D12_VERTEX_BUFFER_VIEW vbv = {};
-	vbv.BufferLocation = mVertexBuffer->GetGpuAddress();
+	vbv.BufferLocation = Model::mVertexBuffer->GetGpuAddress();
 	vbv.StrideInBytes = sizeof(Vertex);
-	vbv.SizeInBytes = sizeof(Vertex)*allVertices.size();
+	vbv.SizeInBytes = sizeof(Vertex)*Model::allVertices.size();
 
 	D3D12_INDEX_BUFFER_VIEW ibv = {};
-	ibv.BufferLocation = mIndexBuffer->GetGpuAddress();
+	ibv.BufferLocation = Model::mIndexBuffer->GetGpuAddress();
 	ibv.Format = DXGI_FORMAT_R16_UINT;
-	ibv.SizeInBytes = sizeof(uint16_t)*allIndices.size();
+	ibv.SizeInBytes = sizeof(uint16_t)* Model::allIndices.size();
 
 	//vertex buffer, index buffer 바인딩.
 	ID3D12GraphicsCommandList* cmdList = mDirectX.GetCommandList();
@@ -238,15 +232,13 @@ void Game::Draw()
 	cmdList->IASetVertexBuffers(0, 1, &vbv);
 	cmdList->IASetIndexBuffer(&ibv);
 
-	int baseIndex = 0;
-	int baseVertex = 0;
+
 	int i = 0;
 	for (auto model = mModels.begin(); model != mModels.end(); model++, ++i)
 	{
+		//모델마다 obj constant index 멤버변수를 만들어야함.
 		mDirectX.SetObjConstantIndex(i);
-		cmdList->DrawIndexedInstanced(model->second->mIndices.size(), 1, baseIndex, baseVertex, 0);
-		baseIndex += model->second->mIndices.size();
-		baseVertex += model->second->mVertices.size();
+		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 
 	mDirectX.TransitionToPresent();

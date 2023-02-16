@@ -50,12 +50,6 @@ private:
 	int mWidth = 800;
 	int mHeight = 600;
 
-	unique_ptr<Buffer> mVertexBuffer = nullptr;
-	unique_ptr<Buffer> mIndexBuffer = nullptr;
-
-	vector<Vertex> allVertices;
-	vector<uint16_t> allIndices;
-
 	unordered_map<string, unique_ptr<Model>> mModels;
 	
 	unique_ptr<Camera> mCamera = nullptr;

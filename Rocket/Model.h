@@ -41,6 +41,16 @@ public:
 						0.0f,0.0f,0.0f,1.0f
 	};
 
+	int mVertexBufferSize = 0;
+	int mIndexBufferSize = 0;
+	int mVertexBufferOffset = 0;
+	int mIndexBufferOffset = 0;
+
+	static unique_ptr<Buffer> mVertexBuffer;
+	static unique_ptr<Buffer> mIndexBuffer;
+
+	static vector<Vertex> allVertices;
+	static vector<uint16_t> allIndices;
 
 	//obj constant buffer index를 가져야함.
 };

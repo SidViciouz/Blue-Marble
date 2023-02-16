@@ -9,9 +9,6 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 	ifstream ifs;
 	ifs.open(fileName,ios_base::in);
 
-	//ofstream ofs;
-	//ofs.open("test.txt", ios_base::out);
-
 	if (ifs.fail())
 		IfError::Throw(L"model file open error!");
 
@@ -84,12 +81,18 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 				
 			}
 		}
-
-		//ofs << "\n";
 	}
 
 	ifs.close();
-	//ofs.close();
+
+	mVertexBufferSize = mVertices.size();
+	mIndexBufferSize = mIndices.size();
+
+	mVertexBufferOffset = allVertices.size();
+	mIndexBufferOffset = allIndices.size();
+
+	allVertices.insert(allVertices.end(), mVertices.begin(), mVertices.end());
+	allIndices.insert(allIndices.end(), mIndices.begin(), mIndices.end());
 }
 
 // string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환
@@ -149,3 +152,9 @@ int getNumber(string& aWord, bool isFirst)
 
 	return stoi(numberString);
 }
+
+unique_ptr<Buffer> Model::mVertexBuffer = nullptr;
+unique_ptr<Buffer> Model::mIndexBuffer = nullptr;
+
+vector<Vertex> Model::allVertices;
+vector<uint16_t> Model::allIndices;
