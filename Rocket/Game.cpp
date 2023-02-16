@@ -52,6 +52,29 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	switch(msg)
+	{
+		//움직임을 메세지로 처리하지 않고 GetAsyncKeyState에서 처리하는 게 더 효율적인가?
+	case WM_KEYDOWN:
+		if (wParam == 0x57) // w key
+		{
+
+		}
+		else if (wParam == 0x53) // s key
+		{
+
+		}
+		else if (wParam == 0x41) // a key
+		{
+
+		}
+		else if (wParam == 0x44) // d key
+		{
+
+		}
+		return 0;
+	}
+
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
