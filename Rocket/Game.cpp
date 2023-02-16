@@ -104,7 +104,9 @@ void Game::Update()
 	for (auto model = mModels.begin(); model != mModels.end(); model++, ++i) {
 		obj objFeature = {};
 		objFeature.world = model->second->mWorld;
-		objFeature.diffuseAlbedo = { 1.0f,0.36f,0.27f };
+		objFeature.diffuseAlbedo = { 0.7f,0.9f,0.75f };
+		objFeature.roughness = 0.3f;
+		objFeature.fresnel = { 0.1f,0.1f,0.1f };
 		mDirectX.SetObjConstantBuffer(i, &objFeature, sizeof(obj));
 	}
 	
@@ -113,10 +115,14 @@ void Game::Update()
 	env.lights[0].mPosition = {10.0f,10.0f,-15.0f};
 	env.lights[0].mDirection = { 1.0f,-1.0f,0.0f };
 	env.lights[0].mColor = { 1.0f,1.0f,1.0f };
-	env.lights[1].mPosition = { 0.0f,1.0f,0.0f };
-	env.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
+	env.lights[0].mType = Directional;
+	env.lights[1].mPosition = { 10.0f,10.0f,-15.0f };
+	env.lights[1].mDirection = { 1.0f,-1.0f,0.0f };
+	env.lights[1].mColor = { 1.0f,1.0f,1.0f };
+	env.lights[1].mType = Point;
 	env.lights[2].mPosition = { 0.0f,0.0f,-1.0f };
 	env.lights[2].mDirection = { 0.0f,0.0f,1.0f };
+	env.cameraPosition = mCamera->mPosition;
 	//mDirectX.SetTransConstantBuffer(0, &mCamera->mViewProjection, sizeof(trans));
 	mDirectX.SetTransConstantBuffer(0, &env, sizeof(trans));
 }
