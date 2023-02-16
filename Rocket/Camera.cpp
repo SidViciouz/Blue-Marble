@@ -20,7 +20,11 @@ void Camera::Resize(int width, int height)
 
 void Camera::GoFront(float a)
 {
-
+	XMFLOAT3 look = { 0.0f,0.0f,1.0f };
+	XMVECTOR d = XMVectorReplicate(a);
+	XMVECTOR l = XMLoadFloat3(&look);
+	XMVECTOR p = XMLoadFloat3(&mPosition);
+	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(d, l, p));
 }
 
 void Camera::GoRight(float a)

@@ -31,6 +31,8 @@ private:
 	void Update();
 	void Draw();
 
+	void Input();
+
 	Timer mTimer;
 
 	Window mWindow;

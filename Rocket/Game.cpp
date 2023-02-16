@@ -79,6 +79,8 @@ void Game::Update()
 	//현재 프레임이 gpu에서 전부 draw되지 않았을 시 기다리고, 완료된 경우에는 다음 frame으로 넘어가는 역할.
 	mDirectX.Update();
 
+	Input();
+
 	//Model의 position으로부터 world, Camera의 데이터로부터 view와 projection matrix를 설정한다.
 	//model의 world matrix를 업데이트
 	for (auto it = mModels.begin(); it != mModels.end(); it++)
@@ -163,4 +165,15 @@ void Game::Draw()
 	mDirectX.CloseAndExecute();
 
 	mDirectX.DrawFinish();
+}
+
+void Game::Input()
+{
+	float deltaTime = mTimer.GetDeltaTime();
+
+	if (GetAsyncKeyState('W') & 0x8000)
+		mCamera->GoFront(10.0f * deltaTime);
+
+	if (GetAsyncKeyState('S') & 0x8000)
+		mCamera->GoFront(-10.0f * deltaTime);
 }
