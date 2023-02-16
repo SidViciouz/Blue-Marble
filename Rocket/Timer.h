@@ -6,6 +6,7 @@ public:
 	Timer();
 	void Reset();
 	void Tick();
+	float GetDeltaTime();
 
 private:
 	__int64 mBaseTime = 0;

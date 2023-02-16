@@ -29,3 +29,8 @@ void Timer::Tick()
 
 	mPreviousTime = mCurrentTime;
 }
+
+float Timer::GetDeltaTime()
+{
+	return mDeltaTime;
+}

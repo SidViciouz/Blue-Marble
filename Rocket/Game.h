@@ -36,6 +36,7 @@ private:
 	void CreateVertexIndexBuffer();
 	void Update();
 	void Draw();
+	void Input();
 
 	static Game* mLatestWindow;
 	HINSTANCE mInstance;
