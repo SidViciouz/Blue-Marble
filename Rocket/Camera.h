@@ -8,6 +8,8 @@ class Camera
 public:
 	Camera(int width, int height);
 	void Resize(int width, int height);
+	void GoFront(float a);
+	void GoRight(float a);
 
 	XMFLOAT3 mPosition;
 	XMFLOAT3 mUp;

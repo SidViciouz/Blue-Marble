@@ -17,3 +17,13 @@ void Camera::Resize(int width, int height)
 {
 	mRatio = static_cast<float>(width) / height;
 }
+
+void Camera::GoFront(float a)
+{
+
+}
+
+void Camera::GoRight(float a)
+{
+
+}

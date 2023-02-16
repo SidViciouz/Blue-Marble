@@ -3,13 +3,18 @@
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	return Window::Get()->WndProc(hwnd, msg, wParam, lParam);
+}
+
+LRESULT Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 Window::Window(HINSTANCE hInstance, const int& width, const int& height) :
 	mInstance(hInstance), mWidth(width), mHeight(height)
 {
-
+	mLatestWindow = this;
 }
 
 void Window::Initialize()
@@ -50,4 +55,11 @@ void Window::Initialize()
 HWND Window::GetWindowHandle()
 {
 	return mWindowHandle;
+}
+
+Window* Window::mLatestWindow = nullptr;
+
+Window* Window::Get()
+{
+	return mLatestWindow;
 }
