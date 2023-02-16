@@ -43,8 +43,6 @@ private:
 	HWND mWindowHandle = nullptr;
 	std::wstring mWindowCaption = L"Rocket Game";
 
-	void Input();
-
 	Timer mTimer;
 
 	Pipeline mDirectX;
