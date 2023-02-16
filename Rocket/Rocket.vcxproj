@@ -155,7 +155,6 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Util.h" />
-    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
@@ -167,7 +166,6 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Rocket.cpp" />
     <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rocket.rc" />

@@ -1,6 +1,5 @@
 #pragma once
 #include "framework.h"
-#include "Window.h"
 #include "Pipeline.h"
 #include "Model.h"
 #include <map>
@@ -19,6 +18,10 @@ public:
 
 	Game(HINSTANCE hInstance);
 
+	//윈도우 관련 메서드
+	static Game* Get();
+	LRESULT WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 	void Initialize();
 
 	void Run();
@@ -26,14 +29,20 @@ public:
 
 	//game 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
+	//윈도우 관련 메서드
+	void InitializeWindow();
+
 	void LoadModel();
 	void CreateVertexIndexBuffer();
 	void Update();
 	void Draw();
 
-	Timer mTimer;
+	static Game* mLatestWindow;
+	HINSTANCE mInstance;
+	HWND mWindowHandle = nullptr;
+	std::wstring mWindowCaption = L"Rocket Game";
 
-	Window mWindow;
+	Timer mTimer;
 
 	Pipeline mDirectX;
 

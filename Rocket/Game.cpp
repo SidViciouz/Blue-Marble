@@ -1,18 +1,18 @@
 #include "Game.h"
 
 Game::Game(HINSTANCE hInstance)
-	: mWindow(hInstance,mWidth,mHeight), mDirectX(mWidth,mHeight), mCamera(make_unique<Camera>(mWidth,mHeight))
+	: mDirectX(mWidth,mHeight), mCamera(make_unique<Camera>(mWidth,mHeight))
 {
-
+	mLatestWindow = this;
 }
 
 void Game::Initialize()
 {
 	//윈도우 초기화
-	mWindow.Initialize();
+	InitializeWindow();
 
 	//DirectX 객체들 초기화 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
-	mDirectX.Initialize(mWindow.GetWindowHandle());
+	mDirectX.Initialize(mWindowHandle);
 	
 	//모델 로드 (버텍스, 인덱스)
 	LoadModel();
@@ -42,6 +42,59 @@ void Game::Run()
 			Draw();
 		}
 	}
+}
+
+LRESULT CALLBACK
+MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	return Game::Get()->WndProc(hwnd, msg, wParam, lParam);
+}
+
+LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+void Game::InitializeWindow()
+{
+	WNDCLASS wc;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc = MainWndProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = mInstance;
+	wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
+	wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
+	wc.lpszMenuName = 0;
+	wc.lpszClassName = L"MainWindow";
+
+	if (!RegisterClass(&wc))
+	{
+		MessageBox(0, L"RegisterClass Failed.", 0, 0);
+	}
+	// Compute window rectangle dimensions based on requested client area dimensions.
+	RECT R = { 0, 0, mWidth, mHeight };
+	AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
+	int width = R.right - R.left;
+	int height = R.bottom - R.top;
+
+	mWindowHandle = CreateWindow(L"MainWindow", mWindowCaption.c_str(),
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, mInstance, 0);
+	if (!mWindowHandle)
+	{
+		MessageBox(0, L"CreateWindow Failed.", 0, 0);
+	}
+
+	ShowWindow(mWindowHandle, SW_SHOW);
+	UpdateWindow(mWindowHandle);
+}
+
+Game* Game::mLatestWindow = nullptr;
+
+Game* Game::Get()
+{
+	return mLatestWindow;
 }
 
 void Game::LoadModel()
