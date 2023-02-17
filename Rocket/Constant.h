@@ -15,7 +15,8 @@ struct obj
 
 struct trans
 {
-	XMFLOAT4X4 viewProjection;
+	XMFLOAT4X4 view;
+	XMFLOAT4X4 projection;
 	Light lights[3];
 	XMFLOAT3 cameraPosition;
 	int pad1;
