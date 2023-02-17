@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "Constant.h"
 #include "Timer.h"
+#include "Scene.h"
 
 class Game
 {
@@ -44,12 +45,14 @@ private:
 	HWND mWindowHandle = nullptr;
 	std::wstring mWindowCaption = L"Rocket Game";
 
+	int mWidth = 800;
+	int mHeight = 600;
+
 	Timer mTimer;
 
 	Pipeline mDirectX;
 
-	int mWidth = 800;
-	int mHeight = 600;
+	vector<unique_ptr<Scene>> mScenes;
 
 	unordered_map<string, unique_ptr<Model>> mModels;
 	
