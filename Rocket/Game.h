@@ -33,6 +33,7 @@ private:
 	void InitializeWindow();
 
 	void LoadModel();
+	void SetLight();
 	void CreateVertexIndexBuffer();
 	void Update();
 	void Draw();
@@ -53,4 +54,6 @@ private:
 	unordered_map<string, unique_ptr<Model>> mModels;
 	
 	unique_ptr<Camera> mCamera = nullptr;
+
+	trans envFeature;
 };

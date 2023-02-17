@@ -20,6 +20,8 @@ void Game::Initialize()
 	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	CreateVertexIndexBuffer();
 
+	SetLight();
+
 	mTimer.Reset();
 }
 
@@ -136,6 +138,24 @@ void Game::CreateVertexIndexBuffer()
 	Model::mIndexBuffer->Copy(Model::mAllIndices.data(), sizeof(uint16_t) * Model::mAllIndices.size(), mDirectX.GetCommandList());
 }
 
+void Game::SetLight()
+{
+	Light light = {};
+	
+	envFeature.lights[0].mPosition = { 10.0f,10.0f,-15.0f };
+	envFeature.lights[0].mDirection = { 1.0f,-1.0f,0.0f };
+	envFeature.lights[0].mColor = { 1.0f,1.0f,1.0f };
+	envFeature.lights[0].mType = Directional;
+	envFeature.lights[1].mPosition = { 10.0f,10.0f,-15.0f };
+	envFeature.lights[1].mDirection = { 1.0f,-1.0f,0.0f };
+	envFeature.lights[1].mColor = { 1.0f,1.0f,1.0f };
+	envFeature.lights[1].mType = Point;
+	envFeature.lights[2].mPosition = { 0.0f,0.0f,-1.0f };
+	envFeature.lights[2].mDirection = { 0.0f,0.0f,1.0f };
+	envFeature.lights[2].mType = Directional;
+
+}
+
 void Game::Update()
 {
 	//현재 프레임이 gpu에서 전부 draw되지 않았을 시 기다리고, 완료된 경우에는 다음 frame으로 넘어가는 역할.
@@ -150,7 +170,7 @@ void Game::Update()
 	{
 		XMFLOAT3 pos = it->second->mPosition;
 		XMMATRIX world = XMMatrixScaling(0.5f, 0.5f, 0.5f)*XMMatrixTranslation(pos.x, pos.y, pos.z);
-		XMStoreFloat4x4(&it->second->mWorld, world);
+		XMStoreFloat4x4(&it->second->mObjFeature.world, world);
 	}
 
 	XMVECTOR right = XMLoadFloat3(&mCamera->mRight);
@@ -186,29 +206,13 @@ void Game::Update()
 
 	int i = 0;
 	for (auto model = mModels.begin(); model != mModels.end(); model++, ++i) {
-		obj objFeature = {};
-		objFeature.world = model->second->mWorld;
-		objFeature.diffuseAlbedo = { 0.7f,0.9f,0.75f };
-		objFeature.roughness = 0.3f;
-		objFeature.fresnel = { 0.1f,0.1f,0.1f };
-		mDirectX.SetObjConstantBuffer(model->second->mObjConstantIndex, &objFeature, sizeof(obj));
+		mDirectX.SetObjConstantBuffer(model->second->mObjConstantIndex, &model->second->mObjFeature, sizeof(obj));
 	}
 	
-	trans env = {};
-	env.viewProjection = mCamera->mViewProjection;
-	env.lights[0].mPosition = {10.0f,10.0f,-15.0f};
-	env.lights[0].mDirection = { 1.0f,-1.0f,0.0f };
-	env.lights[0].mColor = { 1.0f,1.0f,1.0f };
-	env.lights[0].mType = Directional;
-	env.lights[1].mPosition = { 10.0f,10.0f,-15.0f };
-	env.lights[1].mDirection = { 1.0f,-1.0f,0.0f };
-	env.lights[1].mColor = { 1.0f,1.0f,1.0f };
-	env.lights[1].mType = Point;
-	env.lights[2].mPosition = { 0.0f,0.0f,-1.0f };
-	env.lights[2].mDirection = { 0.0f,0.0f,1.0f };
-	env.cameraPosition = mCamera->mPosition;
-	//mDirectX.SetTransConstantBuffer(0, &mCamera->mViewProjection, sizeof(trans));
-	mDirectX.SetTransConstantBuffer(0, &env, sizeof(trans));
+	envFeature.viewProjection = mCamera->mViewProjection;
+	envFeature.cameraPosition = mCamera->mPosition;
+
+	mDirectX.SetTransConstantBuffer(0, &envFeature, sizeof(trans));
 }
 
 void Game::Draw()

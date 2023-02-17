@@ -6,6 +6,7 @@
 #include <DirectXMath.h>
 #include "Util.h"
 #include "Buffer.h"
+#include "Constant.h"
 
 using namespace std;
 using namespace DirectX;
@@ -27,18 +28,18 @@ public:
 	Model& operator=(const Model& model) = delete;
 	Model& operator=(Model&& model) = delete;
 
-	void Draw();
-
 	vector<Vertex> mVertices;
 	vector<uint16_t> mIndices;
 
 	XMFLOAT3 mPosition = { 0.0f,0.0f,0.0f };
 
-	//struct obj로 바꿔야함.
-	XMFLOAT4X4 mWorld = {1.0f,0.0f,0.0f,0.0f,
+	obj mObjFeature = { {1.0f,0.0f,0.0f,0.0f,
 						0.0f,1.0f,0.0f,0.0f,
 						0.0f,0.0f,1.0f,0.0f,
-						0.0f,0.0f,0.0f,1.0f
+						0.0f,0.0f,0.0f,1.0f},
+		{0.7f,0.9f,0.75f},
+		0.3f,
+		{0.1f,0.1f,0.1f}
 	};
 
 	int mVertexBufferSize = 0;
@@ -55,5 +56,4 @@ public:
 	static vector<uint16_t> mAllIndices;
 
 	static int mNextObjConstantIndex;
-	//obj constant buffer index를 가져야함.
 };
