@@ -7,7 +7,8 @@ using namespace std;
 
 class Scene
 {
-	unordered_map<string, unique_ptr<Model>> mModels;
+public:
+	unique_ptr<Models> mModels;
 
 	unique_ptr<Camera> mCamera = nullptr;
 

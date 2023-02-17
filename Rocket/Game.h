@@ -33,8 +33,9 @@ private:
 	//윈도우 관련 메서드
 	void InitializeWindow();
 
-	void LoadModel();
-	void SetLight();
+	void LoadScene();
+	unique_ptr<Models> LoadModel();
+	trans SetLight();
 	void CreateVertexIndexBuffer();
 	void Update();
 	void Draw();
@@ -54,9 +55,10 @@ private:
 
 	vector<unique_ptr<Scene>> mScenes;
 
-	unordered_map<string, unique_ptr<Model>> mModels;
+	int mCurrentScene = 0;
+	//Models mModels;
 	
-	unique_ptr<Camera> mCamera = nullptr;
+	//unique_ptr<Camera> mCamera = nullptr;
 
-	trans envFeature;
+	//trans envFeature;
 };

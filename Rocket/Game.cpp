@@ -1,7 +1,7 @@
 #include "Game.h"
 
 Game::Game(HINSTANCE hInstance)
-	: mDirectX(mWidth,mHeight), mCamera(make_unique<Camera>(mWidth,mHeight))
+	: mDirectX(mWidth,mHeight)
 {
 	mLatestWindow = this;
 }
@@ -14,6 +14,8 @@ void Game::Initialize()
 	//DirectX 객체들 초기화 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
 	mDirectX.Initialize(mWindowHandle);
 	
+	LoadScene();
+
 	//모델 로드 (버텍스, 인덱스)
 	LoadModel();
 
@@ -114,16 +116,33 @@ Game* Game::Get()
 	return mLatestWindow;
 }
 
-void Game::LoadModel()
+void Game::LoadScene()
 {
+	unique_ptr<Scene> scene = make_unique<Scene>();
+
+	scene->mModels = LoadModel();
+
+	scene->mCamera = make_unique<Camera>(mWidth, mHeight);
+
+	scene->envFeature = SetLight();
+
+	mScenes.push_back(move(scene));
+}
+
+ unique_ptr<Models> Game::LoadModel()
+{
+	unique_ptr<Models> model = make_unique<Models>();
+
 	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/Wood_Table.obj", mDirectX.GetCommandList());
-	mModels["table"] = move(table);
+	(*model)["table"] = move(table);
 
 	unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList());
-	mModels["triangle"] = move(house);
+	(*model)["triangle"] = move(house);
 
 	unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList());
-	mModels["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
+	(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
+
+	return move(model);
 }
 
 void Game::CreateVertexIndexBuffer()
@@ -138,22 +157,23 @@ void Game::CreateVertexIndexBuffer()
 	Model::mIndexBuffer->Copy(Model::mAllIndices.data(), sizeof(uint16_t) * Model::mAllIndices.size(), mDirectX.GetCommandList());
 }
 
-void Game::SetLight()
+trans Game::SetLight()
 {
-	Light light = {};
-	
-	envFeature.lights[0].mPosition = { 10.0f,10.0f,-15.0f };
-	envFeature.lights[0].mDirection = { 1.0f,-1.0f,0.0f };
-	envFeature.lights[0].mColor = { 1.0f,1.0f,1.0f };
-	envFeature.lights[0].mType = Directional;
-	envFeature.lights[1].mPosition = { 10.0f,10.0f,-15.0f };
-	envFeature.lights[1].mDirection = { 1.0f,-1.0f,0.0f };
-	envFeature.lights[1].mColor = { 1.0f,1.0f,1.0f };
-	envFeature.lights[1].mType = Point;
-	envFeature.lights[2].mPosition = { 0.0f,0.0f,-1.0f };
-	envFeature.lights[2].mDirection = { 0.0f,0.0f,1.0f };
-	envFeature.lights[2].mType = Directional;
+	trans env;
+		
+	env.lights[0].mPosition = { 10.0f,10.0f,-15.0f };
+	env.lights[0].mDirection = { 1.0f,-1.0f,0.0f };
+	env.lights[0].mColor = { 1.0f,1.0f,1.0f };
+	env.lights[0].mType = Directional;
+	env.lights[1].mPosition = { 10.0f,10.0f,-15.0f };
+	env.lights[1].mDirection = { 1.0f,-1.0f,0.0f };
+	env.lights[1].mColor = { 1.0f,1.0f,1.0f };
+	env.lights[1].mType = Point;
+	env.lights[2].mPosition = { 0.0f,0.0f,-1.0f };
+	env.lights[2].mDirection = { 0.0f,0.0f,1.0f };
+	env.lights[2].mType = Directional;
 
+	return env;
 }
 
 void Game::Update()
@@ -166,53 +186,54 @@ void Game::Update()
 
 	//Model의 position으로부터 world, Camera의 데이터로부터 view와 projection matrix를 설정한다.
 	//model의 world matrix를 업데이트
-	for (auto it = mModels.begin(); it != mModels.end(); it++)
+	for (auto it = mScenes[mCurrentScene]->mModels->begin(); it != mScenes[mCurrentScene]->mModels->end(); it++)
 	{
 		XMFLOAT3 pos = it->second->mPosition;
 		XMMATRIX world = XMMatrixScaling(0.5f, 0.5f, 0.5f)*XMMatrixTranslation(pos.x, pos.y, pos.z);
 		XMStoreFloat4x4(&it->second->mObjFeature.world, world);
 	}
 
-	XMVECTOR right = XMLoadFloat3(&mCamera->mRight);
-	XMVECTOR up = XMLoadFloat3(&mCamera->mUp);
-	XMVECTOR front = XMVector3Normalize(XMLoadFloat3(&mCamera->mFront));
-	XMVECTOR position = XMLoadFloat3(&mCamera->mPosition);
+	XMVECTOR right = XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->mRight);
+	XMVECTOR up = XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->mUp);
+	XMVECTOR front = XMVector3Normalize(XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->mFront));
+	XMVECTOR position = XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->mPosition);
 
 	up = XMVector3Normalize(XMVector3Cross(front, right));
 	right = XMVector3Cross(up, front);
 
-	XMStoreFloat3(&mCamera->mRight, right);
-	XMStoreFloat3(&mCamera->mUp, up);
-	XMStoreFloat3(&mCamera->mFront,front);
+	XMStoreFloat3(&mScenes[mCurrentScene]->mCamera->mRight, right);
+	XMStoreFloat3(&mScenes[mCurrentScene]->mCamera->mUp, up);
+	XMStoreFloat3(&mScenes[mCurrentScene]->mCamera->mFront,front);
 
 	float x = -XMVectorGetX(XMVector3Dot(position, right));
 	float y = -XMVectorGetX(XMVector3Dot(position, up));
 	float z = -XMVectorGetX(XMVector3Dot(position, front));
 
 	XMFLOAT4X4 viewMatrix = {
-		mCamera->mRight.x, mCamera->mUp.x, mCamera->mFront.x, 0.0f,
-		mCamera->mRight.y, mCamera->mUp.y, mCamera->mFront.y, 0.0f,
-		mCamera->mRight.z, mCamera->mUp.z, mCamera->mFront.z, 0.0f,
+		mScenes[mCurrentScene]->mCamera->mRight.x, mScenes[mCurrentScene]->mCamera->mUp.x, mScenes[mCurrentScene]->mCamera->mFront.x, 0.0f,
+		mScenes[mCurrentScene]->mCamera->mRight.y, mScenes[mCurrentScene]->mCamera->mUp.y, mScenes[mCurrentScene]->mCamera->mFront.y, 0.0f,
+		mScenes[mCurrentScene]->mCamera->mRight.z, mScenes[mCurrentScene]->mCamera->mUp.z, mScenes[mCurrentScene]->mCamera->mFront.z, 0.0f,
 		x,y,z,1.0f
 	};
 
 	XMMATRIX view = XMLoadFloat4x4(&viewMatrix);
 
-	XMMATRIX projection = XMMatrixPerspectiveFovLH(mCamera->mAngle, mCamera->mRatio, mCamera->mNear, mCamera->mFar);
+	XMMATRIX projection = XMMatrixPerspectiveFovLH(mScenes[mCurrentScene]->mCamera->mAngle, mScenes[mCurrentScene]->mCamera->mRatio,
+		mScenes[mCurrentScene]->mCamera->mNear, mScenes[mCurrentScene]->mCamera->mFar);
 
-	XMStoreFloat4x4(&mCamera->mViewProjection,XMMatrixMultiply(view, projection));
+	XMStoreFloat4x4(&mScenes[mCurrentScene]->mCamera->mViewProjection,XMMatrixMultiply(view, projection));
 	
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 
 	int i = 0;
-	for (auto model = mModels.begin(); model != mModels.end(); model++, ++i) {
+	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i) {
 		mDirectX.SetObjConstantBuffer(model->second->mObjConstantIndex, &model->second->mObjFeature, sizeof(obj));
 	}
 	
-	envFeature.viewProjection = mCamera->mViewProjection;
-	envFeature.cameraPosition = mCamera->mPosition;
+	mScenes[mCurrentScene]->envFeature.viewProjection = mScenes[mCurrentScene]->mCamera->mViewProjection;
+	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->mPosition;
 
-	mDirectX.SetTransConstantBuffer(0, &envFeature, sizeof(trans));
+	mDirectX.SetTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
 }
 
 void Game::Draw()
@@ -238,7 +259,7 @@ void Game::Draw()
 
 
 	int i = 0;
-	for (auto model = mModels.begin(); model != mModels.end(); model++, ++i)
+	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i)
 	{
 		//모델마다 obj constant index 멤버변수를 만들어야함.
 		mDirectX.SetObjConstantIndex(model->second->mObjConstantIndex);
@@ -256,14 +277,14 @@ void Game::Input()
 	float deltaTime = mTimer.GetDeltaTime();
 
 	if (GetAsyncKeyState('W') & 0x8000)
-		mCamera->GoFront(10.0f * deltaTime);
+		mScenes[mCurrentScene]->mCamera->GoFront(10.0f * deltaTime);
 
 	if (GetAsyncKeyState('S') & 0x8000)
-		mCamera->GoFront(-10.0f * deltaTime);
+		mScenes[mCurrentScene]->mCamera->GoFront(-10.0f * deltaTime);
 
 	if (GetAsyncKeyState('D') & 0x8000)
-		mCamera->GoRight(10.0f * deltaTime);
+		mScenes[mCurrentScene]->mCamera->GoRight(10.0f * deltaTime);
 
 	if (GetAsyncKeyState('A') & 0x8000)
-		mCamera->GoRight(-10.0f * deltaTime);
+		mScenes[mCurrentScene]->mCamera->GoRight(-10.0f * deltaTime);
 }

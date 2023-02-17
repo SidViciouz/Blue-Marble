@@ -57,3 +57,5 @@ public:
 
 	static int mNextObjConstantIndex;
 };
+
+using Models = unordered_map<string, unique_ptr<Model>>;
