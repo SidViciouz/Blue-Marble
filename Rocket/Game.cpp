@@ -158,15 +158,17 @@ void Game::LoadScene()
 {
 	unique_ptr<Models> model = make_unique<Models>();
 
-	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/Wood_Table.obj", mDirectX.GetCommandList(), sceneIndex);
-	(*model)["table"] = move(table);
-
-	unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList(), sceneIndex);
-	(*model)["triangle"] = move(house);
-
-	if (sceneIndex == 1)
+	if (sceneIndex == 0)
 	{
-		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
+		unique_ptr<Model> field = make_unique<Model>(mDirectX.GetDevice(), "../Model/field.obj", mDirectX.GetCommandList(), sceneIndex);
+		(*model)["field"] = move(field);
+
+		unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		(*model)["table"] = move(table);
+	}
+	else if (sceneIndex == 1)
+	{
+		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
 		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
 	}
 	return move(model);
