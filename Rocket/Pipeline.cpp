@@ -103,7 +103,7 @@ void Pipeline::Draw()
 		L"frame command allocator reset error!");
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(),mPSOs["default"].Get());
-	
+
 	mCommandList->RSSetScissorRects(1, &mScissor);
 	mCommandList->RSSetViewports(1, &mViewport);
 
@@ -304,6 +304,11 @@ void Pipeline::CreateShaderAndRootSignature()
 
 	mShaders["defaultPS"] = move(blobPS);
 	
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "DistortionVS", "vs_5_1", 0, 0, &blobVS, nullptr),
+		L"compile shader error!");
+
+	mShaders["distortionVS"] = move(blobVS);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -351,8 +356,8 @@ void Pipeline::CreatePso()
 
 	psoDesc.pRootSignature = mRootSignatures["default"].Get();
 
-	psoDesc.VS.pShaderBytecode = mShaders["defaultVS"]->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = mShaders["defaultVS"]->GetBufferSize();
+	psoDesc.VS.pShaderBytecode = mShaders["distortionVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["distortionVS"]->GetBufferSize();
 
 	psoDesc.PS.pShaderBytecode = mShaders["defaultPS"]->GetBufferPointer();
 	psoDesc.PS.BytecodeLength = mShaders["defaultPS"]->GetBufferSize();

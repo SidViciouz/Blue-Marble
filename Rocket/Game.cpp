@@ -160,11 +160,11 @@ void Game::LoadScene()
 
 	if (sceneIndex == 0)
 	{
-		unique_ptr<Model> field = make_unique<Model>(mDirectX.GetDevice(), "../Model/field.obj", mDirectX.GetCommandList(), sceneIndex);
-		(*model)["field"] = move(field);
+		//unique_ptr<Model> field = make_unique<Model>(mDirectX.GetDevice(), "../Model/field.obj", mDirectX.GetCommandList(), sceneIndex);
+		//(*model)["field"] = move(field);
 
 		unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		(*model)["table"] = move(table);
+		(*model)["table1"] = move(table);
 
 		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
 		table->mPosition = { 0.0f,3.0f,0.0f };
@@ -181,6 +181,23 @@ void Game::LoadScene()
 		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
 		table->mPosition = { -3.0f,0.0f,0.0f };
 		(*model)["table5"] = move(table);
+
+		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		table->mPosition = { 3.0f,3.0f,0.0f };
+		(*model)["table6"] = move(table);
+
+		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		table->mPosition = { -3.0f,-3.0f,0.0f };
+		(*model)["table7"] = move(table);
+
+		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		table->mPosition = { 3.0f,-3.0f,0.0f };
+		(*model)["table8"] = move(table);
+
+		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		table->mPosition = { -3.0f,3.0f,0.0f };
+		(*model)["table9"] = move(table);
+
 	}
 	else if (sceneIndex == 1)
 	{
