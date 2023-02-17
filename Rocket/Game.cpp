@@ -206,7 +206,7 @@ void Game::Update()
 	for (auto it = mScenes[mCurrentScene]->mModels->begin(); it != mScenes[mCurrentScene]->mModels->end(); it++)
 	{
 		XMFLOAT3 pos = it->second->mPosition;
-		XMMATRIX world = XMMatrixScaling(0.5f, 0.5f, 0.5f)*XMMatrixTranslation(pos.x, pos.y, pos.z);
+		XMMATRIX world = XMMatrixTranslation(pos.x, pos.y, pos.z);
 		XMStoreFloat4x4(&it->second->mObjFeature.world, world);
 	}
 
@@ -249,6 +249,7 @@ void Game::Update()
 	
 	mScenes[mCurrentScene]->envFeature.viewProjection = mScenes[mCurrentScene]->mCamera->mViewProjection;
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->mPosition;
+	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
 
 	mDirectX.SetTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
 }

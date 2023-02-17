@@ -38,20 +38,44 @@ cbuffer trans : register(b1)
 	Light lights[3];
 	float3 cameraPosition;
 	int pad1;
+	float3 cameraFront;
+	int pad2;
 }
 
 VertexOut VS(VertexIn vin)
 {
 	VertexOut vout;
-	
-	float4 posH = mul(float4(vin.pos,1.0f), transpose(mul(world,viewProjection)));
+
+	float3 surface = normalize(vin.pos - cameraPosition);
+
+	float cosOriginal = dot(cameraFront,surface);
+	float distortedAngle = acos((cosOriginal - 0.9) / (1 - cosOriginal * 0.9));
+
+	float3 axis = cross(surface, cameraFront);
+	float dAngle = acos(cosOriginal) - distortedAngle;
+	float c = cos(dAngle);
+	float s = sin(dAngle);
+	float rc = 1.0f - c;
+
+	float4x4 rotation = {
+		c + axis.x * axis.x*rc, axis.x*axis.y*rc -axis.z*s, axis.x*axis.z*rc + axis.y*s,0,
+		axis.y*axis.x*rc + axis.z*s, c + axis.y*axis.y*rc, axis.y*axis.z*rc - axis.x*s,0,
+		axis.z*axis.x*rc -axis.y*s, axis.z*axis.y*rc + axis.x*s, c + axis.z*axis.z*rc,0,
+		0,0,0,1
+	};
+
+	float4x4 rotatedWorld = mul(world,rotation);
+
+	float4 posW = mul(world, float4(vin.pos, 1.0f));
+
+	float4 posH = mul(mul(rotatedWorld,viewProjection), float4(vin.pos, 1.0f));
 
 	//homogeneous clip space로 ps에 보내야함.(SV_POSITION semantic으로 지정된 값)
 	//vout.pos = mul(posW, viewProjection);
 	vout.pos = posH;
 	
 	//반영 조명에서 halfway vector를 계산하기 위해서 필요함.
-	vout.posW = mul(vin.pos, transpose(world));
+	vout.posW = posW.xyz;
 
 	//non uniform scaling이라고 가정했을때 world matrix를 곱한다. 그렇지 않은 경우에는 inverse-transpose를 이용해야함.
 	//빛 계산에 이용할 것이므로 world space로 변환

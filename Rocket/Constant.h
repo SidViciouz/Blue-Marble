@@ -19,4 +19,6 @@ struct trans
 	Light lights[3];
 	XMFLOAT3 cameraPosition;
 	int pad1;
+	XMFLOAT3 cameraFront;
+	int pad2;
 };
