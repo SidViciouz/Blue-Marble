@@ -1,10 +1,11 @@
 #include "Model.h"
 #include "IfError.h"
+#include "Game.h"
 
 string getToken(string& aLine, bool isFirst); 
 int getNumber(string& aWord, bool isFirst);
 
-Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList)
+Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList,int sceneIndex)
 {
 	ifstream ifs;
 	ifs.open(fileName,ios_base::in);
@@ -88,11 +89,11 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 	mVertexBufferSize = mVertices.size();
 	mIndexBufferSize = mIndices.size();
 
-	mVertexBufferOffset = mAllVertices.size();
-	mIndexBufferOffset = mAllIndices.size();
+	mVertexBufferOffset = Game::mScenes[sceneIndex]->mAllVertices.size();
+	mIndexBufferOffset = Game::mScenes[sceneIndex]->mAllIndices.size();
 
-	mAllVertices.insert(mAllVertices.end(), mVertices.begin(), mVertices.end());
-	mAllIndices.insert(mAllIndices.end(), mIndices.begin(), mIndices.end());
+	Game::mScenes[sceneIndex]->mAllVertices.insert(Game::mScenes[sceneIndex]->mAllVertices.end(), mVertices.begin(), mVertices.end());
+	Game::mScenes[sceneIndex]->mAllIndices.insert(Game::mScenes[sceneIndex]->mAllIndices.end(), mIndices.begin(), mIndices.end());
 }
 
 // string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환
@@ -152,11 +153,5 @@ int getNumber(string& aWord, bool isFirst)
 
 	return stoi(numberString);
 }
-
-unique_ptr<Buffer> Model::mVertexBuffer;
-unique_ptr<Buffer> Model::mIndexBuffer;
-
-vector<Vertex> Model::mAllVertices;
-vector<uint16_t> Model::mAllIndices;
 
 int Model::mNextObjConstantIndex = 0;

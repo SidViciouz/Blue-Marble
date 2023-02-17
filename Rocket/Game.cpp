@@ -1,5 +1,7 @@
 #include "Game.h"
 
+vector<unique_ptr<Scene>> Game::mScenes;
+
 Game::Game(HINSTANCE hInstance)
 	: mDirectX(mWidth,mHeight)
 {
@@ -15,14 +17,6 @@ void Game::Initialize()
 	mDirectX.Initialize(mWindowHandle);
 	
 	LoadScene();
-
-	//모델 로드 (버텍스, 인덱스)
-	LoadModel();
-
-	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
-	CreateVertexIndexBuffer();
-
-	SetLight();
 
 	mTimer.Reset();
 }
@@ -118,43 +112,36 @@ Game* Game::Get()
 
 void Game::LoadScene()
 {
-	unique_ptr<Scene> scene = make_unique<Scene>();
+	mScenes.push_back(make_unique<Scene>());
+	
+	//모델 로드 (버텍스, 인덱스)
+	mScenes[mCurrentScene]->mModels = LoadModel(0);
+	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
+	mScenes[mCurrentScene]->CreateVertexIndexBuffer(mDirectX);
 
-	scene->mModels = LoadModel();
+	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
-	scene->mCamera = make_unique<Camera>(mWidth, mHeight);
+	mScenes[mCurrentScene]->envFeature = SetLight();
 
-	scene->envFeature = SetLight();
-
-	mScenes.push_back(move(scene));
 }
 
- unique_ptr<Models> Game::LoadModel()
+/*
+* model의 vertex,index offset이 scene 내에서 존재하기 buffer가 존재하기 때문에 어떤 scene내에 로드할 건지를 명시해준다.
+*/
+ unique_ptr<Models> Game::LoadModel(int sceneIndex)
 {
 	unique_ptr<Models> model = make_unique<Models>();
 
-	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/Wood_Table.obj", mDirectX.GetCommandList());
+	unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/Wood_Table.obj", mDirectX.GetCommandList(), sceneIndex);
 	(*model)["table"] = move(table);
 
-	unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList());
+	unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList(), sceneIndex);
 	(*model)["triangle"] = move(house);
 
-	unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList());
+	unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
 	(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
 
 	return move(model);
-}
-
-void Game::CreateVertexIndexBuffer()
-{
-
-	//Vertex, Index 버퍼 생성
-	Model::mVertexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(Vertex) * Model::mAllVertices.size());
-	Model::mIndexBuffer = make_unique<Buffer>(mDirectX.GetDevice(), sizeof(uint16_t) * Model::mAllIndices.size());
-
-	//Vertex, Index 버퍼에 Model 데이터 copy
-	Model::mVertexBuffer->Copy(Model::mAllVertices.data(), sizeof(Vertex) * Model::mAllVertices.size(), mDirectX.GetCommandList());
-	Model::mIndexBuffer->Copy(Model::mAllIndices.data(), sizeof(uint16_t) * Model::mAllIndices.size(), mDirectX.GetCommandList());
 }
 
 trans Game::SetLight()
@@ -241,14 +228,14 @@ void Game::Draw()
 	mDirectX.Draw();
  
 	D3D12_VERTEX_BUFFER_VIEW vbv = {};
-	vbv.BufferLocation = Model::mVertexBuffer->GetGpuAddress();
+	vbv.BufferLocation = mScenes[mCurrentScene]->mVertexBuffer->GetGpuAddress();
 	vbv.StrideInBytes = sizeof(Vertex);
-	vbv.SizeInBytes = sizeof(Vertex)*Model::mAllVertices.size();
+	vbv.SizeInBytes = sizeof(Vertex)* mScenes[mCurrentScene]->mAllVertices.size();
 
 	D3D12_INDEX_BUFFER_VIEW ibv = {};
-	ibv.BufferLocation = Model::mIndexBuffer->GetGpuAddress();
+	ibv.BufferLocation = mScenes[mCurrentScene]->mIndexBuffer->GetGpuAddress();
 	ibv.Format = DXGI_FORMAT_R16_UINT;
-	ibv.SizeInBytes = sizeof(uint16_t)* Model::mAllIndices.size();
+	ibv.SizeInBytes = sizeof(uint16_t)* mScenes[mCurrentScene]->mAllIndices.size();
 
 	//vertex buffer, index buffer 바인딩.
 	ID3D12GraphicsCommandList* cmdList = mDirectX.GetCommandList();

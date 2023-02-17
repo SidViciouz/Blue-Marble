@@ -27,6 +27,7 @@ public:
 
 	void Run();
 
+	static vector<unique_ptr<Scene>> mScenes;
 
 	//game 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
@@ -34,13 +35,13 @@ private:
 	void InitializeWindow();
 
 	void LoadScene();
-	unique_ptr<Models> LoadModel();
+	unique_ptr<Models> LoadModel(int sceneIndex);
 	trans SetLight();
-	void CreateVertexIndexBuffer();
 	void Update();
 	void Draw();
 	void Input();
 
+	//윈도우 관련 데이터
 	static Game* mLatestWindow;
 	HINSTANCE mInstance;
 	HWND mWindowHandle = nullptr;
@@ -51,14 +52,8 @@ private:
 
 	Timer mTimer;
 
+	//shared_ptr로 하는게 좋을 것 같다.
 	Pipeline mDirectX;
 
-	vector<unique_ptr<Scene>> mScenes;
-
 	int mCurrentScene = 0;
-	//Models mModels;
-	
-	//unique_ptr<Camera> mCamera = nullptr;
-
-	//trans envFeature;
 };

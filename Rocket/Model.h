@@ -22,7 +22,7 @@ struct Vertex
 class Model
 {
 public:
-	Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList);
+	Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList,int sceneIndex);
 	Model(const Model& model) = delete;
 	Model(Model&& model) = delete;
 	Model& operator=(const Model& model) = delete;
@@ -48,12 +48,6 @@ public:
 	int mIndexBufferOffset = 0;
 	
 	int mObjConstantIndex = mNextObjConstantIndex++;
-
-	static unique_ptr<Buffer> mVertexBuffer;
-	static unique_ptr<Buffer> mIndexBuffer;
-
-	static vector<Vertex> mAllVertices;
-	static vector<uint16_t> mAllIndices;
 
 	static int mNextObjConstantIndex;
 };
