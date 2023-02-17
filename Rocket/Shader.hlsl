@@ -65,18 +65,18 @@ VertexOut VS(VertexIn vin)
 		0,0,0,1
 	};
 
-	float4x4 rotatedWorld = mul(world,rotation);
+	float4 posW = mul(float4(vin.pos, 1.0f), transpose(world));
+	
+	float4 rotated = mul(posW,rotation);
 
-	float4 posW = mul(world, float4(vin.pos, 1.0f));
-
-	float4 posH = mul(mul(rotatedWorld,viewProjection), float4(vin.pos, 1.0f));
+	float4 posH = mul(mul(rotated, transpose(view)), transpose(projection));
 
 	//homogeneous clip space로 ps에 보내야함.(SV_POSITION semantic으로 지정된 값)
 	//vout.pos = mul(posW, viewProjection);
 	vout.pos = posH;
 	
 	//반영 조명에서 halfway vector를 계산하기 위해서 필요함.
-	vout.posW = mul(vin.pos, transpose(world));
+	vout.posW = posW.xyz;
 
 	//non uniform scaling이라고 가정했을때 world matrix를 곱한다. 그렇지 않은 경우에는 inverse-transpose를 이용해야함.
 	//빛 계산에 이용할 것이므로 world space로 변환
