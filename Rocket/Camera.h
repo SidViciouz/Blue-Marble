@@ -20,12 +20,4 @@ public:
 	float mFar;
 	float mAngle;
 	float mRatio;
-
-	//struct trans·Î ¹Ù²ã¾ßÇÔ.
-	XMFLOAT4X4 mViewProjection ={
-						1.0f,0.0f,0.0f,0.0f,
-						0.0f,1.0f,0.0f,0.0f,
-						0.0f,0.0f,1.0f,0.0f,
-						0.0f,0.0f,0.0f,1.0f
-	};
 };

@@ -34,7 +34,8 @@ cbuffer obj : register(b0)
 
 cbuffer trans : register(b1)
 {
-	float4x4 viewProjection;
+	float4x4 view;
+	float4x4 projection;
 	Light lights[3];
 	float3 cameraPosition;
 	int pad1;
@@ -75,11 +76,11 @@ VertexOut VS(VertexIn vin)
 	vout.pos = posH;
 	
 	//반영 조명에서 halfway vector를 계산하기 위해서 필요함.
-	vout.posW = posW.xyz;
+	vout.posW = mul(vin.pos, transpose(world));
 
 	//non uniform scaling이라고 가정했을때 world matrix를 곱한다. 그렇지 않은 경우에는 inverse-transpose를 이용해야함.
 	//빛 계산에 이용할 것이므로 world space로 변환
-	vout.normal = mul(vin.normal,transpose((float3x3)world));
+	vout.normal = mul(vin.normal,(float3x3)world);
 	
 	//uv좌표계
 	vout.tex = vin.tex;

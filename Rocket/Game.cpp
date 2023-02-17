@@ -165,10 +165,15 @@ void Game::LoadScene()
 
 		unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
 		(*model)["table"] = move(table);
+
+		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		table->mPosition = { 0.0f,1.0f,0.0f };
+		(*model)["table2"] = move(table);
 	}
 	else if (sceneIndex == 1)
 	{
 		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
+		woodHouse->mPosition = { 0.0f,0.2f,0.0f };
 		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
 	}
 	return move(model);
@@ -235,11 +240,11 @@ void Game::Update()
 
 	XMMATRIX view = XMLoadFloat4x4(&viewMatrix);
 
-	XMMATRIX projection = XMMatrixPerspectiveFovLH(mScenes[mCurrentScene]->mCamera->mAngle, mScenes[mCurrentScene]->mCamera->mRatio,
+	XMMATRIX projection =XMMatrixPerspectiveFovLH(mScenes[mCurrentScene]->mCamera->mAngle, mScenes[mCurrentScene]->mCamera->mRatio,
 		mScenes[mCurrentScene]->mCamera->mNear, mScenes[mCurrentScene]->mCamera->mFar);
 
-	XMStoreFloat4x4(&mScenes[mCurrentScene]->mCamera->mViewProjection,XMMatrixMultiply(view, projection));
-	
+	XMStoreFloat4x4(&mScenes[mCurrentScene]->envFeature.view,view);
+	XMStoreFloat4x4(&mScenes[mCurrentScene]->envFeature.projection,projection);
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 
 	int i = 0;
@@ -247,7 +252,6 @@ void Game::Update()
 		mDirectX.SetObjConstantBuffer(model->second->mObjConstantIndex, &model->second->mObjFeature, sizeof(obj));
 	}
 	
-	mScenes[mCurrentScene]->envFeature.viewProjection = mScenes[mCurrentScene]->mCamera->mViewProjection;
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->mPosition;
 	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
 
