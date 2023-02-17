@@ -27,6 +27,8 @@ public:
 
 	void Run();
 
+	void ChangeScene(int dstScene);
+
 	static vector<unique_ptr<Scene>> mScenes;
 
 	//game 객체 내부적으로 사용되는 메서드와 멤버 변수

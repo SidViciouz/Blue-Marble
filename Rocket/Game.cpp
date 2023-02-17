@@ -42,6 +42,11 @@ void Game::Run()
 	}
 }
 
+void Game::ChangeScene(int dstScene)
+{
+	mCurrentScene = dstScene;
+}
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -51,9 +56,15 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	//다음과 같은 카메라 움직임 업데이트는 버벅임이 생긴다.
-	/*
 	switch (msg)
 	{
+	case WM_LBUTTONDOWN:
+		ChangeScene(0);
+		return 0;
+	case WM_RBUTTONDOWN:
+		ChangeScene(1);
+		return 0;
+		/*
 	case WM_KEYDOWN :
 		if(wParam == 0x57)
 			mCamera->GoFront(10.0f * mTimer.GetDeltaTime());
@@ -63,8 +74,9 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			mCamera->GoRight(-10.0f*mTimer.GetDeltaTime());
 		else if(wParam == 0x44)
 			mCamera->GoRight(10.0f * mTimer.GetDeltaTime());
+		*/
 	}
-	*/
+	
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
@@ -112,6 +124,7 @@ Game* Game::Get()
 
 void Game::LoadScene()
 {
+	//scene 0
 	mScenes.push_back(make_unique<Scene>());
 	
 	//모델 로드 (버텍스, 인덱스)
@@ -123,6 +136,19 @@ void Game::LoadScene()
 
 	mScenes[mCurrentScene]->envFeature = SetLight();
 
+
+	//scene 1
+	mCurrentScene++;
+	mScenes.push_back(make_unique<Scene>());
+
+	//모델 로드 (버텍스, 인덱스)
+	mScenes[mCurrentScene]->mModels = LoadModel(1);
+	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
+	mScenes[mCurrentScene]->CreateVertexIndexBuffer(mDirectX);
+
+	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
+
+	mScenes[mCurrentScene]->envFeature = SetLight();
 }
 
 /*
@@ -138,9 +164,11 @@ void Game::LoadScene()
 	unique_ptr<Model> house = make_unique<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList(), sceneIndex);
 	(*model)["triangle"] = move(house);
 
-	unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
-	(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
-
+	if (sceneIndex == 1)
+	{
+		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/WoodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
+		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
+	}
 	return move(model);
 }
 
