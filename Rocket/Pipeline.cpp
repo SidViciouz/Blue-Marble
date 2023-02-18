@@ -356,8 +356,8 @@ void Pipeline::CreatePso()
 
 	psoDesc.pRootSignature = mRootSignatures["default"].Get();
 
-	psoDesc.VS.pShaderBytecode = mShaders["distortionVS"]->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = mShaders["distortionVS"]->GetBufferSize();
+	psoDesc.VS.pShaderBytecode = mShaders["defaultVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["defaultVS"]->GetBufferSize();
 
 	psoDesc.PS.pShaderBytecode = mShaders["defaultPS"]->GetBufferPointer();
 	psoDesc.PS.BytecodeLength = mShaders["defaultPS"]->GetBufferSize();

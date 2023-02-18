@@ -201,7 +201,7 @@ void Game::LoadScene()
 	}
 	else if (sceneIndex == 1)
 	{
-		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
+		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
 		woodHouse->mPosition = { 0.0f,0.2f,0.0f };
 		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
 		/*
