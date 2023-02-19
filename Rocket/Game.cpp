@@ -324,7 +324,6 @@ void Game::Draw()
 	cmdList->IASetVertexBuffers(0, 1, &vbv);
 	cmdList->IASetIndexBuffer(&ibv);
 
-
 	int i = 0;
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i)
 	{

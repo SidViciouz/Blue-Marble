@@ -1,6 +1,64 @@
 #include "Pipeline.h"
 #include "Constant.h"
 #include "d3dx12.h"
+#include "DDSTextureLoader.h"
+
+std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers()
+{
+	// Applications usually only need a handful of samplers.  So just define them all up front
+	// and keep them available as part of the root signature.  
+
+	const CD3DX12_STATIC_SAMPLER_DESC pointWrap(
+		0, // shaderRegister
+		D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
+
+	const CD3DX12_STATIC_SAMPLER_DESC pointClamp(
+		1, // shaderRegister
+		D3D12_FILTER_MIN_MAG_MIP_POINT, // filter
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressU
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // addressW
+
+	const CD3DX12_STATIC_SAMPLER_DESC linearWrap(
+		2, // shaderRegister
+		D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP); // addressW
+
+	const CD3DX12_STATIC_SAMPLER_DESC linearClamp(
+		3, // shaderRegister
+		D3D12_FILTER_MIN_MAG_MIP_LINEAR, // filter
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressU
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP); // addressW
+
+	const CD3DX12_STATIC_SAMPLER_DESC anisotropicWrap(
+		4, // shaderRegister
+		D3D12_FILTER_ANISOTROPIC, // filter
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressU
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressV
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  // addressW
+		0.0f,                             // mipLODBias
+		8);                               // maxAnisotropy
+
+	const CD3DX12_STATIC_SAMPLER_DESC anisotropicClamp(
+		5, // shaderRegister
+		D3D12_FILTER_ANISOTROPIC, // filter
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressU
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressV
+		D3D12_TEXTURE_ADDRESS_MODE_CLAMP,  // addressW
+		0.0f,                              // mipLODBias
+		8);                                // maxAnisotropy
+
+	return {
+		pointWrap, pointClamp,
+		linearWrap, linearClamp,
+		anisotropicWrap, anisotropicClamp };
+}
 
 Pipeline::Pipeline(const int& width, const int& height):
 	mWidth(width), mHeight(height)
@@ -45,6 +103,8 @@ void Pipeline::Initialize(HWND windowHandle)
 	CreateDescriptorHeaps();
 
 	CreateBackBuffersAndDepthBufferAndViews();
+
+	CreateSrv();
 
 	CreateShaderAndRootSignature();
 	
@@ -122,6 +182,12 @@ void Pipeline::Draw()
 	mCommandList->SetGraphicsRootSignature(mRootSignatures["default"].Get());
 
 	mCommandList->SetGraphicsRootConstantBufferView(1,mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
+
+	ID3D12DescriptorHeap* descriptorHeaps[] = { mSrvDescriptorHeap.Get() };
+	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+	CD3DX12_GPU_DESCRIPTOR_HANDLE tex(mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	mCommandList->SetGraphicsRootDescriptorTable(0, tex);
 }
 
 void Pipeline::SetObjConstantBuffer(int index, const void* data, int byteSize)
@@ -161,7 +227,7 @@ void Pipeline::DrawFinish()
 
 void Pipeline::SetObjConstantIndex(int index)
 {
-	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+	mCommandList->SetGraphicsRootConstantBufferView(2, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
 		+ index * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 }
 
@@ -314,21 +380,27 @@ void Pipeline::CreateShaderAndRootSignature()
 	
 	ComPtr<ID3DBlob> serialized;
 
-	D3D12_ROOT_PARAMETER rootParameter[2];
-	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
-	rootParameter[0].Descriptor.RegisterSpace = 0;
-	rootParameter[0].Descriptor.ShaderRegister = 0;
+	CD3DX12_DESCRIPTOR_RANGE texTable;
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+	CD3DX12_ROOT_PARAMETER rootParameter[3];
+	rootParameter[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[2].Descriptor.RegisterSpace = 0;
+	rootParameter[2].Descriptor.ShaderRegister = 0;
 	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
 	rootParameter[1].Descriptor.RegisterSpace = 0;
 	rootParameter[1].Descriptor.ShaderRegister = 1;
+	rootParameter[0].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+
+	auto staticSamplers = GetStaticSamplers();
 
 	D3D12_ROOT_SIGNATURE_DESC rsDesc = {};
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-	rsDesc.NumParameters = 2;
-	rsDesc.NumStaticSamplers = 0;
-	rsDesc.pStaticSamplers = nullptr;
+	rsDesc.NumParameters = 3;
+	rsDesc.NumStaticSamplers = (UINT)staticSamplers.size();
+	rsDesc.pStaticSamplers = staticSamplers.data();
 	rsDesc.pParameters = rootParameter;
 
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
@@ -430,4 +502,31 @@ void Pipeline::SetViewportAndScissor()
 	mScissor.top = 0;
 	mScissor.right = mWidth;
 	mScissor.bottom = mHeight;
+}
+
+void::Pipeline::CreateSrv()
+{
+	IfError::Throw(DirectX::CreateDDSTextureFromFile12(mDevice.Get(),
+		mCommandList.Get(), L"../Model/textures/WoodCrate01.dds",
+		mTexture.mTexture, mTexture.mUpload),
+		L"load texture error");
+
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+	srvHeapDesc.NumDescriptors = 1;
+	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	IfError::Throw(mDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)),
+	L"create srv heap error!");
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = mTexture.mTexture->GetDesc().Format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.Texture2D.MipLevels = mTexture.mTexture->GetDesc().MipLevels;
+	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+	mDevice->CreateShaderResourceView(mTexture.mTexture.Get(), &srvDesc, hDescriptor);
 }

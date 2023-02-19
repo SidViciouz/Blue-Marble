@@ -1,3 +1,7 @@
+Texture2D gDiffuseMap : register(t0);
+SamplerState gsamLinear  : register(s0);
+
+
 struct Light
 {
 	float3 position;
@@ -42,6 +46,8 @@ cbuffer trans : register(b1)
 	float3 cameraFront;
 	int pad2;
 }
+
+
 
 VertexOut VS(VertexIn vin)
 {
@@ -148,7 +154,9 @@ float4 PS(VertexOut pin) : SV_Target
 		float m = (1.0f - roughness) * 32.0f;
 		roughnessTerm = (m + 8.0f) * pow(max(dot(halfway, pin.normal), 0.0f), m) / 8.0f;
 		
-		color += float4(rambertTerm * lights[i].color * (diffuseAlbedo + fresnelTerm*roughnessTerm), 1.0f);
+		float3 diffuse = gDiffuseMap.Sample(gsamLinear, pin.tex) * diffuseAlbedo;
+
+		color += float4(rambertTerm * lights[i].color * (diffuse + fresnelTerm*roughnessTerm), 1.0f);
 	}
 
 	return color;

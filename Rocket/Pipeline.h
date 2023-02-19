@@ -3,6 +3,7 @@
 #include "Util.h"
 #include "IfError.h"
 #include "Frame.h"
+#include "Texture.h"
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -31,6 +32,7 @@ private:
 	void CreateShaderAndRootSignature();
 	void CreatePso();
 	void SetViewportAndScissor();
+	void CreateSrv();
 
 	const int& mWidth;
 	const int& mHeight;
@@ -72,4 +74,8 @@ private:
 	D3D12_VIEWPORT mViewport;
 
 	D3D12_RECT mScissor;
+
+	Texture mTexture;
+
+	ComPtr<ID3D12DescriptorHeap> mSrvDescriptorHeap = nullptr;
 };
