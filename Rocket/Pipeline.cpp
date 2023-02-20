@@ -1,6 +1,8 @@
 #include "Pipeline.h"
 #include "Constant.h"
 #include "d3dx12.h"
+#include "Game.h"
+#include "DDSTextureLoader.h"
 
 Pipeline::Pipeline(const int& width, const int& height):
 	mWidth(width), mHeight(height)
@@ -165,6 +167,48 @@ void Pipeline::SetObjConstantIndex(int index)
 		+ index * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 }
 
+void Pipeline::CreateSrv(int size)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	heapDesc.NumDescriptors = size;
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+	IfError::Throw(mDevice->CreateDescriptorHeap(&heapDesc,IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
+		L"create srv heap error!");
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
+	viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	viewDesc.Texture2D.MipLevels = -1;
+	viewDesc.Texture2D.MostDetailedMip = 0;
+	viewDesc.Texture2D.PlaneSlice = 0;
+	
+	auto incrementSize = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	for (auto scene = Game::mScenes.begin(); scene != Game::mScenes.end(); scene++)
+	{
+		for (auto model = scene->get()->mModels->begin(); model != scene->get()->mModels->end(); model++)
+		{
+			viewDesc.Format = model->second->mTexture.mResource->GetDesc().Format;
+			auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
+			handle.ptr += incrementSize * model->second->mObjIndex;
+			mDevice->CreateShaderResourceView(model->second->mTexture.mResource.Get(), &viewDesc, handle);
+		}
+	}
+}
+
+void Pipeline::SetSrvIndex(int index)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+	handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * index;
+	mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+}
+
+ID3D12DescriptorHeap* Pipeline::getSrvHeap()
+{
+	return mSrvHeap.Get();
+}
+
 void Pipeline::CreateCommandObjects()
 {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -314,7 +358,14 @@ void Pipeline::CreateShaderAndRootSignature()
 	
 	ComPtr<ID3DBlob> serialized;
 
-	D3D12_ROOT_PARAMETER rootParameter[2];
+	D3D12_DESCRIPTOR_RANGE range = {};
+	range.BaseShaderRegister = 0;
+	range.NumDescriptors = 1;
+	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	range.RegisterSpace = 0;
+
+	D3D12_ROOT_PARAMETER rootParameter[3];
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
 	rootParameter[0].Descriptor.RegisterSpace = 0;
@@ -323,12 +374,22 @@ void Pipeline::CreateShaderAndRootSignature()
 	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
 	rootParameter[1].Descriptor.RegisterSpace = 0;
 	rootParameter[1].Descriptor.ShaderRegister = 1;
+	rootParameter[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameter[2].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[2].DescriptorTable.pDescriptorRanges = &range;
+
+	CD3DX12_STATIC_SAMPLER_DESC samplerDesc(0,
+		D3D12_FILTER_MIN_MAG_MIP_LINEAR, 
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP, 
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP,  
+		D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 
 	D3D12_ROOT_SIGNATURE_DESC rsDesc = {};
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-	rsDesc.NumParameters = 2;
-	rsDesc.NumStaticSamplers = 0;
-	rsDesc.pStaticSamplers = nullptr;
+	rsDesc.NumParameters = 3;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &samplerDesc;
 	rsDesc.pParameters = rootParameter;
 
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),

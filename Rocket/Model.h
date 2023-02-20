@@ -7,6 +7,7 @@
 #include "Util.h"
 #include "Buffer.h"
 #include "Constant.h"
+#include "Texture.h"
 
 using namespace std;
 using namespace DirectX;
@@ -47,7 +48,9 @@ public:
 	int mVertexBufferOffset = 0;
 	int mIndexBufferOffset = 0;
 	
-	int mObjConstantIndex = mNextObjConstantIndex++;
+	int mObjIndex = mNextObjConstantIndex++;
+
+	Texture mTexture;
 
 	static int mNextObjConstantIndex;
 };

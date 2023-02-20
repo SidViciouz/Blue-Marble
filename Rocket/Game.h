@@ -36,7 +36,7 @@ private:
 	//윈도우 관련 메서드
 	void InitializeWindow();
 
-	void LoadScene();
+	int LoadScene();
 	unique_ptr<Models> LoadModel(int sceneIndex);
 	trans SetLight();
 	void Update();

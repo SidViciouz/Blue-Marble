@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "DDSTextureLoader.h"
 
 vector<unique_ptr<Scene>> Game::mScenes;
 
@@ -16,7 +17,9 @@ void Game::Initialize()
 	//DirectX 객체들 초기화 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
 	mDirectX.Initialize(mWindowHandle);
 	
-	LoadScene();
+	int numModels = LoadScene();
+
+	mDirectX.CreateSrv(numModels);
 
 	mTimer.Reset();
 }
@@ -122,13 +125,17 @@ Game* Game::Get()
 	return mLatestWindow;
 }
 
-void Game::LoadScene()
+int Game::LoadScene()
 {
+	int numModels = 0;
 	//scene 0
 	mScenes.push_back(make_unique<Scene>());
 	
 	//모델 로드 (버텍스, 인덱스)
 	mScenes[mCurrentScene]->mModels = LoadModel(0);
+
+	numModels += mScenes[mCurrentScene]->mModels->size();
+
 	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	mScenes[mCurrentScene]->CreateVertexIndexBuffer(mDirectX);
 
@@ -143,12 +150,17 @@ void Game::LoadScene()
 
 	//모델 로드 (버텍스, 인덱스)
 	mScenes[mCurrentScene]->mModels = LoadModel(1);
+
+	numModels += mScenes[mCurrentScene]->mModels->size();
+
 	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	mScenes[mCurrentScene]->CreateVertexIndexBuffer(mDirectX);
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
 	mScenes[mCurrentScene]->envFeature = SetLight();
+
+	return numModels;
 }
 
 /*
@@ -164,8 +176,11 @@ void Game::LoadScene()
 		//(*model)["field"] = move(field);
 
 		unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
+			table->mTexture.mResource, table->mTexture.mUpload),
+			L"load dds texture error!");
 		(*model)["table1"] = move(table);
-
+		/*
 		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
 		table->mPosition = { 0.0f,3.0f,0.0f };
 		(*model)["table2"] = move(table);
@@ -197,12 +212,15 @@ void Game::LoadScene()
 		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
 		table->mPosition = { -3.0f,3.0f,0.0f };
 		(*model)["table9"] = move(table);
-
+		*/
 	}
 	else if (sceneIndex == 1)
 	{
 		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
 		woodHouse->mPosition = { 0.0f,0.2f,0.0f };
+		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
+			woodHouse->mTexture.mResource, woodHouse->mTexture.mUpload),
+			L"load dds texture error!");
 		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
 		/*
 		woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
@@ -294,7 +312,7 @@ void Game::Update()
 
 	int i = 0;
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i) {
-		mDirectX.SetObjConstantBuffer(model->second->mObjConstantIndex, &model->second->mObjFeature, sizeof(obj));
+		mDirectX.SetObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
 	}
 	
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->mPosition;
@@ -324,12 +342,15 @@ void Game::Draw()
 	cmdList->IASetVertexBuffers(0, 1, &vbv);
 	cmdList->IASetIndexBuffer(&ibv);
 
+	ID3D12DescriptorHeap* heaps[] = { mDirectX.getSrvHeap() };
+	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
 
 	int i = 0;
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i)
 	{
 		//모델마다 obj constant index 멤버변수를 만들어야함.
-		mDirectX.SetObjConstantIndex(model->second->mObjConstantIndex);
+		mDirectX.SetObjConstantIndex(model->second->mObjIndex);
+		mDirectX.SetSrvIndex(model->second->mObjIndex);
 		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 

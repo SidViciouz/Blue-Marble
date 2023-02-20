@@ -22,6 +22,9 @@ public:
 	void TransitionToPresent();
 	void DrawFinish();
 	void SetObjConstantIndex(int index);
+	void CreateSrv(int size);
+	void SetSrvIndex(int index);
+	ID3D12DescriptorHeap* getSrvHeap();
 
 private:
 	void CreateCommandObjects();
@@ -72,4 +75,6 @@ private:
 	D3D12_VIEWPORT mViewport;
 
 	D3D12_RECT mScissor;
+
+	ComPtr<ID3D12DescriptorHeap> mSrvHeap = nullptr;
 };
