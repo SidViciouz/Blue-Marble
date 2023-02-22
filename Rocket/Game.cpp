@@ -1,7 +1,6 @@
 #include "Game.h"
 #include "DDSTextureLoader.h"
 
-
 vector<unique_ptr<Scene>> Game::mScenes;
 
 Game::Game(HINSTANCE hInstance)
@@ -61,7 +60,7 @@ void Game::SelectObject(int x, int y)
 	XMFLOAT3 newPos;
 	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
 	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
-
+	
 	//viewport에서 view coordinate으로 변환, z = 10
 	newPos.x = (2.0f * x / (float)mWidth - 1.0f)/p00 * 10.0f;
 	newPos.y = (-2.0f * y / (float)mHeight + 1.0f)/p11 *10.0f;
@@ -78,7 +77,6 @@ void Game::SelectObject(int x, int y)
 
 	XMStoreFloat3(&newPos, newPosVector);
 
-	printf("%f %f %f\n", newPos.x, newPos.y, newPos.z);
 	mSelectedModel->SetPosition(newPos);
 }
 
@@ -97,6 +95,8 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		if(wParam == MK_LBUTTON)
 			SelectObject(LOWORD(lParam),HIWORD(lParam));
+		return 0;
+
 	case WM_KEYDOWN :
 		if (wParam == 0x51)
 			ChangeScene(0);

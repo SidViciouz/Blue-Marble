@@ -51,6 +51,8 @@ public:
 
 	Texture mTexture;
 
+	BoundingOrientedBox mBound;
+
 	static int mNextObjConstantIndex;
 };
 

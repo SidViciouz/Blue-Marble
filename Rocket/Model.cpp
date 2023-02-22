@@ -94,6 +94,8 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 
 	Game::mScenes[sceneIndex]->mAllVertices.insert(Game::mScenes[sceneIndex]->mAllVertices.end(), mVertices.begin(), mVertices.end());
 	Game::mScenes[sceneIndex]->mAllIndices.insert(Game::mScenes[sceneIndex]->mAllIndices.end(), mIndices.begin(), mIndices.end());
+
+	BoundingOrientedBox::CreateFromPoints(mBound,mVertices.size(),&mVertices[0].position,sizeof(Vertex));
 }
 
 // string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환
