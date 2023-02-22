@@ -330,7 +330,7 @@ void Game::Update()
 void Game::Draw()
 {
 	mDirectX.Draw();
- 
+
 	D3D12_VERTEX_BUFFER_VIEW vbv = {};
 	vbv.BufferLocation = mScenes[mCurrentScene]->mVertexBuffer->GetGpuAddress();
 	vbv.StrideInBytes = sizeof(Vertex);
@@ -350,6 +350,16 @@ void Game::Draw()
 
 	ID3D12DescriptorHeap* heaps[] = { mDirectX.getSrvHeap() };
 	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+
+	//선택된 물체에 노란색 테두리 렌더링
+	if (mIsModelSelected == true)
+	{
+		mDirectX.SetPSO("Selected");
+		mDirectX.SetObjConstantIndex(mSelectedModel->mObjIndex);
+		cmdList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mIndexBufferOffset, 0);
+		mDirectX.SetPSO("default");
+	}
 
 	int i = 0;
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i)

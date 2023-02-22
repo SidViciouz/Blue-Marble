@@ -27,6 +27,7 @@ public:
 	void SetSrvIndex(int index);
 	ID3D12DescriptorHeap* getSrvHeap();
 	void CreateSrv(int size);
+	void SetPSO(string name);
 
 private:
 	void CreateCommandObjects();

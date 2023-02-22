@@ -102,7 +102,7 @@ void Pipeline::Draw()
 		L"frame command allocator reset error!");
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(),mPSOs["default"].Get());
-
+	
 	mCommandList->RSSetScissorRects(1, &mScissor);
 	mCommandList->RSSetViewports(1, &mViewport);
 
@@ -192,6 +192,11 @@ void Pipeline::CreateSrv(int size)
 			mDevice->CreateShaderResourceView(model->second->mTexture.mResource.Get(), &viewDesc, handle);
 		}
 	}
+}
+
+void Pipeline::SetPSO(string name)
+{
+	mCommandList->SetPipelineState(mPSOs[name].Get());
 }
 
 void Pipeline::SetSrvIndex(int index)
@@ -331,24 +336,27 @@ void Pipeline::CreateSwapChain(HWND windowHandle)
 void Pipeline::CreateShaderAndRootSignature()
 {
 	//shader compile.
-	ComPtr<ID3DBlob> blobVS = nullptr;
+	ComPtr<ID3DBlob> blob = nullptr;
+
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["defaultVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["defaultPS"] = move(blob);
 	
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blobVS, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "DistortionVS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
+	mShaders["distortionVS"] = move(blob);
 
-	mShaders["defaultVS"] = move(blobVS);
-
-	ComPtr<ID3DBlob> blobPS = nullptr;
-
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blobPS, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "SelectedVS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
+	mShaders["SelectedVS"] = move(blob);
 
-	mShaders["defaultPS"] = move(blobPS);
-	
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "DistortionVS", "vs_5_1", 0, 0, &blobVS, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "SelectedPS", "ps_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
-
-	mShaders["distortionVS"] = move(blobVS);
+	mShaders["SelectedPS"] = move(blob);
 
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
@@ -471,8 +479,16 @@ void Pipeline::CreatePso()
 
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc,IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
-
 	mPSOs["default"] = move(pso);
+
+	psoDesc.VS.pShaderBytecode = mShaders["SelectedVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["SelectedVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["SelectedPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["SelectedPS"]->GetBufferSize();
+
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["Selected"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()
