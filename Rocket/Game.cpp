@@ -311,29 +311,20 @@ void Game::Update()
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
 	
-	//Model의 position으로부터 world, Camera의 데이터로부터 view와 projection matrix를 설정한다.
-	//model의 world matrix를 업데이트
-	for (auto it = mScenes[mCurrentScene]->mModels->begin(); it != mScenes[mCurrentScene]->mModels->end(); it++)
-	{
-		XMFLOAT3 pos = it->second->GetPosition();
-		XMFLOAT3 scale = it->second->mScale;
-		XMMATRIX world = XMMatrixScaling(scale.x,scale.y,scale.z)*XMMatrixTranslation(pos.x, pos.y, pos.z);
-		XMStoreFloat4x4(&it->second->mObjFeature.world, world);
-	}
-
+	mScenes[mCurrentScene]->Update();
 	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
 	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;
+	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
+	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
+	mDirectX.SetTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
 
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 	int i = 0;
-	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i) {
+	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i)
+	{
 		mDirectX.SetObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
 	}
 	
-	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
-	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
-
-	mDirectX.SetTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
 }
 
 void Game::Draw()

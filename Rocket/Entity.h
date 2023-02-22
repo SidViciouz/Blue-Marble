@@ -11,6 +11,7 @@ protected:
 	Quaternion mQuaternion;
 
 public:
+	bool mDirty = true;
 
 	void SetPosition(const XMFLOAT3& position);
 	void SetPosition(const float& x, const float& y, const float& z);

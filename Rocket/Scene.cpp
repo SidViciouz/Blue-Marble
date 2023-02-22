@@ -17,3 +17,14 @@ void Scene::CreateVertexIndexBuffer()
 	mVertexBuffer->Copy(mAllVertices.data(), sizeof(Vertex) * mAllVertices.size(), Pipeline::mCommandList.Get());
 	mIndexBuffer->Copy(mAllIndices.data(), sizeof(uint16_t) * mAllIndices.size(), Pipeline::mCommandList.Get());
 }
+
+void Scene::Update()
+{
+	for (auto it = mModels->begin(); it != mModels->end(); it++)
+	{
+		if (it->second->mDirty)
+		{
+			it->second->Update();
+		}
+	}
+}

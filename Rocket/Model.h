@@ -31,6 +31,7 @@ public:
 	Model& operator=(Model&& model) = delete;
 
 	void Load();
+	void Update();
 
 	const char* mFileName;
 	const wchar_t* mName;

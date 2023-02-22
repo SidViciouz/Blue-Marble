@@ -13,6 +13,17 @@ Model::Model(int sceneIndex,const char* fileName, const wchar_t* name)
 	mName = name;
 }
 
+void Model::Update()
+{
+	XMFLOAT3 pos = mPosition.Get();
+	XMFLOAT3 scale = mScale;
+	XMMATRIX world = XMMatrixScaling(scale.x, scale.y, scale.z) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+
+	XMStoreFloat4x4(&mObjFeature.world, world);
+	
+	mDirty = false;
+}
+
 void Model::Load()
 {
 	ifstream ifs;

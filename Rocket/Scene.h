@@ -11,6 +11,7 @@ class Scene
 public:
 	void LoadModels();
 	void CreateVertexIndexBuffer();
+	void Update();
 
 	unique_ptr<Models> mModels;
 
