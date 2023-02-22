@@ -2,8 +2,7 @@
 
 Camera::Camera(int width,int height)
 {
-	
-	mPosition = { 0.0f,0.0f,-5.0f };
+	mPosition.Set(0.0f,0.0f,-5.0f);
 	mUp = { 0.0f,1.0f,0.0f };
 	mFront = { 0.0f,0.0f,1.0f };
 	mRight = { 1.0f,0.0f,0.0f };
@@ -21,16 +20,10 @@ void Camera::Resize(int width, int height)
 
 void Camera::GoFront(float a)
 {
-	XMVECTOR d = XMVectorReplicate(a);
-	XMVECTOR l = XMLoadFloat3(&mFront);
-	XMVECTOR p = XMLoadFloat3(&mPosition);
-	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(d, l, p));
+	mPosition.MulAdd(a, mFront);
 }
 
 void Camera::GoRight(float a)
 {
-	XMVECTOR d = XMVectorReplicate(a);
-	XMVECTOR l = XMLoadFloat3(&mRight);
-	XMVECTOR p = XMLoadFloat3(&mPosition);
-	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(d, l, p));
+	mPosition.MulAdd(a, mRight);
 }

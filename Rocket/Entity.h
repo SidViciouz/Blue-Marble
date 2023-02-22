@@ -6,7 +6,7 @@
 
 class Entity
 {
-private:
+protected:
 	Position mPosition;
 	Quaternion mQuaternion;
 

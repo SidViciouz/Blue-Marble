@@ -1,8 +1,6 @@
 #pragma once 
 #include "Util.h"
 
-using namespace DirectX;
-
 enum LightType : int
 {
 	Directional = 0,

@@ -15,4 +15,6 @@ public:
 
 	void Add(const XMFLOAT3& d);
 	void Add(const float& x,const float& y,const float& z);
+
+	void MulAdd(const float& a,const XMFLOAT3& b);
 };

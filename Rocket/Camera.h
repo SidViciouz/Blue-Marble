@@ -1,9 +1,9 @@
 #pragma once
 #include "Util.h"
+#include "Entity.h"
 
-using namespace DirectX;
 
-class Camera
+class Camera : public Entity
 {
 public:
 	Camera(int width, int height);
@@ -11,7 +11,6 @@ public:
 	void GoFront(float a);
 	void GoRight(float a);
 
-	XMFLOAT3 mPosition;
 	XMFLOAT3 mUp;
 	XMFLOAT3 mFront;
 	XMFLOAT3 mRight;

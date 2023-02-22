@@ -17,14 +17,28 @@ const XMFLOAT3& Position::Get()
 
 void Position::Add(const XMFLOAT3& d)
 {
-	mPosition.x += d.x;
-	mPosition.y += d.y;
-	mPosition.z += d.z;
+	XMVECTOR a = XMLoadFloat3(&mPosition);
+	XMVECTOR b = XMLoadFloat3(&d);
+
+	XMStoreFloat3(&mPosition, a + b);
 }
 
 void Position::Add(const float& x,const float& y,const float& z)
 {
-	mPosition.x += x;
-	mPosition.y += y;
-	mPosition.z += z;
+	XMVECTOR a = XMLoadFloat3(&mPosition);
+	XMVECTOR b = XMVectorSet(x, y, z, 1.0f);
+
+	XMStoreFloat3(&mPosition, a + b);
+}
+
+/*
+* a를 벡터의 모든 요소에 복제해서 벡터를 생성하고 이를 b에 곱한 후에 position과 더한다.
+*/
+void Position::MulAdd(const float& a, const XMFLOAT3& b)
+{
+	XMVECTOR d = XMVectorReplicate(a);
+	XMVECTOR l = XMLoadFloat3(&b);
+	XMVECTOR p = XMLoadFloat3(&mPosition);
+
+	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(d, l, p));
 }
