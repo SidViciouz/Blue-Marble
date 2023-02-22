@@ -4,6 +4,9 @@
 #include "Game.h"
 #include "DDSTextureLoader.h"
 
+ComPtr<ID3D12Device> Pipeline::mDevice = nullptr;
+ComPtr<ID3D12GraphicsCommandList> Pipeline::mCommandList = nullptr;
+
 Pipeline::Pipeline(const int& width, const int& height):
 	mWidth(width), mHeight(height)
 {

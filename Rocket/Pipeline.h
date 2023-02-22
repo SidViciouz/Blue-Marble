@@ -10,6 +10,9 @@ using namespace std;
 class Pipeline
 {
 public:
+	static ComPtr<ID3D12Device> mDevice;
+	static ComPtr<ID3D12GraphicsCommandList> mCommandList;
+
 	Pipeline(const int& width,const int& height);
 	void Initialize(HWND windowHandle);
 	ID3D12Device* GetDevice();
@@ -38,7 +41,6 @@ private:
 	const int& mWidth;
 	const int& mHeight;
 
-	ComPtr<ID3D12Device> mDevice = nullptr;
 
 	ComPtr<IDXGIFactory4> mFactory = nullptr;
 
@@ -56,7 +58,6 @@ private:
 	int mCurrentFrame = 0;
 
 	ComPtr<ID3D12CommandQueue> mCommandQueue;
-	ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
 	ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 	ComPtr<ID3D12DescriptorHeap> mDsvHeap;

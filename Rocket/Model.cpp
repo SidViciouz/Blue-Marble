@@ -1,11 +1,12 @@
 #include "Model.h"
 #include "IfError.h"
 #include "Game.h"
+#include "DDSTextureLoader.h"
 
 string getToken(string& aLine, bool isFirst); 
 int getNumber(string& aWord, bool isFirst);
 
-Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList,int sceneIndex)
+Model::Model(const char* fileName,int sceneIndex)
 {
 	ifstream ifs;
 	ifs.open(fileName,ios_base::in);
@@ -96,6 +97,13 @@ Model::Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandLis
 	Game::mScenes[sceneIndex]->mAllIndices.insert(Game::mScenes[sceneIndex]->mAllIndices.end(), mIndices.begin(), mIndices.end());
 
 	BoundingOrientedBox::CreateFromPoints(mBound,mVertices.size(),&mVertices[0].position,sizeof(Vertex));
+}
+
+void Model::LoadTexture(const wchar_t* name)
+{
+	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Pipeline::mCommandList.Get(), name,
+		mTexture.mResource, mTexture.mUpload),
+		L"load dds texture error!");
 }
 
 // string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환

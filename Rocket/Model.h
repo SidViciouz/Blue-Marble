@@ -24,11 +24,13 @@ struct Vertex
 class Model : public Entity
 {
 public:
-	Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList,int sceneIndex);
+	Model(const char* fileName,int sceneIndex);
 	Model(const Model& model) = delete;
 	Model(Model&& model) = delete;
 	Model& operator=(const Model& model) = delete;
 	Model& operator=(Model&& model) = delete;
+
+	void LoadTexture(const wchar_t* name);
 
 	vector<Vertex> mVertices;
 	vector<uint16_t> mIndices;

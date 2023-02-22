@@ -1,5 +1,4 @@
 #include "Game.h"
-#include "DDSTextureLoader.h"
 
 vector<unique_ptr<Scene>> Game::mScenes;
 
@@ -252,32 +251,24 @@ unique_ptr<Models> Game::LoadModel(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
-			m->mTexture.mResource, m->mTexture.mUpload),
-			L"load dds texture error!");
+		m = make_shared<Model>("../Model/table.obj", sceneIndex);
+		m->LoadTexture(L"../Model/textures/bricks3.dds");
 		(*model)["table"] = move(m);
 
-		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/sword.obj", mDirectX.GetCommandList(), sceneIndex);
-		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
-			m->mTexture.mResource, m->mTexture.mUpload),
-			L"load dds texture error!");
+		m = make_shared<Model>("../Model/sword.obj", sceneIndex);
+		m->LoadTexture(L"../Model/textures/bricks3.dds");
 		m->mScale = { 0.1f,0.1f,0.1f };
 		(*model)["sword"] = move(m);
 
-		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/box.obj", mDirectX.GetCommandList(), sceneIndex);
-		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
-			m->mTexture.mResource, m->mTexture.mUpload),
-			L"load dds texture error!");
+		m = make_shared<Model>("../Model/box.obj", sceneIndex);
+		m->LoadTexture(L"../Model/textures/bricks3.dds");
 		(*model)["box"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
+		m = make_shared<Model>("../Model/KSR-29 sniper rifle new_obj.obj", sceneIndex);
+		m->LoadTexture(L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, 0.2f, 0.0f);
-		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
-			m->mTexture.mResource, m->mTexture.mUpload),
-			L"load dds texture error!");
 		(*model)["woodHouse"] = move(m);//frame에서 obj constant buffer 크기 늘려야함;
 	}
 
