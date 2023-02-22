@@ -62,12 +62,23 @@ void Game::SelectObject(int x, int y)
 	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
 	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
 
-	newPos.x = (2.0f * x / (float)mWidth - 1.0f)*p00*5.0f;
-	newPos.y = (-2.0f * y / (float)mHeight + 1.0f) * p11 * 5.0f;
-	newPos.z = 5.0f;
+	//viewport에서 view coordinate으로 변환, z = 10
+	newPos.x = (2.0f * x / (float)mWidth - 1.0f)/p00 * 10.0f;
+	newPos.y = (-2.0f * y / (float)mHeight + 1.0f)/p11 *10.0f;
+	newPos.z = 10.0f;
 	
-	//newPos를 VC에서 WC로 변환해야한다.
+	//newPos를 VC에서 WC로 변환한다.
+	XMMATRIX inverseViewMatrix = XMLoadFloat4x4(&mScenes[mCurrentScene]->mCamera->view);
+	XMVECTOR det = XMMatrixDeterminant(inverseViewMatrix);
+	inverseViewMatrix = XMMatrixInverse(&det,inverseViewMatrix);
 
+	XMVECTOR newPosVector = XMLoadFloat3(&newPos);
+
+	newPosVector = XMVector3TransformCoord(newPosVector, inverseViewMatrix);
+
+	XMStoreFloat3(&newPos, newPosVector);
+
+	printf("%f %f %f\n", newPos.x, newPos.y, newPos.z);
 	mSelectedModel->SetPosition(newPos);
 }
 
