@@ -8,7 +8,7 @@ using namespace std;
 class Frame
 {
 public:
-	Frame(ID3D12Device* device);
+	Frame(int numModels);
 	ID3D12CommandAllocator* Get();
 	UINT64 mFenceValue = 0;
 	unique_ptr<UploadBuffer> mObjConstantBuffer = nullptr;

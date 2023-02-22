@@ -39,6 +39,7 @@ private:
 
 	int LoadScene();
 	unique_ptr<Models> LoadModel(int sceneIndex);
+	void LoadCopyModelToBuffer();
 	trans SetLight();
 	void Update();
 	void Draw();

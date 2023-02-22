@@ -14,7 +14,7 @@ Pipeline::Pipeline(const int& width, const int& height):
 }
 
 
-void Pipeline::Initialize(HWND windowHandle)
+void Pipeline::Initialize()
 {
 	IfError::Throw(CreateDXGIFactory1(IID_PPV_ARGS(mFactory.GetAddressOf())),
 		L"create factory error!");
@@ -37,10 +37,14 @@ void Pipeline::Initialize(HWND windowHandle)
 
 	mMsaaQuality = qualityLevels.NumQualityLevels;
 
+}
+
+void Pipeline::CreateObjects(HWND windowHandle,int numModels)
+{
 	//효율성을 위해 cpu에서 미리 프레임을 계산해 놓기위해서 여러개의 프레임 자원을 생성.
 	for (int i = 0; i < mNumberOfFrames; ++i)
 	{
-		mFrames.push_back(make_unique<Frame>(mDevice.Get()));
+		mFrames.push_back(make_unique<Frame>(numModels));
 	}
 
 	CreateCommandObjects();
@@ -56,16 +60,6 @@ void Pipeline::Initialize(HWND windowHandle)
 	CreatePso();
 
 	SetViewportAndScissor();
-}
-
-ID3D12Device* Pipeline::GetDevice()
-{
-	return mDevice.Get();
-}
-
-ID3D12GraphicsCommandList* Pipeline::GetCommandList()
-{
-	return mCommandList.Get();
 }
 
 void Pipeline::CloseAndExecute()

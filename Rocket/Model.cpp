@@ -6,10 +6,17 @@
 string getToken(string& aLine, bool isFirst); 
 int getNumber(string& aWord, bool isFirst);
 
-Model::Model(const char* fileName,int sceneIndex)
+Model::Model(int sceneIndex,const char* fileName, const wchar_t* name)
+{
+	mSceneIndex = sceneIndex;
+	mFileName = fileName;
+	mName = name;
+}
+
+void Model::Load()
 {
 	ifstream ifs;
-	ifs.open(fileName,ios_base::in);
+	ifs.open(mFileName, ios_base::in);
 
 	if (ifs.fail())
 		IfError::Throw(L"model file open error!");
@@ -40,7 +47,7 @@ Model::Model(const char* fileName,int sceneIndex)
 			string value;
 			x = stof(getToken(aLine, false));
 			y = stof(getToken(aLine, false));
-			uvs.push_back({ x,y});
+			uvs.push_back({ x,y });
 		}
 		else if (type.compare("vn") == 0)
 		{
@@ -56,9 +63,9 @@ Model::Model(const char* fileName,int sceneIndex)
 			vector<int> index;
 			while ((value = getToken(aLine, false)).compare(" ") != 0)
 			{
-				index.push_back(getNumber(value, true)-1);
-				index.push_back(getNumber(value, false)-1);
-				index.push_back(getNumber(value, false)-1);
+				index.push_back(getNumber(value, true) - 1);
+				index.push_back(getNumber(value, false) - 1);
+				index.push_back(getNumber(value, false) - 1);
 			}
 
 			if (index.size() == 9)
@@ -74,13 +81,13 @@ Model::Model(const char* fileName,int sceneIndex)
 				for (int i = 0; i < 12; i = i + 3)
 					mVertices.push_back({ positions[index[i]],uvs[index[i + 1]],normals[index[i + 2]] });
 				mIndices.push_back(j);
-				mIndices.push_back(j+1);
-				mIndices.push_back(j+2);
+				mIndices.push_back(j + 1);
+				mIndices.push_back(j + 2);
 				mIndices.push_back(j);
-				mIndices.push_back(j+2);
-				mIndices.push_back(j+3);
+				mIndices.push_back(j + 2);
+				mIndices.push_back(j + 3);
 				j = j + 4;
-				
+
 			}
 		}
 	}
@@ -90,18 +97,15 @@ Model::Model(const char* fileName,int sceneIndex)
 	mVertexBufferSize = mVertices.size();
 	mIndexBufferSize = mIndices.size();
 
-	mVertexBufferOffset = Game::mScenes[sceneIndex]->mAllVertices.size();
-	mIndexBufferOffset = Game::mScenes[sceneIndex]->mAllIndices.size();
+	mVertexBufferOffset = Game::mScenes[mSceneIndex]->mAllVertices.size();
+	mIndexBufferOffset = Game::mScenes[mSceneIndex]->mAllIndices.size();
 
-	Game::mScenes[sceneIndex]->mAllVertices.insert(Game::mScenes[sceneIndex]->mAllVertices.end(), mVertices.begin(), mVertices.end());
-	Game::mScenes[sceneIndex]->mAllIndices.insert(Game::mScenes[sceneIndex]->mAllIndices.end(), mIndices.begin(), mIndices.end());
+	Game::mScenes[mSceneIndex]->mAllVertices.insert(Game::mScenes[mSceneIndex]->mAllVertices.end(), mVertices.begin(), mVertices.end());
+	Game::mScenes[mSceneIndex]->mAllIndices.insert(Game::mScenes[mSceneIndex]->mAllIndices.end(), mIndices.begin(), mIndices.end());
 
-	BoundingOrientedBox::CreateFromPoints(mBound,mVertices.size(),&mVertices[0].position,sizeof(Vertex));
-}
+	BoundingOrientedBox::CreateFromPoints(mBound, mVertices.size(), &mVertices[0].position, sizeof(Vertex));
 
-void Model::LoadTexture(const wchar_t* name)
-{
-	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Pipeline::mCommandList.Get(), name,
+	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Pipeline::mCommandList.Get(), mName,
 		mTexture.mResource, mTexture.mUpload),
 		L"load dds texture error!");
 }

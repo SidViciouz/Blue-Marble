@@ -13,11 +13,19 @@ void Game::Initialize()
 	//윈도우 초기화
 	InitializeWindow();
 
-	//DirectX 객체들 초기화 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
-	mDirectX.Initialize(mWindowHandle);
+	//device, fence 등 생성
+	mDirectX.Initialize();
 	
 	int numModels = LoadScene();
 
+	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
+	mDirectX.CreateObjects(mWindowHandle, numModels);
+
+	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
+	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
+	LoadCopyModelToBuffer();
+
+	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	mDirectX.CreateSrv(numModels);
 
 	mTimer.Reset();
@@ -213,9 +221,6 @@ int Game::LoadScene()
 
 	numModels += mScenes[mCurrentScene]->mModels->size();
 
-	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
-	mScenes[mCurrentScene]->CreateVertexIndexBuffer(mDirectX);
-
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
 	mScenes[mCurrentScene]->envFeature = SetLight();
@@ -229,9 +234,6 @@ int Game::LoadScene()
 	mScenes[mCurrentScene]->mModels = LoadModel(1);
 
 	numModels += mScenes[mCurrentScene]->mModels->size();
-
-	//버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
-	mScenes[mCurrentScene]->CreateVertexIndexBuffer(mDirectX);
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
@@ -251,28 +253,34 @@ unique_ptr<Models> Game::LoadModel(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>("../Model/table.obj", sceneIndex);
-		m->LoadTexture(L"../Model/textures/bricks3.dds");
+		m = make_shared<Model>(sceneIndex,"../Model/table.obj", L"../Model/textures/bricks3.dds");
 		(*model)["table"] = move(m);
 
-		m = make_shared<Model>("../Model/sword.obj", sceneIndex);
-		m->LoadTexture(L"../Model/textures/bricks3.dds");
+		m = make_shared<Model>(sceneIndex,"../Model/sword.obj", L"../Model/textures/bricks3.dds");
 		m->mScale = { 0.1f,0.1f,0.1f };
 		(*model)["sword"] = move(m);
 
-		m = make_shared<Model>("../Model/box.obj", sceneIndex);
-		m->LoadTexture(L"../Model/textures/bricks3.dds");
+		m = make_shared<Model>(sceneIndex,"../Model/box.obj", L"../Model/textures/bricks3.dds");
 		(*model)["box"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Model>("../Model/KSR-29 sniper rifle new_obj.obj", sceneIndex);
-		m->LoadTexture(L"../Model/textures/bricks3.dds");
+		m = make_shared<Model>(sceneIndex,"../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, 0.2f, 0.0f);
 		(*model)["woodHouse"] = move(m);//frame에서 obj constant buffer 크기 늘려야함;
 	}
 
 	return move(model);
+}
+
+void Game::LoadCopyModelToBuffer()
+{
+	//모델 데이터, 텍스처 로드, 버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
+	for (int i = 0; i <= mCurrentScene; ++i)
+	{
+		mScenes[i]->LoadModels();
+		mScenes[i]->CreateVertexIndexBuffer();
+	}
 }
 
 trans Game::SetLight()
@@ -342,7 +350,7 @@ void Game::Draw()
 	ibv.SizeInBytes = sizeof(uint16_t)* mScenes[mCurrentScene]->mAllIndices.size();
 
 	//vertex buffer, index buffer 바인딩.
-	ID3D12GraphicsCommandList* cmdList = mDirectX.GetCommandList();
+	ID3D12GraphicsCommandList* cmdList = Pipeline::mCommandList.Get();
 
 	cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	cmdList->IASetVertexBuffers(0, 1, &vbv);

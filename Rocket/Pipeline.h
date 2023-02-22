@@ -14,9 +14,8 @@ public:
 	static ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
 	Pipeline(const int& width,const int& height);
-	void Initialize(HWND windowHandle);
-	ID3D12Device* GetDevice();
-	ID3D12GraphicsCommandList* GetCommandList();
+	void Initialize();
+	void CreateObjects(HWND windowHandle,int numModels);
 	void CloseAndExecute();
 	void Update(); // current frame 값을 업데이트.
 	void Draw();
@@ -25,9 +24,9 @@ public:
 	void TransitionToPresent();
 	void DrawFinish();
 	void SetObjConstantIndex(int index);
-	void CreateSrv(int size);
 	void SetSrvIndex(int index);
 	ID3D12DescriptorHeap* getSrvHeap();
+	void CreateSrv(int size);
 
 private:
 	void CreateCommandObjects();

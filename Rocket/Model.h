@@ -24,13 +24,17 @@ struct Vertex
 class Model : public Entity
 {
 public:
-	Model(const char* fileName,int sceneIndex);
+	Model(int sceneIndex,const char* fileName, const wchar_t* name);
 	Model(const Model& model) = delete;
 	Model(Model&& model) = delete;
 	Model& operator=(const Model& model) = delete;
 	Model& operator=(Model&& model) = delete;
 
-	void LoadTexture(const wchar_t* name);
+	void Load();
+
+	const char* mFileName;
+	const wchar_t* mName;
+	int mSceneIndex;
 
 	vector<Vertex> mVertices;
 	vector<uint16_t> mIndices;

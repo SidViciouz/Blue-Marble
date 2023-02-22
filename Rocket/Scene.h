@@ -9,7 +9,8 @@ using namespace std;
 class Scene
 {
 public:
-	void CreateVertexIndexBuffer(Pipeline& pipeline);
+	void LoadModels();
+	void CreateVertexIndexBuffer();
 
 	unique_ptr<Models> mModels;
 

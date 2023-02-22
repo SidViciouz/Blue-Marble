@@ -1,15 +1,15 @@
 #include "Frame.h"
 #include "IfError.h"
 #include "Constant.h"
+#include "Pipeline.h"
 
-Frame::Frame(ID3D12Device* device)
+Frame::Frame(int numModels)
 {
-	IfError::Throw(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,IID_PPV_ARGS(mCommandAllocator.GetAddressOf())),
+	IfError::Throw(Pipeline::mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,IID_PPV_ARGS(mCommandAllocator.GetAddressOf())),
 		L"create command allocator error!");
 	
-	//object가 두개이기 때문에 sizeof(obj)*2를 기준으로 constant buffer를 생성함. (추후 수정해야함.)
-	mObjConstantBuffer = make_unique<UploadBuffer>(device, BufferInterface::ConstantBufferByteSize(sizeof(obj))*10);
-	mTransConstantBuffer = make_unique<UploadBuffer>(device, BufferInterface::ConstantBufferByteSize(sizeof(trans)));
+	mObjConstantBuffer = make_unique<UploadBuffer>(Pipeline::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(obj))* numModels);
+	mTransConstantBuffer = make_unique<UploadBuffer>(Pipeline::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(trans)));
 }
 
 ID3D12CommandAllocator* Frame::Get()

@@ -1,11 +1,19 @@
 #include "Scene.h"
 
-void Scene::CreateVertexIndexBuffer(Pipeline& pipeline)
+void Scene::LoadModels()
 {
-	mVertexBuffer = make_unique<Buffer>(pipeline.GetDevice(), sizeof(Vertex) * mAllVertices.size());
-	mIndexBuffer = make_unique<Buffer>(pipeline.GetDevice(), sizeof(uint16_t) * mAllIndices.size());
+	for (auto model = mModels->begin(); model != mModels->end(); model++)
+	{
+		model->second->Load();
+	}
+}
+
+void Scene::CreateVertexIndexBuffer()
+{
+	mVertexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(Vertex) * mAllVertices.size());
+	mIndexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(uint16_t) * mAllIndices.size());
 
 	//Vertex, Index 버퍼에 Model 데이터 copy
-	mVertexBuffer->Copy(mAllVertices.data(), sizeof(Vertex) * mAllVertices.size(), pipeline.GetCommandList());
-	mIndexBuffer->Copy(mAllIndices.data(), sizeof(uint16_t) * mAllIndices.size(), pipeline.GetCommandList());
+	mVertexBuffer->Copy(mAllVertices.data(), sizeof(Vertex) * mAllVertices.size(), Pipeline::mCommandList.Get());
+	mIndexBuffer->Copy(mAllIndices.data(), sizeof(uint16_t) * mAllIndices.size(), Pipeline::mCommandList.Get());
 }
