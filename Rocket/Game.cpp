@@ -90,13 +90,13 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	//다음과 같은 카메라 움직임 업데이트는 버벅임이 생긴다.
+	static bool selected = false;
+
 	switch (msg)
 	{
-	case WM_LBUTTONDOWN:
-		SelectObject(LOWORD(lParam),HIWORD(lParam));
-		return 0;
-
+	case WM_MOUSEMOVE:
+		if(wParam == MK_LBUTTON)
+			SelectObject(LOWORD(lParam),HIWORD(lParam));
 	case WM_KEYDOWN :
 		if (wParam == 0x51)
 			ChangeScene(0);
