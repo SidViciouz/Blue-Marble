@@ -262,7 +262,7 @@ unique_ptr<Models> Game::CreateModel(int sceneIndex)
 		(*model)["sword"] = move(m);
 
 		m = make_shared<Model>(sceneIndex,"../Model/box.obj", L"../Model/textures/bricks3.dds");
-		(*model)["box"] = move(m);
+		(*model)["my"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
@@ -357,7 +357,7 @@ void Game::Draw()
 	{
 		mDirectX.SetPSO("Selected");
 		mDirectX.SetObjConstantIndex(mSelectedModel->mObjIndex);
-		cmdList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mIndexBufferOffset, 0);
+		cmdList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mVertexBufferOffset, 0);
 		mDirectX.SetPSO("default");
 	}
 
@@ -369,6 +369,7 @@ void Game::Draw()
 		mDirectX.SetSrvIndex(model->second->mObjIndex);
 		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
+
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();
