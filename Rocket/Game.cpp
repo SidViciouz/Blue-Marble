@@ -52,30 +52,73 @@ void Game::ChangeScene(int dstScene)
 
 void Game::SelectObject(int x, int y)
 {
-	mIsModelSelected = true;
-	
-	mSelectedModel = mScenes[mCurrentScene]->mModels->begin()->second;
-
-	XMFLOAT3 pos = mSelectedModel->GetPosition();
 	XMFLOAT3 newPos;
 	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
 	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
 	
-	//viewport에서 view coordinate으로 변환, z = 10
-	newPos.x = (2.0f * x / (float)mWidth - 1.0f)/p00 * 10.0f;
-	newPos.y = (-2.0f * y / (float)mHeight + 1.0f)/p11 *10.0f;
-	newPos.z = 10.0f;
+	//viewport에서 view coordinate으로 변환, z = 1
+	newPos.x = (2.0f * x / (float)mWidth - 1.0f)/p00;
+	newPos.y = (-2.0f * y / (float)mHeight + 1.0f)/p11;
+	newPos.z = 1.0f;
 	
 	//newPos를 VC에서 WC로 변환한다.
 	XMMATRIX inverseViewMatrix = XMLoadFloat4x4(&mScenes[mCurrentScene]->mCamera->view);
 	XMVECTOR det = XMMatrixDeterminant(inverseViewMatrix);
 	inverseViewMatrix = XMMatrixInverse(&det,inverseViewMatrix);
 
-	XMVECTOR newPosVector = XMLoadFloat3(&newPos);
+	XMVECTOR rayVector = XMLoadFloat3(&newPos);
+	XMVECTOR rayOrigin = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 
-	newPosVector = XMVector3TransformCoord(newPosVector, inverseViewMatrix);
+	//XMVector3TransformCoord는 일반적인 변환이고
+	//XMVector3TransformNormal은 행렬의 0~3행 중 3행을 무시한다. 따라서 translation은 할 수 없다.
+	rayVector = XMVector3Normalize(XMVector3TransformNormal(rayVector, inverseViewMatrix));
+	rayOrigin = XMVector3TransformCoord(rayOrigin, inverseViewMatrix);
 
-	XMStoreFloat3(&newPos, newPosVector);
+	float prevDist = 1000.0f;
+	float dist = 1000.0f;
+	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
+	{
+		BoundingOrientedBox boundingBox;
+
+		model->second->mBound.Transform(boundingBox, XMLoadFloat4x4(&model->second->mObjFeature.world));
+
+		if (boundingBox.Intersects(rayOrigin, rayVector, dist))
+		{
+			if (dist < prevDist)
+			{
+				mIsModelSelected = true;
+				mSelectedModel = model->second;
+				prevDist = dist;
+			}
+		}
+	}
+
+
+}
+
+void Game::MoveObject(int x, int y)
+{
+	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
+	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
+	float oldZ = mSelectedModel->GetPosition().z;
+	XMFLOAT3 pos = mSelectedModel->GetPosition();
+	XMFLOAT3 newPos;
+
+	//viewport에서 view coordinate으로 변환
+	newPos.x = (2.0f * x / (float)mWidth - 1.0f) / p00*10.0f;
+	newPos.y = (-2.0f * y / (float)mHeight + 1.0f) / p11*10.0f;
+	newPos.z = 10.0f;
+
+	//newPos를 VC에서 WC로 변환한다.
+	XMMATRIX inverseViewMatrix = XMLoadFloat4x4(&mScenes[mCurrentScene]->mCamera->view);
+	XMVECTOR det = XMMatrixDeterminant(inverseViewMatrix);
+	inverseViewMatrix = XMMatrixInverse(&det, inverseViewMatrix);
+
+	XMVECTOR rayVector = XMLoadFloat3(&newPos);
+
+	rayVector = XMVector3TransformCoord(rayVector, inverseViewMatrix);
+
+	XMStoreFloat3(&newPos, rayVector);
 
 	mSelectedModel->SetPosition(newPos);
 }
@@ -88,13 +131,24 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static bool selected = false;
-
 	switch (msg)
 	{
+	case WM_LBUTTONDOWN:
+		if (mIsModelSelected == false)
+		{
+			SelectObject(LOWORD(lParam), HIWORD(lParam));
+		}
+		return 0;
+
+	case WM_LBUTTONUP:
+		mIsModelSelected = false;
+		return 0;
+
 	case WM_MOUSEMOVE:
-		if(wParam == MK_LBUTTON)
-			SelectObject(LOWORD(lParam),HIWORD(lParam));
+		if (mIsModelSelected == true)
+		{
+			MoveObject(LOWORD(lParam), HIWORD(lParam));
+		}
 		return 0;
 
 	case WM_KEYDOWN :
@@ -202,7 +256,13 @@ unique_ptr<Models> Game::LoadModel(int sceneIndex)
 		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
 			table->mTexture.mResource, table->mTexture.mUpload),
 			L"load dds texture error!");
-		(*model)["table1"] = move(table);
+		(*model)["table"] = move(table);
+
+		shared_ptr<Model> triangle = make_shared<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList(), sceneIndex);
+		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
+			triangle->mTexture.mResource, triangle->mTexture.mUpload),
+			L"load dds texture error!");
+		(*model)["triangle"] = move(triangle);
 	}
 	else if (sceneIndex == 1)
 	{

@@ -27,6 +27,7 @@ public:
 	void Initialize();
 	void Run();
 	void ChangeScene(int dstScene);
+	void MoveObject(int x, int y);
 	void SelectObject(int x,int y);
 
 	static vector<unique_ptr<Scene>> mScenes;
