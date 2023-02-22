@@ -10,6 +10,11 @@ void Position::Set(const float& x,const float& y,const float& z)
 	mPosition = { x,y,z };
 }
 
+const XMFLOAT3& Position::Get()
+{
+	return mPosition;
+}
+
 void Position::Add(const XMFLOAT3& d)
 {
 	mPosition.x += d.x;

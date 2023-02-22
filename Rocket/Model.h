@@ -8,6 +8,7 @@
 #include "Buffer.h"
 #include "Constant.h"
 #include "Texture.h"
+#include "Entity.h"
 
 using namespace std;
 using namespace DirectX;
@@ -20,7 +21,7 @@ struct Vertex
 	XMFLOAT3 normal;
 };
 
-class Model
+class Model : public Entity
 {
 public:
 	Model(ID3D12Device* device,const char* fileName, ID3D12GraphicsCommandList* commandList,int sceneIndex);
@@ -31,8 +32,6 @@ public:
 
 	vector<Vertex> mVertices;
 	vector<uint16_t> mIndices;
-
-	XMFLOAT3 mPosition = { 0.0f,0.0f,0.0f };
 
 	obj mObjFeature = { {1.0f,0.0f,0.0f,0.0f,
 						0.0f,1.0f,0.0f,0.0f,

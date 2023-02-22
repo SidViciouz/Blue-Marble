@@ -9,4 +9,6 @@ private:
 public:
 	void Set(const XMFLOAT4& quaternion);
 	void Set(const float& x,const float& y,const float& z,const float& w);
+
+	const XMFLOAT4& Get();
 };

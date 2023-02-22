@@ -9,3 +9,8 @@ void Quaternion::Set(const float& x, const float& y, const float& z, const float
 {
 	mQuaternion = { x,y,z,w };
 }
+
+const XMFLOAT4& Quaternion::Get()
+{
+	return mQuaternion;
+}

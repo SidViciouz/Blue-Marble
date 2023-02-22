@@ -217,7 +217,7 @@ int Game::LoadScene()
 	else if (sceneIndex == 1)
 	{
 		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
-		woodHouse->mPosition = { 0.0f,0.2f,0.0f };
+		woodHouse->SetPosition(0.0f, 0.2f, 0.0f);
 		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
 			woodHouse->mTexture.mResource, woodHouse->mTexture.mUpload),
 			L"load dds texture error!");
@@ -273,7 +273,7 @@ void Game::Update()
 	//model의 world matrix를 업데이트
 	for (auto it = mScenes[mCurrentScene]->mModels->begin(); it != mScenes[mCurrentScene]->mModels->end(); it++)
 	{
-		XMFLOAT3 pos = it->second->mPosition;
+		XMFLOAT3 pos = it->second->GetPosition();
 		XMMATRIX world = XMMatrixTranslation(pos.x, pos.y, pos.z);
 		XMStoreFloat4x4(&it->second->mObjFeature.world, world);
 	}
