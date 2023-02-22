@@ -100,8 +100,6 @@ void Game::MoveObject(int x, int y)
 {
 	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
 	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
-	float oldZ = mSelectedModel->GetPosition().z;
-	XMFLOAT3 pos = mSelectedModel->GetPosition();
 	XMFLOAT3 newPos;
 
 	//viewport에서 view coordinate으로 변환
@@ -250,28 +248,37 @@ unique_ptr<Models> Game::LoadModel(int sceneIndex)
 {
 	unique_ptr<Models> model = make_unique<Models>();
 
+	shared_ptr<Model> m;
+
 	if (sceneIndex == 0)
 	{
-		shared_ptr<Model> table = make_shared<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
 		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
-			table->mTexture.mResource, table->mTexture.mUpload),
+			m->mTexture.mResource, m->mTexture.mUpload),
 			L"load dds texture error!");
-		(*model)["table"] = move(table);
+		(*model)["table"] = move(m);
 
-		shared_ptr<Model> triangle = make_shared<Model>(mDirectX.GetDevice(), "../Model/triangle.obj", mDirectX.GetCommandList(), sceneIndex);
+		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/sword.obj", mDirectX.GetCommandList(), sceneIndex);
 		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
-			triangle->mTexture.mResource, triangle->mTexture.mUpload),
+			m->mTexture.mResource, m->mTexture.mUpload),
 			L"load dds texture error!");
-		(*model)["triangle"] = move(triangle);
+		m->mScale = { 0.1f,0.1f,0.1f };
+		(*model)["sword"] = move(m);
+
+		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/box.obj", mDirectX.GetCommandList(), sceneIndex);
+		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
+			m->mTexture.mResource, m->mTexture.mUpload),
+			L"load dds texture error!");
+		(*model)["box"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		shared_ptr<Model> woodHouse = make_shared<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
-		woodHouse->SetPosition(0.0f, 0.2f, 0.0f);
+		m = make_shared<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
+		m->SetPosition(0.0f, 0.2f, 0.0f);
 		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
-			woodHouse->mTexture.mResource, woodHouse->mTexture.mUpload),
+			m->mTexture.mResource, m->mTexture.mUpload),
 			L"load dds texture error!");
-		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함;
+		(*model)["woodHouse"] = move(m);//frame에서 obj constant buffer 크기 늘려야함;
 	}
 
 	return move(model);
@@ -309,7 +316,8 @@ void Game::Update()
 	for (auto it = mScenes[mCurrentScene]->mModels->begin(); it != mScenes[mCurrentScene]->mModels->end(); it++)
 	{
 		XMFLOAT3 pos = it->second->GetPosition();
-		XMMATRIX world = XMMatrixTranslation(pos.x, pos.y, pos.z);
+		XMFLOAT3 scale = it->second->mScale;
+		XMMATRIX world = XMMatrixScaling(scale.x,scale.y,scale.z)*XMMatrixTranslation(pos.x, pos.y, pos.z);
 		XMStoreFloat4x4(&it->second->mObjFeature.world, world);
 	}
 

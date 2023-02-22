@@ -42,6 +42,8 @@ public:
 		{0.1f,0.1f,0.1f}
 	};
 
+	XMFLOAT3 mScale = { 1.0f,1.0f,1.0f };
+
 	int mVertexBufferSize = 0;
 	int mIndexBufferSize = 0;
 	int mVertexBufferOffset = 0;
