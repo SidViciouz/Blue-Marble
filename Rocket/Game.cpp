@@ -16,6 +16,7 @@ void Game::Initialize()
 	//device, fence 등 생성
 	mDirectX.Initialize();
 	
+	//각 Scene들에 모델, 카메라, 조명 생성
 	int numModels = LoadScene();
 
 	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
@@ -217,7 +218,7 @@ int Game::LoadScene()
 	mScenes.push_back(make_unique<Scene>());
 
 	//모델 로드 (버텍스, 인덱스)
-	mScenes[mCurrentScene]->mModels = LoadModel(0);
+	mScenes[mCurrentScene]->mModels = CreateModel(0);
 
 	numModels += mScenes[mCurrentScene]->mModels->size();
 
@@ -231,7 +232,7 @@ int Game::LoadScene()
 	mScenes.push_back(make_unique<Scene>());
 	
 	//모델 로드 (버텍스, 인덱스)
-	mScenes[mCurrentScene]->mModels = LoadModel(1);
+	mScenes[mCurrentScene]->mModels = CreateModel(1);
 
 	numModels += mScenes[mCurrentScene]->mModels->size();
 
@@ -245,7 +246,7 @@ int Game::LoadScene()
 /*
 * model의 vertex,index offset이 scene 내에서 존재하기 buffer가 존재하기 때문에 어떤 scene내에 로드할 건지를 명시해준다.
 */
-unique_ptr<Models> Game::LoadModel(int sceneIndex)
+unique_ptr<Models> Game::CreateModel(int sceneIndex)
 {
 	unique_ptr<Models> model = make_unique<Models>();
 

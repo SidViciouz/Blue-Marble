@@ -38,7 +38,7 @@ private:
 	void InitializeWindow();
 
 	int LoadScene();
-	unique_ptr<Models> LoadModel(int sceneIndex);
+	unique_ptr<Models> CreateModel(int sceneIndex);
 	void LoadCopyModelToBuffer();
 	trans SetLight();
 	void Update();
