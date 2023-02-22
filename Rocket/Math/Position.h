@@ -8,6 +8,8 @@ private:
 	XMFLOAT3 mPosition;
 
 public:
+	Position();
+
 	void Set(const XMFLOAT3& position);
 	void Set(const float& x,const float& y,const float& z);
 

@@ -7,6 +7,7 @@
 #include "Constant.h"
 #include "Timer.h"
 #include "Scene.h"
+#include "Entity.h"
 
 class Game
 {
@@ -24,10 +25,9 @@ public:
 	LRESULT WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	void Initialize();
-
 	void Run();
-
 	void ChangeScene(int dstScene);
+	void SelectObject(int x,int y);
 
 	static vector<unique_ptr<Scene>> mScenes;
 
@@ -58,4 +58,7 @@ private:
 	Pipeline mDirectX;
 
 	int mCurrentScene = 0;
+
+	bool mIsModelSelected = false;
+	shared_ptr<Model> mSelectedModel;
 };

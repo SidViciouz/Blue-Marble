@@ -1,5 +1,12 @@
 #include "Position.h"
 
+Position::Position()
+{
+	mPosition.x = 0.0f;
+	mPosition.y = 0.0f;
+	mPosition.z = 0.0f;
+}
+
 void Position::Set(const XMFLOAT3& position)
 {
 	mPosition = position;
@@ -7,7 +14,9 @@ void Position::Set(const XMFLOAT3& position)
 
 void Position::Set(const float& x,const float& y,const float& z)
 {
-	mPosition = { x,y,z };
+	mPosition.x = x;
+	mPosition.y = y;
+	mPosition.z = z;
 }
 
 const XMFLOAT3& Position::Get()

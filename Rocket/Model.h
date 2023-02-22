@@ -46,7 +46,7 @@ public:
 	int mIndexBufferSize = 0;
 	int mVertexBufferOffset = 0;
 	int mIndexBufferOffset = 0;
-	
+
 	int mObjIndex = mNextObjConstantIndex++;
 
 	Texture mTexture;
@@ -54,4 +54,4 @@ public:
 	static int mNextObjConstantIndex;
 };
 
-using Models = unordered_map<string, unique_ptr<Model>>;
+using Models = unordered_map<string, shared_ptr<Model>>;

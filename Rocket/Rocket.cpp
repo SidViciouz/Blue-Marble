@@ -8,6 +8,16 @@
 #include <string>
 #include <iostream>
 
+#ifdef _DEBUG
+#ifdef UNICODE                                                                                      
+    #pragma comment(linker, "/entry:wWinMainCRTStartup /subsystem:console") 
+#else                                                                                                    
+    #pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")   
+#endif                                                                                                   
+#endif                                                                                                   
+
+
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,

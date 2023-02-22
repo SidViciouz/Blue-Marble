@@ -11,6 +11,7 @@ protected:
 	Quaternion mQuaternion;
 
 public:
+
 	void SetPosition(const XMFLOAT3& position);
 	void SetPosition(const float& x, const float& y, const float& z);
 	const XMFLOAT3& GetPosition();

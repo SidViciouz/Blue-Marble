@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "DDSTextureLoader.h"
 
+
 vector<unique_ptr<Scene>> Game::mScenes;
 
 Game::Game(HINSTANCE hInstance)
@@ -50,6 +51,26 @@ void Game::ChangeScene(int dstScene)
 	mCurrentScene = dstScene;
 }
 
+void Game::SelectObject(int x, int y)
+{
+	mIsModelSelected = true;
+	
+	mSelectedModel = mScenes[mCurrentScene]->mModels->begin()->second;
+
+	XMFLOAT3 pos = mSelectedModel->GetPosition();
+	XMFLOAT3 newPos;
+	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
+	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
+
+	newPos.x = (2.0f * x / (float)mWidth - 1.0f)*p00*5.0f;
+	newPos.y = (-2.0f * y / (float)mHeight + 1.0f) * p11 * 5.0f;
+	newPos.z = 5.0f;
+	
+	//newPos를 VC에서 WC로 변환해야한다.
+
+	mSelectedModel->SetPosition(newPos);
+}
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -62,22 +83,15 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_LBUTTONDOWN:
-		ChangeScene(0);
+		SelectObject(LOWORD(lParam),HIWORD(lParam));
 		return 0;
-	case WM_RBUTTONDOWN:
-		ChangeScene(1);
-		return 0;
-		/*
+
 	case WM_KEYDOWN :
-		if(wParam == 0x57)
-			mCamera->GoFront(10.0f * mTimer.GetDeltaTime());
-		else if(wParam == 0x53)
-			mCamera->GoFront(-10.0f * mTimer.GetDeltaTime());
-		else if (wParam == 0x41)
-			mCamera->GoRight(-10.0f*mTimer.GetDeltaTime());
-		else if(wParam == 0x44)
-			mCamera->GoRight(10.0f * mTimer.GetDeltaTime());
-		*/
+		if (wParam == 0x51)
+			ChangeScene(0);
+		else if (wParam == 0x45)
+			ChangeScene(1);
+		return 0;
 	}
 	
 	return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -128,9 +142,10 @@ Game* Game::Get()
 int Game::LoadScene()
 {
 	int numModels = 0;
+
 	//scene 0
 	mScenes.push_back(make_unique<Scene>());
-	
+
 	//모델 로드 (버텍스, 인덱스)
 	mScenes[mCurrentScene]->mModels = LoadModel(0);
 
@@ -142,12 +157,12 @@ int Game::LoadScene()
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
 	mScenes[mCurrentScene]->envFeature = SetLight();
-
+	
 
 	//scene 1
 	mCurrentScene++;
 	mScenes.push_back(make_unique<Scene>());
-
+	
 	//모델 로드 (버텍스, 인덱스)
 	mScenes[mCurrentScene]->mModels = LoadModel(1);
 
@@ -166,79 +181,28 @@ int Game::LoadScene()
 /*
 * model의 vertex,index offset이 scene 내에서 존재하기 buffer가 존재하기 때문에 어떤 scene내에 로드할 건지를 명시해준다.
 */
- unique_ptr<Models> Game::LoadModel(int sceneIndex)
+unique_ptr<Models> Game::LoadModel(int sceneIndex)
 {
 	unique_ptr<Models> model = make_unique<Models>();
 
 	if (sceneIndex == 0)
 	{
-		//unique_ptr<Model> field = make_unique<Model>(mDirectX.GetDevice(), "../Model/field.obj", mDirectX.GetCommandList(), sceneIndex);
-		//(*model)["field"] = move(field);
-
-		unique_ptr<Model> table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
+		shared_ptr<Model> table = make_shared<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
 		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
 			table->mTexture.mResource, table->mTexture.mUpload),
 			L"load dds texture error!");
 		(*model)["table1"] = move(table);
-		/*
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { 0.0f,3.0f,0.0f };
-		(*model)["table2"] = move(table);
-
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { 0.0f,-3.0f,0.0f };
-		(*model)["table3"] = move(table);
-
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { 3.0f,0.0f,0.0f };
-		(*model)["table4"] = move(table);
-
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { -3.0f,0.0f,0.0f };
-		(*model)["table5"] = move(table);
-
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { 3.0f,3.0f,0.0f };
-		(*model)["table6"] = move(table);
-
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { -3.0f,-3.0f,0.0f };
-		(*model)["table7"] = move(table);
-
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { 3.0f,-3.0f,0.0f };
-		(*model)["table8"] = move(table);
-
-		table = make_unique<Model>(mDirectX.GetDevice(), "../Model/table.obj", mDirectX.GetCommandList(), sceneIndex);
-		table->mPosition = { -3.0f,3.0f,0.0f };
-		(*model)["table9"] = move(table);
-		*/
 	}
 	else if (sceneIndex == 1)
 	{
-		unique_ptr<Model> woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
+		shared_ptr<Model> woodHouse = make_shared<Model>(mDirectX.GetDevice(), "../Model/KSR-29 sniper rifle new_obj.obj", mDirectX.GetCommandList(), sceneIndex);
 		woodHouse->SetPosition(0.0f, 0.2f, 0.0f);
 		IfError::Throw(CreateDDSTextureFromFile12(mDirectX.GetDevice(), mDirectX.GetCommandList(), L"../Model/textures/bricks3.dds",
 			woodHouse->mTexture.mResource, woodHouse->mTexture.mUpload),
 			L"load dds texture error!");
-		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함.
-		/*
-		woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
-		woodHouse->mPosition = { 10.0f,0.2f,0.0f };
-		(*model)["woodHouse2"] = move(woodHouse);
-
-		woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
-		woodHouse->mPosition = { -10.0f,0.2f,0.0f };
-		(*model)["woodHouse3"] = move(woodHouse);
-
-		woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
-		woodHouse->mPosition = { 0.0f,10.2f,0.0f };
-		(*model)["woodHouse4"] = move(woodHouse);
-
-		woodHouse = make_unique<Model>(mDirectX.GetDevice(), "../Model/woodHouse.obj", mDirectX.GetCommandList(), sceneIndex);
-		woodHouse->mPosition = { 0.0f,-10.2f,0.0f };
-		(*model)["woodHouse5"] = move(woodHouse);*/
+		(*model)["woodHouse"] = move(woodHouse);//frame에서 obj constant buffer 크기 늘려야함;
 	}
+
 	return move(model);
 }
 
@@ -268,7 +232,7 @@ void Game::Update()
 
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
-
+	
 	//Model의 position으로부터 world, Camera의 데이터로부터 view와 projection matrix를 설정한다.
 	//model의 world matrix를 업데이트
 	for (auto it = mScenes[mCurrentScene]->mModels->begin(); it != mScenes[mCurrentScene]->mModels->end(); it++)
@@ -278,38 +242,10 @@ void Game::Update()
 		XMStoreFloat4x4(&it->second->mObjFeature.world, world);
 	}
 
-	XMVECTOR right = XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->mRight);
-	XMVECTOR up = XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->mUp);
-	XMVECTOR front = XMVector3Normalize(XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->mFront));
-	XMVECTOR position = XMLoadFloat3(&mScenes[mCurrentScene]->mCamera->GetPosition());
+	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
+	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;
 
-	up = XMVector3Normalize(XMVector3Cross(front, right));
-	right = XMVector3Cross(up, front);
-
-	XMStoreFloat3(&mScenes[mCurrentScene]->mCamera->mRight, right);
-	XMStoreFloat3(&mScenes[mCurrentScene]->mCamera->mUp, up);
-	XMStoreFloat3(&mScenes[mCurrentScene]->mCamera->mFront,front);
-
-	float x = -XMVectorGetX(XMVector3Dot(position, right));
-	float y = -XMVectorGetX(XMVector3Dot(position, up));
-	float z = -XMVectorGetX(XMVector3Dot(position, front));
-
-	XMFLOAT4X4 viewMatrix = {
-		mScenes[mCurrentScene]->mCamera->mRight.x, mScenes[mCurrentScene]->mCamera->mUp.x, mScenes[mCurrentScene]->mCamera->mFront.x, 0.0f,
-		mScenes[mCurrentScene]->mCamera->mRight.y, mScenes[mCurrentScene]->mCamera->mUp.y, mScenes[mCurrentScene]->mCamera->mFront.y, 0.0f,
-		mScenes[mCurrentScene]->mCamera->mRight.z, mScenes[mCurrentScene]->mCamera->mUp.z, mScenes[mCurrentScene]->mCamera->mFront.z, 0.0f,
-		x,y,z,1.0f
-	};
-
-	XMMATRIX view = XMLoadFloat4x4(&viewMatrix);
-
-	XMMATRIX projection =XMMatrixPerspectiveFovLH(mScenes[mCurrentScene]->mCamera->mAngle, mScenes[mCurrentScene]->mCamera->mRatio,
-		mScenes[mCurrentScene]->mCamera->mNear, mScenes[mCurrentScene]->mCamera->mFar);
-
-	XMStoreFloat4x4(&mScenes[mCurrentScene]->envFeature.view,view);
-	XMStoreFloat4x4(&mScenes[mCurrentScene]->envFeature.projection,projection);
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
-
 	int i = 0;
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i) {
 		mDirectX.SetObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
@@ -363,16 +299,32 @@ void Game::Draw()
 void Game::Input()
 {
 	float deltaTime = mTimer.GetDeltaTime();
+	bool dirty = false;
 
 	if (GetAsyncKeyState('W') & 0x8000)
+	{
+		dirty = true;
 		mScenes[mCurrentScene]->mCamera->GoFront(10.0f * deltaTime);
+	}
 
 	if (GetAsyncKeyState('S') & 0x8000)
+	{
+		dirty = true;
 		mScenes[mCurrentScene]->mCamera->GoFront(-10.0f * deltaTime);
+	}
 
 	if (GetAsyncKeyState('D') & 0x8000)
+	{
+		dirty = true;
 		mScenes[mCurrentScene]->mCamera->GoRight(10.0f * deltaTime);
+	}
 
 	if (GetAsyncKeyState('A') & 0x8000)
+	{
+		dirty = true;
 		mScenes[mCurrentScene]->mCamera->GoRight(-10.0f * deltaTime);
+	}
+	
+	if (dirty)
+		mScenes[mCurrentScene]->mCamera->UpdateView();
 }
