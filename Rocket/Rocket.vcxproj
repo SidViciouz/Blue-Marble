@@ -144,9 +144,12 @@
     <ClInclude Include="Constant.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="IfError.h" />
     <ClInclude Include="Light.h" />
+    <ClInclude Include="Math\Position.h" />
+    <ClInclude Include="Math\Quaternion.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="framework.h" />
@@ -165,6 +168,8 @@
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="Math\Position.cpp" />
+    <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Game.cpp" />
