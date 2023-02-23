@@ -274,6 +274,16 @@ unique_ptr<Models> Game::CreateModel(int sceneIndex)
 		m->SetPosition(0.0f, 0.2f, 0.0f);
 		m->mScale = { 0.5f,0.5f,0.5f };
 		(*model)["woodHouse"] = move(m);
+
+		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/earth.dds");
+		(*model)["earth"] = move(m);
+
+		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/moon.dds");
+		(*model)["moon"] = move(m);
+
+		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/mercury.dds");
+		(*model)["mercury"] = move(m);
+		
 	}
 
 	return move(model);
@@ -299,12 +309,12 @@ unique_ptr<Models> Game::CreateWorld(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space2.dds");
+		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
 		(*model)["space"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space2.dds");
+		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
 		(*model)["space"] = move(m);
 	}
 
