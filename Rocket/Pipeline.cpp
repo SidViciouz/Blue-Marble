@@ -118,7 +118,7 @@ void Pipeline::Draw()
 
 	mCommandList->OMSetRenderTargets(1, &rtvHandle, true, &dsvHandle);
 	
-	mCommandList->SetGraphicsRootSignature(mRootSignatures["default"].Get());
+	mCommandList->SetGraphicsRootSignature(mRootSignatures["Default"].Get());
 
 	mCommandList->SetGraphicsRootConstantBufferView(1,mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
 }
@@ -194,11 +194,11 @@ void Pipeline::CreateSrv(int size)
 		}
 
 		viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-		viewDesc.TextureCube.MipLevels = -1;
 		viewDesc.TextureCube.MostDetailedMip = 0;
 		viewDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 		for (auto world = scene->get()->mWorld->begin(); world != scene->get()->mWorld->end(); world++)
 		{
+			viewDesc.TextureCube.MipLevels = world->second->mTexture.mResource->GetDesc().MipLevels;
 			viewDesc.Format = world->second->mTexture.mResource->GetDesc().Format;
 			auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
 			handle.ptr += incrementSize * world->second->mObjIndex;
@@ -353,15 +353,15 @@ void Pipeline::CreateShaderAndRootSignature()
 
 	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
-	mShaders["defaultVS"] = move(blob);
+	mShaders["DefaultVS"] = move(blob);
 
 	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
-	mShaders["defaultPS"] = move(blob);
+	mShaders["DefaultPS"] = move(blob);
 	
 	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "DistortionVS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
-	mShaders["distortionVS"] = move(blob);
+	mShaders["DistortionVS"] = move(blob);
 
 	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "SelectedVS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
@@ -424,7 +424,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 
-	mRootSignatures["default"] = move(rs);
+	mRootSignatures["Default"] = move(rs);
 }
 
 void Pipeline::CreatePso()
@@ -441,16 +441,16 @@ void Pipeline::CreatePso()
 	psoDesc.InputLayout.NumElements = 3;
 	psoDesc.InputLayout.pInputElementDescs = inputElements;
 
-	psoDesc.pRootSignature = mRootSignatures["default"].Get();
+	psoDesc.pRootSignature = mRootSignatures["Default"].Get();
 
-	psoDesc.VS.pShaderBytecode = mShaders["defaultVS"]->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = mShaders["defaultVS"]->GetBufferSize();
+	psoDesc.VS.pShaderBytecode = mShaders["DefaultVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["DefaultVS"]->GetBufferSize();
 
-	psoDesc.PS.pShaderBytecode = mShaders["defaultPS"]->GetBufferPointer();
-	psoDesc.PS.BytecodeLength = mShaders["defaultPS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["DefaultPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["DefaultPS"]->GetBufferSize();
 	
 	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
 	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 	psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
@@ -500,7 +500,7 @@ void Pipeline::CreatePso()
 
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc,IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
-	mPSOs["default"] = move(pso);
+	mPSOs["Default"] = move(pso);
 
 	psoDesc.VS.pShaderBytecode = mShaders["SelectedVS"]->GetBufferPointer();
 	psoDesc.VS.BytecodeLength = mShaders["SelectedVS"]->GetBufferSize();
@@ -511,6 +511,18 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["Selected"] = move(pso);
+
+	psoDesc.VS.pShaderBytecode = mShaders["WorldVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["WorldVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["WorldPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["WorldPS"]->GetBufferSize();
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["World"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

@@ -13,7 +13,7 @@ struct VertexOut
 	float4 pos : SV_POSITION;
 	float2 tex : TEXTURE;
 	float3 normal : NORMAL;
-	float3 posW : POSITION;
+	float3 localPos : POSITION;
 };
 
 struct VertexIn
@@ -46,19 +46,22 @@ VertexOut VS(VertexIn vin)
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 1.0f, 0.0f,
-		cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f
+		0.0f,0.0f, 0.0f, 1.0f
 	};
 
 	float4 Translated = mul(float4(vin.pos, 1.0f), WorldMatrix);
 
+	Translated += float4(cameraPosition, 0.0f);
+
 	float4 posH = mul(mul(Translated, transpose(view)), transpose(projection));
 
 	vout.pos = posH;
+	vout.localPos = vin.pos;
 
 	return vout;
 }
 
 float4 PS(VertexOut pin) : SV_Target
 {
-	return textureCube.Sample(textureSampler,pin.pos);
+	return textureCube.Sample(textureSampler,pin.localPos);
 }

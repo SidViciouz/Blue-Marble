@@ -299,15 +299,13 @@ unique_ptr<Models> Game::CreateWorld(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/sky.dds");
-		//m->mScale = { 100.0f,100.0f,100.0f };
-		(*model)["sky"] = move(m);
+		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space.dds");
+		(*model)["space"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/sky.dds");
-		//m->mScale = { 100.0f,100.0f,100.0f };
-		(*model)["sky"] = move(m);
+		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space.dds");
+		(*model)["space"] = move(m);
 	}
 
 	return move(model);
@@ -384,6 +382,13 @@ void Game::Draw()
 	ID3D12DescriptorHeap* heaps[] = { mDirectX.getSrvHeap() };
 	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
 
+	mDirectX.SetPSO("World");
+	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
+	{
+		mDirectX.SetSrvIndex(world->second->mObjIndex);
+		cmdList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
+	}
+	mDirectX.SetPSO("Default");
 
 	//선택된 물체에 노란색 테두리 렌더링
 	if (mIsModelSelected == true)
@@ -391,7 +396,7 @@ void Game::Draw()
 		mDirectX.SetPSO("Selected");
 		mDirectX.SetObjConstantIndex(mSelectedModel->mObjIndex);
 		cmdList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mVertexBufferOffset, 0);
-		mDirectX.SetPSO("default");
+		mDirectX.SetPSO("Default");
 	}
 
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
@@ -401,12 +406,6 @@ void Game::Draw()
 		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 
-	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
-	{
-		mDirectX.SetObjConstantIndex(world->second->mObjIndex);
-		mDirectX.SetSrvIndex(world->second->mObjIndex);
-		cmdList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
-	}
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();
