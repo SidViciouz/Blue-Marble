@@ -121,7 +121,16 @@ VertexOut SelectedVS(VertexIn vin)
 {
 	VertexOut vout;
 
-	float4 posW = mul(float4(vin.pos,1.0f), transpose(world));
+	float4x4 scaledMatrix = {
+		1.1f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.1f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.1f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	};
+
+	float4 scaled = mul(float4(vin.pos, 1.0f), scaledMatrix);
+
+	float4 posW = mul(scaled, transpose(world));
 
 	float4 posH = mul(mul(posW, transpose(view)), transpose(projection));
 

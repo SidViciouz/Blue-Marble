@@ -254,14 +254,14 @@ unique_ptr<Models> Game::CreateModel(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>(sceneIndex,"../Model/table.obj", L"../Model/textures/bricks3.dds");
+		m = make_shared<Model>(sceneIndex,"../Model/table.obj", L"../Model/textures/bricks1.dds");
 		(*model)["table"] = move(m);
 
-		m = make_shared<Model>(sceneIndex,"../Model/sword.obj", L"../Model/textures/bricks3.dds");
+		m = make_shared<Model>(sceneIndex,"../Model/sword.obj", L"../Model/textures/bricks2.dds");
 		m->mScale = { 0.1f,0.1f,0.1f };
 		(*model)["sword"] = move(m);
 
-		m = make_shared<Model>(sceneIndex,"../Model/box.obj", L"../Model/textures/bricks3.dds");
+		m = make_shared<Model>(sceneIndex,"../Model/my.obj", L"../Model/textures/checkboard.dds");
 		(*model)["my"] = move(m);
 	}
 	else if (sceneIndex == 1)

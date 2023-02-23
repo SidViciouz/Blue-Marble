@@ -485,6 +485,7 @@ void Pipeline::CreatePso()
 	psoDesc.VS.BytecodeLength = mShaders["SelectedVS"]->GetBufferSize();
 	psoDesc.PS.pShaderBytecode = mShaders["SelectedPS"]->GetBufferPointer();
 	psoDesc.PS.BytecodeLength = mShaders["SelectedPS"]->GetBufferSize();
+	psoDesc.DepthStencilState.DepthEnable = false;
 
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
