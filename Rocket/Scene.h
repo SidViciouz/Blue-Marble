@@ -14,6 +14,7 @@ public:
 	void Update();
 
 	unique_ptr<Models> mModels;
+	unique_ptr<Models> mWorld;
 
 	unique_ptr<Camera> mCamera = nullptr;
 

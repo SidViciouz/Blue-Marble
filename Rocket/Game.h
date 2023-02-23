@@ -40,6 +40,7 @@ private:
 	int LoadScene();
 	unique_ptr<Models> CreateModel(int sceneIndex);
 	void LoadCopyModelToBuffer();
+	unique_ptr<Models> CreateWorld(int sceneIndex);
 	trans SetLight();
 	void Update();
 	void Draw();

@@ -27,7 +27,7 @@ void Game::Initialize()
 	LoadCopyModelToBuffer();
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
-	mDirectX.CreateSrv(numModels);
+	mDirectX.CreateSrv(numModels + 2);
 
 	mTimer.Reset();
 }
@@ -220,6 +220,8 @@ int Game::LoadScene()
 	//모델 로드 (버텍스, 인덱스)
 	mScenes[mCurrentScene]->mModels = CreateModel(0);
 
+	mScenes[mCurrentScene]->mWorld = CreateWorld(0);
+
 	numModels += mScenes[mCurrentScene]->mModels->size();
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
@@ -233,6 +235,8 @@ int Game::LoadScene()
 	
 	//모델 로드 (버텍스, 인덱스)
 	mScenes[mCurrentScene]->mModels = CreateModel(1);
+
+	mScenes[mCurrentScene]->mWorld = CreateWorld(1);
 
 	numModels += mScenes[mCurrentScene]->mModels->size();
 
@@ -268,11 +272,14 @@ unique_ptr<Models> Game::CreateModel(int sceneIndex)
 	{
 		m = make_shared<Model>(sceneIndex,"../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, 0.2f, 0.0f);
-		(*model)["woodHouse"] = move(m);//frame에서 obj constant buffer 크기 늘려야함;
+		m->mScale = { 0.5f,0.5f,0.5f };
+		(*model)["woodHouse"] = move(m);
 	}
 
 	return move(model);
 }
+
+
 
 void Game::LoadCopyModelToBuffer()
 {
@@ -282,6 +289,28 @@ void Game::LoadCopyModelToBuffer()
 		mScenes[i]->LoadModels();
 		mScenes[i]->CreateVertexIndexBuffer();
 	}
+}
+
+unique_ptr<Models> Game::CreateWorld(int sceneIndex)
+{
+	unique_ptr<Models> model = make_unique<Models>();
+
+	shared_ptr<Model> m;
+
+	if (sceneIndex == 0)
+	{
+		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/sky.dds");
+		m->mScale = { 100.0f,100.0f,100.0f };
+		(*model)["sky"] = move(m);
+	}
+	else if (sceneIndex == 1)
+	{
+		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/sky.dds");
+		m->mScale = { 100.0f,100.0f,100.0f };
+		(*model)["sky"] = move(m);
+	}
+
+	return move(model);
 }
 
 trans Game::SetLight()
@@ -319,10 +348,14 @@ void Game::Update()
 	mDirectX.SetTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
 
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
-	int i = 0;
-	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i)
+	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
 		mDirectX.SetObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
+	}
+
+	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
+	{
+		mDirectX.SetObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
 	}
 	
 }
@@ -361,15 +394,19 @@ void Game::Draw()
 		mDirectX.SetPSO("default");
 	}
 
-	int i = 0;
-	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++, ++i)
+	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		//모델마다 obj constant index 멤버변수를 만들어야함.
 		mDirectX.SetObjConstantIndex(model->second->mObjIndex);
 		mDirectX.SetSrvIndex(model->second->mObjIndex);
 		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 
+	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
+	{
+		mDirectX.SetObjConstantIndex(world->second->mObjIndex);
+		mDirectX.SetSrvIndex(world->second->mObjIndex);
+		cmdList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
+	}
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();

@@ -174,22 +174,35 @@ void Pipeline::CreateSrv(int size)
 	IfError::Throw(mDevice->CreateDescriptorHeap(&heapDesc,IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
 		L"create srv heap error!");
 
-	D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
-	viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	viewDesc.Texture2D.MipLevels = -1;
-	viewDesc.Texture2D.MostDetailedMip = 0;
-	viewDesc.Texture2D.PlaneSlice = 0;
 	
 	auto incrementSize = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	for (auto scene = Game::mScenes.begin(); scene != Game::mScenes.end(); scene++)
 	{
+		D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
+		viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		viewDesc.Texture2D.MipLevels = -1;
+		viewDesc.Texture2D.MostDetailedMip = 0;
+		viewDesc.Texture2D.PlaneSlice = 0;
+
 		for (auto model = scene->get()->mModels->begin(); model != scene->get()->mModels->end(); model++)
 		{
 			viewDesc.Format = model->second->mTexture.mResource->GetDesc().Format;
 			auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
 			handle.ptr += incrementSize * model->second->mObjIndex;
 			mDevice->CreateShaderResourceView(model->second->mTexture.mResource.Get(), &viewDesc, handle);
+		}
+
+		viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+		viewDesc.TextureCube.MipLevels = -1;
+		viewDesc.TextureCube.MostDetailedMip = 0;
+		viewDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+		for (auto world = scene->get()->mWorld->begin(); world != scene->get()->mWorld->end(); world++)
+		{
+			viewDesc.Format = world->second->mTexture.mResource->GetDesc().Format;
+			auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
+			handle.ptr += incrementSize * world->second->mObjIndex;
+			mDevice->CreateShaderResourceView(world->second->mTexture.mResource.Get(), &viewDesc, handle);
 		}
 	}
 }

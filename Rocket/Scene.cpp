@@ -6,6 +6,10 @@ void Scene::LoadModels()
 	{
 		model->second->Load();
 	}
+	for (auto world = mWorld->begin(); world != mWorld->end(); world++)
+	{
+		world->second->Load();
+	}
 }
 
 void Scene::CreateVertexIndexBuffer()
@@ -21,6 +25,14 @@ void Scene::CreateVertexIndexBuffer()
 void Scene::Update()
 {
 	for (auto it = mModels->begin(); it != mModels->end(); it++)
+	{
+		if (it->second->mDirty)
+		{
+			it->second->Update();
+		}
+	}
+
+	for (auto it = mWorld->begin(); it != mWorld->end(); it++)
 	{
 		if (it->second->mDirty)
 		{
