@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-void Scene::LoadModels()
+void Scene::Load()
 {
 	for (auto model = mModels->begin(); model != mModels->end(); model++)
 	{

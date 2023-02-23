@@ -286,7 +286,7 @@ void Game::LoadCopyModelToBuffer()
 	//모델 데이터, 텍스처 로드, 버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	for (int i = 0; i <= mCurrentScene; ++i)
 	{
-		mScenes[i]->LoadModels();
+		mScenes[i]->Load();
 		mScenes[i]->CreateVertexIndexBuffer();
 	}
 }
@@ -299,12 +299,12 @@ unique_ptr<Models> Game::CreateWorld(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space.dds");
+		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space2.dds");
 		(*model)["space"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space.dds");
+		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/space2.dds");
 		(*model)["space"] = move(m);
 	}
 

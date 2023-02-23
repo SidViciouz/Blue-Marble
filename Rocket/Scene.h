@@ -9,7 +9,7 @@ using namespace std;
 class Scene
 {
 public:
-	void LoadModels();
+	void Load();
 	void CreateVertexIndexBuffer();
 	void Update();
 
