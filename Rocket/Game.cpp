@@ -300,13 +300,13 @@ unique_ptr<Models> Game::CreateWorld(int sceneIndex)
 	if (sceneIndex == 0)
 	{
 		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/sky.dds");
-		m->mScale = { 100.0f,100.0f,100.0f };
+		//m->mScale = { 100.0f,100.0f,100.0f };
 		(*model)["sky"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
 		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/sky.dds");
-		m->mScale = { 100.0f,100.0f,100.0f };
+		//m->mScale = { 100.0f,100.0f,100.0f };
 		(*model)["sky"] = move(m);
 	}
 
