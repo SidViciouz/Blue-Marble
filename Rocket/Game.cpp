@@ -17,17 +17,17 @@ void Game::Initialize()
 	mDirectX.Initialize();
 	
 	//각 Scene들에 모델, 카메라, 조명 생성
-	int numModels = LoadScene();
+	LoadScene();
 
 	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
-	mDirectX.CreateObjects(mWindowHandle, numModels);
+	mDirectX.CreateObjects(mWindowHandle, totalNumModels);
 
 	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
 	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
 	LoadCopyModelToBuffer();
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
-	mDirectX.CreateSrv(numModels + 2);
+	mDirectX.CreateSrv(totalNumModels + totalNumWorlds);
 
 	mTimer.Reset();
 }
@@ -210,10 +210,8 @@ Game* Game::Get()
 	return mLatestWindow;
 }
 
-int Game::LoadScene()
+void Game::LoadScene()
 {
-	int numModels = 0;
-
 	//scene 0
 	mScenes.push_back(make_unique<Scene>());
 
@@ -222,7 +220,9 @@ int Game::LoadScene()
 
 	mScenes[mCurrentScene]->mWorld = CreateWorld(0);
 
-	numModels += mScenes[mCurrentScene]->mModels->size();
+	totalNumModels += mScenes[mCurrentScene]->mModels->size();
+
+	totalNumWorlds += mScenes[mCurrentScene]->mWorld->size();
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
@@ -238,13 +238,13 @@ int Game::LoadScene()
 
 	mScenes[mCurrentScene]->mWorld = CreateWorld(1);
 
-	numModels += mScenes[mCurrentScene]->mModels->size();
+	totalNumModels += mScenes[mCurrentScene]->mModels->size();
+
+	totalNumWorlds += mScenes[mCurrentScene]->mWorld->size();
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
 	mScenes[mCurrentScene]->envFeature = SetLight();
-
-	return numModels;
 }
 
 /*

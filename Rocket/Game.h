@@ -37,7 +37,7 @@ private:
 	//윈도우 관련 메서드
 	void InitializeWindow();
 
-	int LoadScene();
+	void LoadScene();
 	unique_ptr<Models> CreateModel(int sceneIndex);
 	void LoadCopyModelToBuffer();
 	unique_ptr<Models> CreateWorld(int sceneIndex);
@@ -61,6 +61,9 @@ private:
 	Pipeline mDirectX;
 
 	int mCurrentScene = 0;
+
+	int totalNumModels = 0;
+	int totalNumWorlds = 0;
 
 	bool mIsModelSelected = false;
 	shared_ptr<Model> mSelectedModel;
