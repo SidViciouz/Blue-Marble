@@ -3,6 +3,8 @@
 #include "Model.h"
 #include "Camera.h"
 #include "Pipeline.h"
+#include "Clickable.h"
+#include "Unclickable.h"
 
 using namespace std;
 
@@ -13,8 +15,8 @@ public:
 	void CreateVertexIndexBuffer();
 	void Update();
 
-	unique_ptr<Models> mModels;
-	unique_ptr<Models> mWorld;
+	unique_ptr<Clickables> mModels;
+	unique_ptr<Unclickables> mWorld;
 
 	unique_ptr<Camera> mCamera = nullptr;
 

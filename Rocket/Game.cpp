@@ -82,6 +82,7 @@ void Game::SelectObject(int x, int y)
 	rayVector = XMVector3Normalize(XMVector3TransformNormal(rayVector, inverseViewMatrix));
 	rayOrigin = XMVector3TransformCoord(rayOrigin, inverseViewMatrix);
 
+	//clickable에서 모델을 선택한다.
 	float prevDist = 1000.0f;
 	float dist = 1000.0f;
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
@@ -250,38 +251,38 @@ void Game::LoadScene()
 /*
 * model의 vertex,index offset이 scene 내에서 존재하기 buffer가 존재하기 때문에 어떤 scene내에 로드할 건지를 명시해준다.
 */
-unique_ptr<Models> Game::CreateModel(int sceneIndex)
+unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 {
-	unique_ptr<Models> model = make_unique<Models>();
+	unique_ptr<Clickables> model = make_unique<Clickables>();
 
-	shared_ptr<Model> m;
+	shared_ptr<Clickable> m;
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>(sceneIndex,"../Model/table.obj", L"../Model/textures/bricks1.dds");
+		m = make_shared<Clickable>(sceneIndex,"../Model/table.obj", L"../Model/textures/bricks1.dds");
 		(*model)["table"] = move(m);
 
-		m = make_shared<Model>(sceneIndex,"../Model/sword.obj", L"../Model/textures/bricks2.dds");
+		m = make_shared<Clickable>(sceneIndex,"../Model/sword.obj", L"../Model/textures/bricks2.dds");
 		m->mScale = { 0.1f,0.1f,0.1f };
 		(*model)["sword"] = move(m);
 
-		m = make_shared<Model>(sceneIndex,"../Model/my.obj", L"../Model/textures/checkboard.dds");
+		m = make_shared<Clickable>(sceneIndex,"../Model/my.obj", L"../Model/textures/checkboard.dds");
 		(*model)["my"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Model>(sceneIndex,"../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
+		m = make_shared<Clickable>(sceneIndex,"../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, 0.2f, 0.0f);
 		m->mScale = { 0.5f,0.5f,0.5f };
 		(*model)["woodHouse"] = move(m);
 
-		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/earth.dds");
+		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/earth.dds");
 		(*model)["earth"] = move(m);
 
-		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/moon.dds");
+		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/moon.dds");
 		(*model)["moon"] = move(m);
 
-		m = make_shared<Model>(sceneIndex, "../Model/ball.obj", L"../Model/textures/mercury.dds");
+		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/mercury.dds");
 		(*model)["mercury"] = move(m);
 		
 	}
@@ -301,20 +302,20 @@ void Game::LoadCopyModelToBuffer()
 	}
 }
 
-unique_ptr<Models> Game::CreateWorld(int sceneIndex)
+unique_ptr<Unclickables> Game::CreateWorld(int sceneIndex)
 {
-	unique_ptr<Models> model = make_unique<Models>();
+	unique_ptr<Unclickables> model = make_unique<Unclickables>();
 
-	shared_ptr<Model> m;
+	shared_ptr<Unclickable> m;
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
+		m = make_shared<Unclickable>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
 		(*model)["space"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Model>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
+		m = make_shared<Unclickable>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
 		(*model)["space"] = move(m);
 	}
 

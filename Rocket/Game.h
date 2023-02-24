@@ -8,6 +8,8 @@
 #include "Timer.h"
 #include "Scene.h"
 #include "Entity.h"
+#include "Clickable.h"
+#include "Unclickable.h"
 
 class Game
 {
@@ -38,9 +40,9 @@ private:
 	void InitializeWindow();
 
 	void LoadScene();
-	unique_ptr<Models> CreateModel(int sceneIndex);
+	unique_ptr<Clickables> CreateModel(int sceneIndex);
 	void LoadCopyModelToBuffer();
-	unique_ptr<Models> CreateWorld(int sceneIndex);
+	unique_ptr<Unclickables> CreateWorld(int sceneIndex);
 	trans SetLight();
 	void Update();
 	void Draw();
