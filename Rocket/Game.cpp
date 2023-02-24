@@ -97,12 +97,11 @@ void Game::SelectObject(int x, int y)
 			{
 				mIsModelSelected = true;
 				mSelectedModel = model->second;
+				mSelectedModelName = model->first;
 				prevDist = dist;
 			}
 		}
 	}
-
-
 }
 
 void Game::MoveObject(int x, int y)
@@ -130,6 +129,47 @@ void Game::MoveObject(int x, int y)
 	mSelectedModel->SetPosition(newPos);
 }
 
+void Game::SelectInventory(int x, int y)
+{
+	XMFLOAT3 newPos;
+	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
+	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
+
+	//viewport에서 view coordinate으로 변환, z = 1
+	newPos.x = (2.0f * x / (float)mWidth - 1.0f) / p00;
+	newPos.y = (-2.0f * y / (float)mHeight + 1.0f) / p11;
+	newPos.z = 1.0f;
+
+	//newPos를 VC에서 WC로 변환한다.
+	XMMATRIX inverseViewMatrix = XMLoadFloat4x4(&mScenes[mCurrentScene]->mCamera->view);
+	XMVECTOR det = XMMatrixDeterminant(inverseViewMatrix);
+	inverseViewMatrix = XMMatrixInverse(&det, inverseViewMatrix);
+
+	XMVECTOR rayVector = XMLoadFloat3(&newPos);
+	XMVECTOR rayOrigin = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+
+	//XMVector3TransformCoord는 일반적인 변환이고
+	//XMVector3TransformNormal은 행렬의 0~3행 중 3행을 무시한다. 따라서 translation은 할 수 없다.
+	rayVector = XMVector3Normalize(XMVector3TransformNormal(rayVector, inverseViewMatrix));
+	rayOrigin = XMVector3TransformCoord(rayOrigin, inverseViewMatrix);
+
+	float dist = 1000.0f;
+	BoundingOrientedBox boundingBox;
+
+	auto inventory = mScenes[mCurrentScene]->mModels->at("inventory");
+
+	inventory->mBound.Transform(boundingBox, XMLoadFloat4x4(&inventory->mObjFeature.world));
+
+	if (boundingBox.Intersects(rayOrigin, rayVector, dist))
+	{
+		mIsInventorySelected = true;
+	}
+	else
+	{
+		mIsInventorySelected = false;
+	}
+}
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -149,12 +189,24 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONUP:
 		mIsModelSelected = false;
+		if (mIsInventorySelected == true)
+		{
+			mIsInventorySelected = false;
+
+			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
+			invtry->Store(mSelectedModelName, move(mScenes[mCurrentScene]->mModels->at(mSelectedModelName)));
+			mScenes[mCurrentScene]->mModels->at(mSelectedModelName).reset();
+			mScenes[mCurrentScene]->mModels->erase(mSelectedModelName);
+			// mModels의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
+		}
 		return 0;
 
 	case WM_MOUSEMOVE:
 		if (mIsModelSelected == true)
 		{
 			MoveObject(LOWORD(lParam), HIWORD(lParam));
+			if(mSelectedModelName.compare("inventory") != 0)
+				SelectInventory(LOWORD(lParam), HIWORD(lParam));
 		}
 		return 0;
 
@@ -163,19 +215,21 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ChangeScene(0);
 		else if (wParam == 0x45)
 			ChangeScene(1);
-		else if (wParam == 0x52)
-		{
-			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
-			invtry->Store("earth", move(mScenes[mCurrentScene]->mModels->at("earth")));
-			mScenes[mCurrentScene]->mModels->at("earth").reset();
-			mScenes[mCurrentScene]->mModels->erase("earth");
-			// mModels의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
-		}
 		else if (wParam == 0x54)
 		{
 			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
 			mScenes[mCurrentScene]->mModels->insert({ "earth",invtry->Release("earth") });
 			invtry->mInventory.erase("earth");
+
+			mScenes[mCurrentScene]->mModels->insert({ "moon",invtry->Release("moon") });
+			invtry->mInventory.erase("moon");
+
+			mScenes[mCurrentScene]->mModels->insert({ "mercury",invtry->Release("mercury") });
+			invtry->mInventory.erase("mercury");
+
+			mScenes[mCurrentScene]->mModels->insert({ "rifle",invtry->Release("rifle") });
+			invtry->mInventory.erase("rifle");
+
 			// mInventory의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
 		}
 		return 0;
@@ -289,7 +343,7 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		m = make_shared<Clickable>(sceneIndex,"../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, 0.2f, 0.0f);
 		m->mScale = { 0.5f,0.5f,0.5f };
-		(*model)["woodHouse"] = move(m);
+		(*model)["rifle"] = move(m);
 
 		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/earth.dds");
 		(*model)["earth"] = move(m);
