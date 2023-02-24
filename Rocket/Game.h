@@ -32,6 +32,7 @@ public:
 	void ChangeScene(int dstScene);
 	void MoveObject(int x, int y);
 	void SelectObject(int x,int y);
+	void SelectInventory(int x, int y);
 
 	static vector<unique_ptr<Scene>> mScenes;
 
@@ -69,5 +70,8 @@ private:
 	int totalNumWorlds = 0;
 
 	bool mIsModelSelected = false;
+	string mSelectedModelName;
 	shared_ptr<Model> mSelectedModel;
+
+	bool mIsInventorySelected = false;
 };
