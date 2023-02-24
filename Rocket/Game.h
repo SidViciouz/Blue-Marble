@@ -10,6 +10,7 @@
 #include "Entity.h"
 #include "Clickable.h"
 #include "Unclickable.h"
+#include "Inventory.h"
 
 class Game
 {

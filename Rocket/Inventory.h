@@ -10,4 +10,9 @@ public:
 	Inventory(Inventory&& inventory) = delete;
 	Inventory& operator=(const Inventory& inventory) = delete;
 	Inventory& operator=(Inventory&& inventory) = delete;
+
+	void Store(string name, shared_ptr<Clickable>&& object);
+	shared_ptr<Clickable>&& Release(string name);
+
+	unordered_map<string, shared_ptr<Clickable>> mInventory;
 };
