@@ -156,17 +156,20 @@ void Game::SelectInventory(int x, int y)
 	float dist = 1000.0f;
 	BoundingOrientedBox boundingBox;
 
-	auto inventory = mScenes[mCurrentScene]->mModels->at("inventory");
-
-	inventory->mBound.Transform(boundingBox, XMLoadFloat4x4(&inventory->mObjFeature.world));
-
-	if (boundingBox.Intersects(rayOrigin, rayVector, dist))
+	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
 	{
-		mIsInventorySelected = true;
-	}
-	else
-	{
-		mIsInventorySelected = false;
+		auto inventory = mScenes[mCurrentScene]->mModels->at("inventory");
+
+		inventory->mBound.Transform(boundingBox, XMLoadFloat4x4(&inventory->mObjFeature.world));
+
+		if (boundingBox.Intersects(rayOrigin, rayVector, dist))
+		{
+			mIsInventorySelected = true;
+		}
+		else
+		{
+			mIsInventorySelected = false;
+		}
 	}
 }
 
@@ -489,12 +492,15 @@ void Game::Draw()
 		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 
-	Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
-	for (auto inventory = invtry->mInventory.begin(); inventory != invtry->mInventory.end(); inventory++)
+	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
 	{
-		mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex);
-		mDirectX.SetSrvIndex(inventory->second->mObjIndex);
-		cmdList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
+		Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
+		for (auto inventory = invtry->mInventory.begin(); inventory != invtry->mInventory.end(); inventory++)
+		{
+			mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex);
+			mDirectX.SetSrvIndex(inventory->second->mObjIndex);
+			cmdList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
+		}
 	}
 
 	mDirectX.TransitionToPresent();
