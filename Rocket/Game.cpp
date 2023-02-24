@@ -169,11 +169,15 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			invtry->Store("earth", move(mScenes[mCurrentScene]->mModels->at("earth")));
 			mScenes[mCurrentScene]->mModels->at("earth").reset();
 			mScenes[mCurrentScene]->mModels->erase("earth");
+			// mModels의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
 		}
 		else if (wParam == 0x54)
 		{
 			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
 			mScenes[mCurrentScene]->mModels->insert({ "earth",invtry->Release("earth") });
+			invtry->mInventory.erase("earth");
+
+			// mInventory의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
 		}
 		return 0;
 	}
