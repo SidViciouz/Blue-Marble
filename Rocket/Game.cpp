@@ -202,6 +202,13 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			mScenes[mCurrentScene]->mModels->erase(mSelectedModelName);
 			// mModels의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
 		}
+		//임시
+		if (mSelectedModelName.compare("button") == 0)
+		{
+			Button* b = static_cast<Button*>(mSelectedModel.get());
+			b->Click();
+		}
+
 		return 0;
 
 	case WM_MOUSEMOVE:
@@ -360,6 +367,11 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		m = make_shared<Inventory>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/inventory.dds");
 		(*model)["inventory"] = move(m);
 		
+		shared_ptr<Button> b = make_shared<Button>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/earth.dds");
+		b->Set([&](){
+			mScenes[mCurrentScene]->mModels->at("earth")->AddPosition(1.0f, 0.0f, 0.0f);
+		});
+		(*model)["button"] = move(b);
 	}
 
 	return move(model);

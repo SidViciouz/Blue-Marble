@@ -11,6 +11,7 @@
 #include "Clickable.h"
 #include "Unclickable.h"
 #include "Inventory.h"
+#include "Button.h"
 
 class Game
 {
