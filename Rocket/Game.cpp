@@ -165,14 +165,14 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			ChangeScene(1);
 		else if (wParam == 0x52)
 		{
-			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("mercury").get());
+			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
 			invtry->Store("earth", move(mScenes[mCurrentScene]->mModels->at("earth")));
 			mScenes[mCurrentScene]->mModels->at("earth").reset();
 			mScenes[mCurrentScene]->mModels->erase("earth");
 		}
 		else if (wParam == 0x54)
 		{
-			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("mercury").get());
+			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
 			mScenes[mCurrentScene]->mModels->insert({ "earth",invtry->Release("earth") });
 		}
 		return 0;
@@ -294,8 +294,11 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/moon.dds");
 		(*model)["moon"] = move(m);
 
-		m = make_shared<Inventory>(sceneIndex, "../Model/ball.obj", L"../Model/textures/mercury.dds");
+		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/mercury.dds");
 		(*model)["mercury"] = move(m);
+
+		m = make_shared<Inventory>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/inventory.dds");
+		(*model)["inventory"] = move(m);
 		
 	}
 
