@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Clickable.h" />
     <ClInclude Include="Constant.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDSTextureLoader.h" />
@@ -160,11 +161,13 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="Unclickable.h" />
     <ClInclude Include="Util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Clickable.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Frame.cpp" />
@@ -177,6 +180,7 @@
     <ClCompile Include="Rocket.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Unclickable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rocket.rc" />
