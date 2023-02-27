@@ -166,6 +166,8 @@
     <ClInclude Include="Unclickable.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="Volume.h" />
+    <ClInclude Include="VolumeCube.h" />
+    <ClInclude Include="VolumeSphere.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Buffer.cpp" />
@@ -187,6 +189,8 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Unclickable.cpp" />
     <ClCompile Include="Volume.cpp" />
+    <ClCompile Include="VolumeCube.cpp" />
+    <ClCompile Include="VolumeSphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rocket.rc" />
