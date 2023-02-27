@@ -28,6 +28,7 @@ public:
 	ID3D12DescriptorHeap* getSrvHeap();
 	void CreateSrv(int size);
 	void SetPSO(string name);
+	void SetRootSignature(string name);
 
 private:
 	void CreateCommandObjects();

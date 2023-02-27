@@ -348,7 +348,6 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 
 		shared_ptr<Button> b = make_shared<Button>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/earth.dds");
 		b->SetPosition(0.0f, -3.0f, 5.0f);
-		b->mScale = { 0.3f,1.0f,1.0f };
 		b->Set([&]() {
 			ChangeScene(1);
 		});
@@ -376,7 +375,6 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		
 		shared_ptr<Button> b = make_shared<Button>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/earth.dds");
 		b->SetPosition(0.0f, -3.0f, 5.0f);
-		b->mScale = { 0.3f,1.0f,1.0f };
 		b->Set([&](){
 			ChangeScene(0);
 			//mScenes[mCurrentScene]->mModels->at("earth")->AddPosition(1.0f, 0.0f, 0.0f);
@@ -524,6 +522,12 @@ void Game::Draw()
 			cmdList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
 		}
 	}
+
+	mDirectX.SetPSO("Volume");
+	mDirectX.SetRootSignature("Volume");
+	cmdList->IASetVertexBuffers(0,0,nullptr);
+	cmdList->IASetIndexBuffer(nullptr);
+	//cmdList->DrawInstanced(6, 1, 0, 0);
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();

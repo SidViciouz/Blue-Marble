@@ -379,6 +379,14 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["WorldPS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"VolumeShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["VolumeVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"VolumeShader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["VolumePS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -425,6 +433,19 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"create root signature error!");
 
 	mRootSignatures["Default"] = move(rs);
+
+
+	rsDesc.NumParameters = 0;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+
+	mRootSignatures["Volume"] = move(rs);
+
 }
 
 void Pipeline::CreatePso()
@@ -523,6 +544,22 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["World"] = move(pso);
+
+	psoDesc.InputLayout.NumElements = 0;
+	psoDesc.InputLayout.pInputElementDescs = nullptr;
+	psoDesc.pRootSignature = mRootSignatures["Volume"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["VolumeVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["VolumeVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["VolumePS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["VolumePS"]->GetBufferSize();
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["Volume"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()
@@ -538,4 +575,9 @@ void Pipeline::SetViewportAndScissor()
 	mScissor.top = 0;
 	mScissor.right = mWidth;
 	mScissor.bottom = mHeight;
+}
+
+void Pipeline::SetRootSignature(string name)
+{
+	mCommandList->SetGraphicsRootSignature(mRootSignatures[name].Get());
 }

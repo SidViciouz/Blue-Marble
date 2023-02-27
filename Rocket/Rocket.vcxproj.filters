@@ -183,5 +183,6 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader.hlsl" />
+    <FxCompile Include="VolumeShader.hlsl" />
   </ItemGroup>
 </Project>
