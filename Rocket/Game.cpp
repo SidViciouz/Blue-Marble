@@ -221,11 +221,7 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_KEYDOWN :
-		if (wParam == 0x51)
-			ChangeScene(0);
-		else if (wParam == 0x45)
-			ChangeScene(1);
-		else if (wParam == 0x54)
+		if (wParam == 0x54)
 		{
 			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
 			mScenes[mCurrentScene]->mModels->insert({ "earth",invtry->Release("earth") });
@@ -339,14 +335,24 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 	if (sceneIndex == 0)
 	{
 		m = make_shared<Clickable>(sceneIndex,"../Model/table.obj", L"../Model/textures/bricks1.dds");
+		m->SetPosition(3.0f, 0.0f, 0.0f);
 		(*model)["table"] = move(m);
 
 		m = make_shared<Clickable>(sceneIndex,"../Model/sword.obj", L"../Model/textures/bricks2.dds");
+		m->SetPosition(-3.0f, 0.0f, 0.0f);
 		m->mScale = { 0.1f,0.1f,0.1f };
 		(*model)["sword"] = move(m);
 
 		m = make_shared<Clickable>(sceneIndex,"../Model/my.obj", L"../Model/textures/checkboard.dds");
 		(*model)["my"] = move(m);
+
+		shared_ptr<Button> b = make_shared<Button>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/earth.dds");
+		b->SetPosition(0.0f, -3.0f, 5.0f);
+		b->mScale = { 0.3f,1.0f,1.0f };
+		b->Set([&]() {
+			ChangeScene(1);
+		});
+		(*model)["button"] = move(b);
 	}
 	else if (sceneIndex == 1)
 	{
@@ -365,11 +371,15 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		(*model)["mercury"] = move(m);
 
 		m = make_shared<Inventory>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/inventory.dds");
+		m->SetPosition(0.0f, -1.5f, 5.0f);
 		(*model)["inventory"] = move(m);
 		
 		shared_ptr<Button> b = make_shared<Button>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/earth.dds");
+		b->SetPosition(0.0f, -3.0f, 5.0f);
+		b->mScale = { 0.3f,1.0f,1.0f };
 		b->Set([&](){
-			mScenes[mCurrentScene]->mModels->at("earth")->AddPosition(1.0f, 0.0f, 0.0f);
+			ChangeScene(0);
+			//mScenes[mCurrentScene]->mModels->at("earth")->AddPosition(1.0f, 0.0f, 0.0f);
 		});
 		(*model)["button"] = move(b);
 	}
