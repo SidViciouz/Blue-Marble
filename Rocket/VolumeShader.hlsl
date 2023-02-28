@@ -85,7 +85,7 @@ float3 sphereLi(float3 position,Light light)
 {
 	float tMin;
 	float tMax;
-	float lightToPos = position - light.position;
+	float3 lightToPos = position - light.position;
 	//point light·Î °¡Á¤
 	SphereIntersect(light.position, normalize(lightToPos), tMin, tMax);
 

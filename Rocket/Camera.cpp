@@ -14,6 +14,7 @@ Camera::Camera(int width,int height)
 
 	UpdateView();
 	UpdateProjection();
+	UpdateInvViewProjection();
 }
 
 void Camera::Resize(int width, int height)
