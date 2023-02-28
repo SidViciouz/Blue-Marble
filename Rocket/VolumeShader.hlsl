@@ -59,13 +59,23 @@ bool SphereIntersect(in float3 rayOrigin,in float3 rayDir,out float tMin,out flo
 	float radius = 3.0f;
 
 	float3 rayOriginToCenter = center - rayOrigin;
+
+	if (dot(rayOriginToCenter, rayDir) < 0 && length(rayOriginToCenter) > radius)
+		return false;
+
 	float distance = length(cross(rayOriginToCenter, rayDir));
 
-	tMin = 3.0f;
-	tMax = 3.0f;
+	tMin = 0.0f;
+	tMax = 0.0f;
 
 	if (distance > radius)
 		return false;
+
+	float t = dot(rayOriginToCenter, rayDir);
+	float dt = sqrt(radius * radius - distance * distance);
+
+	tMin = t - dt;
+	tMax = t + dt;
 
 	return true;
 }
@@ -74,7 +84,7 @@ VertexOut VS( uint vertexId : SV_VertexID )
 {
 	VertexOut vout;
 
-	vout.color = float4(0.5f, 0.5f, 0.5f, 1.0f);
+	vout.color = float4(0.1f, 0.1f, 0.1f, 1.0f);
 	vout.pos = float4(coord[vertexId], 0.0f, 1.0f);
 	vout.posW = mul(vout.pos, transpose(InvViewProjection));
 
@@ -89,6 +99,16 @@ float4 PS(VertexOut pin) : SV_Target
 
 	if (!SphereIntersect(cameraPosition.xyz, dir, tMin, tMax))
 		clip(-1);
+
+	float stepSize = 0.1f;
+	int steps = (tMax - tMin) / stepSize;
+
+	
+	for (int i = 0; i < steps; ++i)
+	{
+		pin.color.x += 0.01f;
+		pin.color.w -= 0.01f;
+	}
 
 	return pin.color;
 }
