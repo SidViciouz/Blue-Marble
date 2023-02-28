@@ -155,7 +155,7 @@ float4 PS(VertexOut pin) : SV_Target
 		}
 		else if (lights[i].type == 1) // point light
 		{
-			L = normalize(lights[i].position - pin.pos);
+			L = normalize(lights[i].position - pin.posW);
 		}
 		else //spot light
 		{
