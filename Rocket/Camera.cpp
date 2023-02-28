@@ -61,3 +61,10 @@ void Camera::UpdateProjection()
 {
 	XMStoreFloat4x4(&projection, XMMatrixPerspectiveFovLH(mAngle, mRatio, mNear, mFar));
 }
+
+void Camera::UpdateInvViewProjection()
+{
+	XMMATRIX v = XMLoadFloat4x4(&view);
+	XMMATRIX p = XMLoadFloat4x4(&projection);
+	XMStoreFloat4x4(&invViewProjection, XMMatrixInverse(nullptr, XMMatrixMultiply(v,p)));
+}

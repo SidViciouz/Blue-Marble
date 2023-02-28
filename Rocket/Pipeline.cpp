@@ -435,7 +435,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	mRootSignatures["Default"] = move(rs);
 
 
-	rsDesc.NumParameters = 0;
+	rsDesc.NumParameters = 2;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),

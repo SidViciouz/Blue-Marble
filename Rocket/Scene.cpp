@@ -39,4 +39,6 @@ void Scene::Update()
 			it->second->Update();
 		}
 	}
+
+	mVolume->Update();
 }

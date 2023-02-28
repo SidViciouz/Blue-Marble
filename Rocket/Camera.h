@@ -12,6 +12,7 @@ public:
 	void GoRight(float a);
 	void UpdateView();
 	void UpdateProjection();
+	void UpdateInvViewProjection();
 
 	XMFLOAT3 mUp;
 	XMFLOAT3 mFront;
@@ -24,4 +25,5 @@ public:
 
 	XMFLOAT4X4 view;
 	XMFLOAT4X4 projection;
+	XMFLOAT4X4 invViewProjection;
 };

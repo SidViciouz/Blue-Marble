@@ -22,4 +22,5 @@ struct trans
 	int pad1;
 	XMFLOAT3 cameraFront;
 	int pad2;
+	XMFLOAT4X4 invViewProjection;
 };

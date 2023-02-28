@@ -5,6 +5,7 @@
 #include "Pipeline.h"
 #include "Clickable.h"
 #include "Unclickable.h"
+#include "Volume.h"
 
 using namespace std;
 
@@ -17,6 +18,7 @@ public:
 
 	unique_ptr<Clickables> mModels;
 	unique_ptr<Unclickables> mWorld;
+	unique_ptr<Volume> mVolume;
 
 	unique_ptr<Camera> mCamera = nullptr;
 

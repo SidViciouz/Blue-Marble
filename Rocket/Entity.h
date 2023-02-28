@@ -23,4 +23,7 @@ public:
 	void SetQuaternion(const XMFLOAT4& quaternion);
 	void SetQuaternion(const float& x, const float& y, const float& z, const float& w);
 	const XMFLOAT4& GetQuaternion();
+
+	int mObjIndex = mNextObjConstantIndex++;
+	static int mNextObjConstantIndex;
 };

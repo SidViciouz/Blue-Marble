@@ -56,13 +56,9 @@ public:
 	int mVertexBufferOffset = 0;
 	int mIndexBufferOffset = 0;
 
-	int mObjIndex = mNextObjConstantIndex++;
-
 	Texture mTexture;
 
 	BoundingOrientedBox mBound;
-
-	static int mNextObjConstantIndex;
 };
 
 using Models = unordered_map<string, shared_ptr<Model>>;

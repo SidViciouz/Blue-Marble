@@ -20,7 +20,7 @@ void Game::Initialize()
 	LoadScene();
 
 	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
-	mDirectX.CreateObjects(mWindowHandle, totalNumModels);
+	mDirectX.CreateObjects(mWindowHandle, totalNumModels + 1); // +1은 volume을 위한 constant buffer 공간
 
 	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
 	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
@@ -296,6 +296,8 @@ void Game::LoadScene()
 
 	mScenes[mCurrentScene]->mWorld = CreateWorld(0);
 
+	mScenes[mCurrentScene]->mVolume = make_unique<Volume>();
+
 	totalNumModels += mScenes[mCurrentScene]->mModels->size();
 
 	totalNumWorlds += mScenes[mCurrentScene]->mWorld->size();
@@ -313,6 +315,8 @@ void Game::LoadScene()
 	mScenes[mCurrentScene]->mModels = CreateModel(1);
 
 	mScenes[mCurrentScene]->mWorld = CreateWorld(1);
+
+	mScenes[mCurrentScene]->mVolume = make_unique<Volume>();
 
 	totalNumModels += mScenes[mCurrentScene]->mModels->size();
 
@@ -449,6 +453,7 @@ void Game::Update()
 	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
 	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
+	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
 	mDirectX.SetTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
 
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
@@ -461,6 +466,8 @@ void Game::Update()
 	{
 		mDirectX.SetObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
 	}
+
+	mDirectX.SetObjConstantBuffer(mScenes[mCurrentScene]->mVolume->mObjIndex, &mScenes[mCurrentScene]->mVolume->mObjFeature, sizeof(obj));
 	
 }
 
@@ -525,9 +532,10 @@ void Game::Draw()
 
 	mDirectX.SetPSO("Volume");
 	mDirectX.SetRootSignature("Volume");
+	mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mVolume->mObjIndex);
 	cmdList->IASetVertexBuffers(0,0,nullptr);
 	cmdList->IASetIndexBuffer(nullptr);
-	//cmdList->DrawInstanced(6, 1, 0, 0);
+	cmdList->DrawInstanced(6, 1, 0, 0);
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();
@@ -564,6 +572,8 @@ void Game::Input()
 		mScenes[mCurrentScene]->mCamera->GoRight(-10.0f * deltaTime);
 	}
 	
-	if (dirty)
+	if (dirty) {
 		mScenes[mCurrentScene]->mCamera->UpdateView();
+		mScenes[mCurrentScene]->mCamera->UpdateInvViewProjection();
+	}
 }
