@@ -227,12 +227,6 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			mScenes[mCurrentScene]->mModels->insert({ "earth",invtry->Release("earth") });
 			invtry->mInventory.erase("earth");
 
-			mScenes[mCurrentScene]->mModels->insert({ "moon",invtry->Release("moon") });
-			invtry->mInventory.erase("moon");
-
-			mScenes[mCurrentScene]->mModels->insert({ "mercury",invtry->Release("mercury") });
-			invtry->mInventory.erase("mercury");
-
 			mScenes[mCurrentScene]->mModels->insert({ "rifle",invtry->Release("rifle") });
 			invtry->mInventory.erase("rifle");
 
@@ -367,11 +361,10 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/earth.dds");
 		(*model)["earth"] = move(m);
 
-		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/moon.dds");
-		(*model)["moon"] = move(m);
-
-		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/mercury.dds");
-		(*model)["mercury"] = move(m);
+		m = make_shared<Clickable>(sceneIndex, "../Model/box.obj", L"../Model/textures/bricks3.dds");
+		m->SetPosition(0.0f, -5.0f, 0.0f);
+		m->mScale = { 15.0f,0.5f,15.0f };
+		(*model)["lamp"] = move(m);
 
 		m = make_shared<Inventory>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/inventory.dds");
 		m->SetPosition(0.0f, -1.5f, 5.0f);
@@ -433,10 +426,10 @@ trans Game::SetLight()
 	env.lights[1].mDirection = { 0.0f,1.0f,0.0f };
 	env.lights[1].mColor = { 1.0f,1.0f,1.0f };
 	env.lights[1].mType = Point;
-	env.lights[2].mPosition = { 10.0f,10.0f,0.0f };
-	env.lights[2].mDirection = { -1.0f,-1.0f,0.0f };
-	env.lights[2].mColor = { 1.0f,1.0f,1.0f };
-	env.lights[2].mType = Point;
+	env.lights[2].mPosition = { 0.0f, 5.0f,0.0f };
+	env.lights[2].mDirection = { 0.0f,-1.0f,0.0f };
+	env.lights[2].mColor = { 1.0f,0.0f,1.0f };
+	env.lights[2].mType = Spot;
 
 	return env;
 }
@@ -531,12 +524,14 @@ void Game::Draw()
 		}
 	}
 
+	
 	mDirectX.SetPSO("Volume");
 	mDirectX.SetRootSignature("Volume");
 	mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mVolume->mObjIndex);
 	cmdList->IASetVertexBuffers(0,0,nullptr);
 	cmdList->IASetIndexBuffer(nullptr);
 	cmdList->DrawInstanced(6, 1, 0, 0);
+	
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();

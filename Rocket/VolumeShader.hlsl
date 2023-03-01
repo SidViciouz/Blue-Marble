@@ -97,7 +97,11 @@ float3 sphereLi(float3 position)
 		float3 lightToPos = position - lights[i].position;
 		float3 posToCamera = normalize(cameraPosition - lights[i].position);
 		float3 posToLight = -normalize(lightToPos);
-		//point light로 가정
+
+		if (lights[i].type == 2 && dot(-posToLight, lights[i].direction) < cos(3.14f / 6.0f))
+			continue;
+
+		//point또는 spot light로 가정
 		SphereIntersect(lights[i].position, normalize(lightToPos), tMin, tMax);
 
 		float att = 1.0f;

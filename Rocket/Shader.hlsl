@@ -159,7 +159,12 @@ float4 PS(VertexOut pin) : SV_Target
 		}
 		else //spot light
 		{
+			L = normalize(lights[i].position - pin.posW);
 
+			if (dot(-L, lights[i].direction) < cos(3.14f/6.0f))
+			{
+				continue;
+			}
 		}
 
 		//빛의 입사각에 따라 단위면적당 들어오는 빛의 양이 달라짐을 표현
