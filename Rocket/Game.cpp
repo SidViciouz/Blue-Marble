@@ -425,17 +425,18 @@ trans Game::SetLight()
 {
 	trans env;
 		
-	env.lights[0].mPosition = { 10.0f,10.0f,0.0f };
+	env.lights[0].mPosition = { 0.0f,10.0f,0.0f };
 	env.lights[0].mDirection = { 0.0f,-1.0f,0.0f };
-	env.lights[0].mColor = { 1.0f,1.0f,1.0f };
+	env.lights[0].mColor = {1.0f,1.0f,1.0f };
 	env.lights[0].mType = Point;
-	env.lights[1].mPosition = { 10.0f,10.0f,-15.0f };
-	env.lights[1].mDirection = { 1.0f,-1.0f,0.0f };
+	env.lights[1].mPosition = { 0.0f,-10.0f,0.0f };
+	env.lights[1].mDirection = { 0.0f,1.0f,0.0f };
 	env.lights[1].mColor = { 1.0f,1.0f,1.0f };
-	env.lights[1].mType = Directional;
-	env.lights[2].mPosition = { 0.0f,10.0f,-1.0f };
-	env.lights[2].mDirection = { 1.0f,1.0f,1.0f };
-	env.lights[2].mType = Directional;
+	env.lights[1].mType = Point;
+	env.lights[2].mPosition = { 10.0f,10.0f,0.0f };
+	env.lights[2].mDirection = { -1.0f,-1.0f,0.0f };
+	env.lights[2].mColor = { 1.0f,1.0f,1.0f };
+	env.lights[2].mType = Point;
 
 	return env;
 }
