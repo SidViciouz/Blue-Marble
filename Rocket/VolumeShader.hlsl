@@ -81,38 +81,41 @@ bool SphereIntersect(in float3 rayOrigin,in float3 rayDir,out float tMin,out flo
 	return true;
 }
 
-float3 sphereLi(float3 position,Light light)
+float3 sphereLi(float3 position)
 {
+	float3 ret = float3(0.0f, 0.0f, 0.0f);
 	float tMin;
 	float tMax;
-	float3 lightToPos = position - light.position;
+	float3 lightToPos = position - lights[0].position;
+	float3 posToCamera = normalize(cameraPosition - lights[0].position);
+	float3 posToLight = -normalize(lightToPos);
 	//point light·Î °¡Á¤
-	SphereIntersect(light.position, normalize(lightToPos), tMin, tMax);
+	SphereIntersect(lights[0].position, normalize(lightToPos), tMin, tMax);
 
 	float stepSize = 0.1f;
 	int steps = (length(lightToPos) - tMin)/stepSize;
-	float sigmaT = 0.2f;
+	float sigmaS = 0.5f;
+	float sigmaT = 1.0f;
 	float result = 0.0f;
 	float att = 1.0f;
+	float g = 0.25f;
 
-	//result = exp((tMin - length(lightToPos)) * sigmaT);
-
-	
 	for (int i = 0; i < steps; ++i)
 	{
 		att *= exp(-stepSize * sigmaT);
 	}
-	result += att;
-	
+	result += att / (4*3.14159265f * pow(1 + g*g -2*g*dot(posToCamera,posToLight),1.5f)) * (1 - g*g);
 
-	return light.color * result;
+	ret += lights[0].color * result * sigmaS;
+
+	return ret;
 }
 
 VertexOut VS( uint vertexId : SV_VertexID )
 {
 	VertexOut vout;
 
-	vout.color = float4(0.1f, 0.1f, 0.1f, 1.0f);
+	vout.color = float4(0.0f, 0.0f, 0.0f, 1.0f);
 	vout.pos = float4(coord[vertexId], 0.0f, 1.0f);
 	vout.posW = mul(vout.pos, transpose(InvViewProjection));
 
@@ -131,7 +134,7 @@ float4 PS(VertexOut pin) : SV_Target
 
 	float stepSize = 0.1f;
 	int steps = (tMax - tMin) / stepSize;
-	float sigmaT = 0.2f;
+	float sigmaT = 1.0f;
 	float att = 1.0f;
 	float3 result = 0.0f;
 
@@ -139,11 +142,9 @@ float4 PS(VertexOut pin) : SV_Target
 	{
 		float3 ray = origin + (i*stepSize + tMin)*dir;
 		att *= exp(-stepSize * sigmaT);
-		result += sphereLi(ray,lights[0]) * att * stepSize;
-		
-		//pin.color.w -= 0.01f;
+		result += sphereLi(ray) * att;
 	}
-	pin.color.w -= result.x;
+	pin.color.w = att;
 	pin.color.xyz += result.xyz;
 
 	return pin.color;
