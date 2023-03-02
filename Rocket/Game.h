@@ -12,6 +12,8 @@
 #include "Unclickable.h"
 #include "Inventory.h"
 #include "Button.h"
+#include "VolumeCube.h"
+#include "VolumeSphere.h"
 
 class Game
 {
@@ -46,6 +48,7 @@ private:
 	unique_ptr<Clickables> CreateModel(int sceneIndex);
 	void LoadCopyModelToBuffer();
 	unique_ptr<Unclickables> CreateWorld(int sceneIndex);
+	unique_ptr<Volumes> CreateVolume(int sceneIndex);
 	trans SetLight();
 	void Update();
 	void Draw();
@@ -69,6 +72,7 @@ private:
 
 	int totalNumModels = 0;
 	int totalNumWorlds = 0;
+	int totalNumVolumes = 0;
 
 	bool mIsModelSelected = false;
 	string mSelectedModelName;

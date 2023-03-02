@@ -13,6 +13,7 @@ Model::Model(int sceneIndex,const char* fileName, const wchar_t* name)
 	mName = name;
 }
 
+//이 메서드 entity로 옮기는게 나을 것 같다.
 void Model::Update()
 {
 	XMFLOAT3 pos = mPosition.Get();

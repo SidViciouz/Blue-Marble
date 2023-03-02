@@ -40,5 +40,11 @@ void Scene::Update()
 		}
 	}
 
-	mVolume->Update();
+	for (auto it = mVolume->begin(); it != mVolume->end(); it++)
+	{
+		if (it->second->mDirty)
+		{
+			it->second->Update();
+		}
+	}
 }

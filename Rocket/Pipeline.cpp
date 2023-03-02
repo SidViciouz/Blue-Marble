@@ -379,13 +379,21 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["WorldPS"] = move(blob);
 
-	IfError::Throw(D3DCompileFromFile(L"VolumeShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"VolumeSphereShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
-	mShaders["VolumeVS"] = move(blob);
+	mShaders["VolumeSphereVS"] = move(blob);
 
-	IfError::Throw(D3DCompileFromFile(L"VolumeShader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"VolumeSphereShader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
-	mShaders["VolumePS"] = move(blob);
+	mShaders["VolumeSpherePS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"VolumeCubeShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["VolumeCubeVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"VolumeCubeShader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["VolumeCubePS"] = move(blob);
 
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
@@ -549,10 +557,10 @@ void Pipeline::CreatePso()
 	psoDesc.InputLayout.pInputElementDescs = nullptr;
 	psoDesc.pRootSignature = mRootSignatures["Volume"].Get();
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
-	psoDesc.VS.pShaderBytecode = mShaders["VolumeVS"]->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = mShaders["VolumeVS"]->GetBufferSize();
-	psoDesc.PS.pShaderBytecode = mShaders["VolumePS"]->GetBufferPointer();
-	psoDesc.PS.BytecodeLength = mShaders["VolumePS"]->GetBufferSize();
+	psoDesc.VS.pShaderBytecode = mShaders["VolumeSphereVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["VolumeSphereVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["VolumeSpherePS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["VolumeSpherePS"]->GetBufferSize();
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	psoDesc.DepthStencilState.DepthEnable = true;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -562,7 +570,16 @@ void Pipeline::CreatePso()
 	psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_SRC_ALPHA;
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
-	mPSOs["Volume"] = move(pso);
+	mPSOs["VolumeSphere"] = move(pso);
+
+	psoDesc.VS.pShaderBytecode = mShaders["VolumeCubeVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["VolumeCubeVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["VolumeCubePS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["VolumeCubePS"]->GetBufferSize();
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["VolumeCube"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

@@ -20,7 +20,7 @@ void Game::Initialize()
 	LoadScene();
 
 	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
-	mDirectX.CreateObjects(mWindowHandle, totalNumModels + 1); // +1은 volume을 위한 constant buffer 공간
+	mDirectX.CreateObjects(mWindowHandle, totalNumModels + totalNumVolumes);
 
 	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
 	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
@@ -290,11 +290,13 @@ void Game::LoadScene()
 
 	mScenes[mCurrentScene]->mWorld = CreateWorld(0);
 
-	mScenes[mCurrentScene]->mVolume = make_unique<Volume>();
+	mScenes[mCurrentScene]->mVolume = CreateVolume(0);
 
 	totalNumModels += mScenes[mCurrentScene]->mModels->size();
 
 	totalNumWorlds += mScenes[mCurrentScene]->mWorld->size();
+
+	totalNumVolumes += mScenes[mCurrentScene]->mVolume->size();
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
@@ -310,11 +312,13 @@ void Game::LoadScene()
 
 	mScenes[mCurrentScene]->mWorld = CreateWorld(1);
 
-	mScenes[mCurrentScene]->mVolume = make_unique<Volume>();
+	mScenes[mCurrentScene]->mVolume = CreateVolume(1);
 
 	totalNumModels += mScenes[mCurrentScene]->mModels->size();
 
 	totalNumWorlds += mScenes[mCurrentScene]->mWorld->size();
+
+	totalNumVolumes += mScenes[mCurrentScene]->mVolume->size();
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
@@ -414,6 +418,27 @@ unique_ptr<Unclickables> Game::CreateWorld(int sceneIndex)
 	return move(model);
 }
 
+unique_ptr<Volumes> Game::CreateVolume(int sceneIndex)
+{
+	unique_ptr<Volumes> volumes = make_unique<Volumes>();
+
+	shared_ptr<Volume> v;
+
+	if (sceneIndex == 0)
+	{
+		v = make_shared<VolumeSphere>();
+		(*volumes)["sphere"] = move(v);
+	}
+	else if (sceneIndex == 1)
+	{
+		v = make_shared<VolumeSphere>();
+		(*volumes)["sphere"] = move(v);
+	}
+
+	return move(volumes);
+
+}
+
 trans Game::SetLight()
 {
 	trans env;
@@ -461,7 +486,10 @@ void Game::Update()
 		mDirectX.SetObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
 	}
 
-	mDirectX.SetObjConstantBuffer(mScenes[mCurrentScene]->mVolume->mObjIndex, &mScenes[mCurrentScene]->mVolume->mObjFeature, sizeof(obj));
+	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
+	{
+		mDirectX.SetObjConstantBuffer(volume->second->mObjIndex, &volume->second->mObjFeature, sizeof(obj));
+	}
 	
 }
 
@@ -525,13 +553,23 @@ void Game::Draw()
 	}
 
 	
-	mDirectX.SetPSO("Volume");
+	mDirectX.SetPSO("VolumeSphere");
 	mDirectX.SetRootSignature("Volume");
-	mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mVolume->mObjIndex);
 	cmdList->IASetVertexBuffers(0,0,nullptr);
 	cmdList->IASetIndexBuffer(nullptr);
-	cmdList->DrawInstanced(6, 1, 0, 0);
-	
+
+	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
+	{
+		mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
+		cmdList->DrawInstanced(6, 1, 0, 0);
+	}
+
+	mDirectX.SetPSO("VolumeCube");
+	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
+	{
+		mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
+		cmdList->DrawInstanced(36, 1, 0, 0);
+	}
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();

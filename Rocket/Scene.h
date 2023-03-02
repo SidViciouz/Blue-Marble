@@ -18,7 +18,7 @@ public:
 
 	unique_ptr<Clickables> mModels;
 	unique_ptr<Unclickables> mWorld;
-	unique_ptr<Volume> mVolume;
+	unique_ptr<Volumes> mVolume;
 
 	unique_ptr<Camera> mCamera = nullptr;
 
