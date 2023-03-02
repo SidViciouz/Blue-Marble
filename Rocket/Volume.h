@@ -7,6 +7,7 @@ class Volume : public Model
 public:
 	Volume();
 	void Load() = delete;
+	virtual void Draw();
 
 	float sc = 0.1f;
 	float ac = 0.1f;

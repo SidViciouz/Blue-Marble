@@ -5,3 +5,8 @@ Volume::Volume()
 {
 
 }
+
+void Volume::Draw()
+{
+
+}

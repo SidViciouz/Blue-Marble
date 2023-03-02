@@ -430,6 +430,7 @@ unique_ptr<Volumes> Game::CreateVolume(int sceneIndex)
 		(*volumes)["sphere"] = move(v);
 
 		v = make_shared<VolumeCube>();
+		v->SetPosition(9.0f, 0.0f, 0.0f);
 		(*volumes)["cube"] = move(v);
 	}
 	else if (sceneIndex == 1)
@@ -438,6 +439,7 @@ unique_ptr<Volumes> Game::CreateVolume(int sceneIndex)
 		(*volumes)["sphere"] = move(v);
 
 		v = make_shared<VolumeCube>();
+		v->SetPosition(9.0f, 0.0f, 0.0f);
 		(*volumes)["cube"] = move(v);
 	}
 
@@ -449,14 +451,14 @@ trans Game::SetLight()
 {
 	trans env;
 		
-	env.lights[0].mPosition = { 0.0f,10.0f,0.0f };
-	env.lights[0].mDirection = { 0.0f,-1.0f,0.0f };
+	env.lights[0].mPosition = { 10.0f,0.0f,0.0f };
+	env.lights[0].mDirection = { -1.0f,0.0f,0.0f };
 	env.lights[0].mColor = {1.0f,1.0f,1.0f };
 	env.lights[0].mType = Point;
-	env.lights[1].mPosition = { 0.0f,-10.0f,0.0f };
-	env.lights[1].mDirection = { 0.0f,1.0f,0.0f };
-	env.lights[1].mColor = { 1.0f,1.0f,1.0f };
-	env.lights[1].mType = Point;
+	env.lights[1].mPosition = { 9.0f,3.0f,0.0f };
+	env.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
+	env.lights[1].mColor = { 1.0f,1.0f,0.0f };
+	env.lights[1].mType = Spot;
 	env.lights[2].mPosition = { 0.0f, 3.0f,0.0f };
 	env.lights[2].mDirection = { 0.0f,-1.0f,0.0f };
 	env.lights[2].mColor = { 1.0f,1.0f,0.0f };
@@ -563,21 +565,23 @@ void Game::Draw()
 	mDirectX.SetRootSignature("Volume");
 	cmdList->IASetVertexBuffers(0,0,nullptr);
 	cmdList->IASetIndexBuffer(nullptr);
-
-	/*
+	int i = 0;
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-		mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
-		cmdList->DrawInstanced(6, 1, 0, 0);
+		if (i == 0)
+		{
+			mDirectX.SetPSO("VolumeCube");
+			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
+			volume->second->Draw();
+		}
+		else
+		{
+			mDirectX.SetPSO("VolumeSphere");
+			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
+			volume->second->Draw();
+		}
+		++i;
 	}
-	*/
-
-	//cube가 존재하지 않는 경우에는 error남. 수정해야함.
-	
-	mDirectX.SetPSO("VolumeCube");
-	mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mVolume->at("cube")->mObjIndex);
-	cmdList->DrawInstanced(36, 1, 0, 0);
-	
 
 	mDirectX.TransitionToPresent();
 	mDirectX.CloseAndExecute();

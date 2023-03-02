@@ -147,7 +147,7 @@ float4 PS(VertexOut pin) : SV_Target
 	float3 fresnelTerm;
 	float roughnessTerm;
 
-	for (int i = 2; i < 3; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		if (lights[i].type == 0) //directional light
 		{

@@ -200,7 +200,7 @@ float3 pf(float3 x)
 	float g = 0.25f;
 	float stepSize = 0.1f;
 
-	for (int i = 2; i < 3; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		float tMin = 0.0f;
 		float tMax = 100.0f;
