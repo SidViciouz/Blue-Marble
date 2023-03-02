@@ -85,8 +85,8 @@ float3 sphereLi(float3 position)
 {
 	float3 ret = float3(0.0f, 0.0f, 0.0f);
 	float fourPi = 4 * 3.14159265f;
-	float sigmaS = 0.5f;
-	float sigmaT = 1.0f;
+	float sigmaS = 0.1f;
+	float sigmaT = 0.2f;
 	float g = 0.25f;
 	float stepSize = 0.1f;
 
@@ -141,7 +141,7 @@ float4 PS(VertexOut pin) : SV_Target
 
 	float stepSize = 0.1f;
 	int steps = (tMax - tMin) / stepSize;
-	float sigmaT = 1.0f;
+	float sigmaT = 0.2f;
 	float att = 1.0f;
 	float3 result = 0.0f;
 
