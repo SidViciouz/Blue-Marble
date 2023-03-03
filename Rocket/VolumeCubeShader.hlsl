@@ -199,6 +199,7 @@ float3 pf(float3 x)
 	float sigmaT = 0.2f;
 	float g = 0.25f;
 	float stepSize = 0.1f;
+	float density = 1.0f;
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -219,7 +220,7 @@ float3 pf(float3 x)
 		float result = 0.0f;
 
 		for (int j = 0; j < steps; ++j)
-			att *= exp(-stepSize * sigmaT);
+			att *= exp(-stepSize * sigmaT * density);
 
 		result += att / (fourPi * pow(1 + g * g - 2 * g * dot(posToCamera, posToLight), 1.5f)) * (1 - g * g);
 
@@ -241,6 +242,7 @@ float4 PS(VertexOut pin) : SV_Target
 	float sigmaS = 0.1f;
 	float att = 1.0f;
 	float3 result = 0.0f;
+	float density = 1.0f;
 
 	if (CubeIntersect(rayOrigin, rayDir, tMin, tMax) == false)
 		clip(-1);
@@ -249,7 +251,7 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
-		att *= exp(-sigmaT * stepSize);
+		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}
 

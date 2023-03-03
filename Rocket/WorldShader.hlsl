@@ -57,6 +57,8 @@ VertexOut VS(VertexIn vin)
 
 	vout.pos = posH;
 	vout.localPos = vin.pos;
+	vout.tex = vin.tex;
+	vout.normal = vin.normal;
 
 	return vout;
 }

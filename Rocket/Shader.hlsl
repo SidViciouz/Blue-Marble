@@ -143,7 +143,7 @@ float4 PS(VertexOut pin) : SV_Target
 {
 	float3 L = {0.0f,0.0f,1.0f};
 	float rambertTerm = 0.0f;
-	float4 color = { 0.0f,0.0f,0.0f,0.0f };
+	float4 color = float4(diffuseAlbedo * float3(0.1f, 0.1f, 0.1f), 1.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
 

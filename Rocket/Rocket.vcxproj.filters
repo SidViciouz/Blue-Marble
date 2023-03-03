@@ -185,5 +185,6 @@
     <FxCompile Include="Shader.hlsl" />
     <FxCompile Include="VolumeSphereShader.hlsl" />
     <FxCompile Include="VolumeCubeShader.hlsl" />
+    <FxCompile Include="WorldShader.hlsl" />
   </ItemGroup>
 </Project>
