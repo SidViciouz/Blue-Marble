@@ -5,7 +5,7 @@
 
 int CalculateAlignment(int value, int alignment)
 {
-	//alignment가 2의 배수여야한다.
+	//alignment가 2의 거듭제곱이여야한다.
 	return (value + alignment - 1) & ~(alignment - 1);
 }
 
