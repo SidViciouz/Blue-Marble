@@ -102,6 +102,9 @@
     <ClInclude Include="VolumeCube.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="TextureResource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rocket.cpp">
@@ -165,6 +168,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="VolumeCube.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureResource.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
