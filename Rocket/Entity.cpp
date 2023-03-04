@@ -45,5 +45,3 @@ const XMFLOAT4& Entity::GetQuaternion()
 {
 	return mQuaternion.Get();
 }
-
-int Entity::mNextObjConstantIndex = 0;

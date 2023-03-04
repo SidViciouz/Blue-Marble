@@ -59,6 +59,9 @@ public:
 	Texture mTexture;
 
 	BoundingOrientedBox mBound;
+
+	int mObjIndex = mNextObjConstantIndex++;
+	static int mNextObjConstantIndex;
 };
 
 using Models = unordered_map<string, shared_ptr<Model>>;

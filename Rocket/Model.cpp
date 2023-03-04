@@ -179,3 +179,5 @@ int getNumber(string& aWord, bool isFirst)
 
 	return stoi(numberString);
 }
+
+int Model::mNextObjConstantIndex = 0;

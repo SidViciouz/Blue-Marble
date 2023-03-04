@@ -13,6 +13,11 @@ void Game::Initialize()
 	//윈도우 초기화
 	InitializeWindow();
 
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+	{
+		debugController->EnableDebugLayer();
+	}
+
 	//device, fence 등 생성
 	mDirectX.Initialize();
 	
@@ -20,14 +25,14 @@ void Game::Initialize()
 	LoadScene();
 
 	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
-	mDirectX.CreateObjects(mWindowHandle, totalNumModels + totalNumVolumes);
+	mDirectX.CreateObjects(mWindowHandle, totalNumModels + totalNumWorlds + totalNumVolumes);
 
 	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
 	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
 	LoadCopyModelToBuffer();
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
-	mDirectX.CreateSrv(totalNumModels + totalNumWorlds);
+	mDirectX.CreateSrv(totalNumModels + totalNumWorlds + totalNumVolumes);
 
 	mTimer.Reset();
 }
@@ -378,7 +383,6 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		b->SetPosition(0.0f, -3.0f, 5.0f);
 		b->Set([&](){
 			ChangeScene(0);
-			//mScenes[mCurrentScene]->mModels->at("earth")->AddPosition(1.0f, 0.0f, 0.0f);
 		});
 		(*model)["button"] = move(b);
 	}

@@ -148,9 +148,9 @@ void Pipeline::TransitionToPresent()
 
 void Pipeline::DrawFinish()
 {
-	IfError::Throw(mSwapChain->Present(0, 0),
+	IfError::Throw(mSwapChain->Present(0,0),
 		L"swap chain present error!");
-
+	
 	mCurrentBackBuffer = (mCurrentBackBuffer + 1) % 2;
 
 	mFrames[mCurrentFrame]->mFenceValue = ++mFenceValue;

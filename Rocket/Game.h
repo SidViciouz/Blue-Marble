@@ -79,4 +79,6 @@ private:
 	shared_ptr<Model> mSelectedModel;
 
 	bool mIsInventorySelected = false;
+	
+	ComPtr<ID3D12Debug> debugController;
 };
