@@ -9,6 +9,7 @@ int CalculateAlignment(int value, int alignment)
 	return (value + alignment - 1) & ~(alignment - 1);
 }
 
+//한번만 호출해야한다.
 void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 {
 	//upload buffer 생성하는 부분
@@ -70,6 +71,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 	mUploadBuffer->Unmap(0, nullptr);
 }
 
+//한번만 호출해야한다.
 void TextureResource::Copy(void* pData, int width, int height, int depth, int elementByte)
 {
 	//upload buffer 생성하는 부분
