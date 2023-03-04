@@ -34,9 +34,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 	
-	const int d[11] = { 1,2,3,4,5,6,7,8,9,10,11 };
-
-	memcpy(pBegin, d, sizeof(int) * 11);
+	memcpy(pBegin, pData, sizeof(int) * 11);
 
 
 	//texture 积己窍绰 何盒
@@ -97,9 +95,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	const int d[11] = { 1,2,3,4,5,6,7,8,9,10,11 };
-
-	memcpy(pBegin, d, sizeof(int) * 11);
+	memcpy(pBegin, pData, sizeof(int) * 11);
 
 
 	//texture 积己窍绰 何盒
