@@ -575,12 +575,14 @@ void Game::Draw()
 		if (i == 0)
 		{
 			mDirectX.SetPSO("VolumeCube");
+			mDirectX.SetSrvIndex(volume->second->mObjIndex);
 			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}
 		else
 		{
 			mDirectX.SetPSO("VolumeSphere");
+			mDirectX.SetSrvIndex(volume->second->mObjIndex);
 			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}

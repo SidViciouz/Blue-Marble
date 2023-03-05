@@ -97,7 +97,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	memcpy(pBegin, pData, sizeof(int) * 11);
+	memcpy(pBegin, pData, sizeof(int) * 3000);
 
 
 	//texture 생성하는 부분

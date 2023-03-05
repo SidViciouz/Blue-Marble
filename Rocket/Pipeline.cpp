@@ -204,6 +204,20 @@ void Pipeline::CreateSrv(int size)
 			handle.ptr += incrementSize * world->second->mObjIndex;
 			mDevice->CreateShaderResourceView(world->second->mTexture.mResource.Get(), &viewDesc, handle);
 		}
+
+
+		viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
+		viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		viewDesc.Texture3D.MostDetailedMip = 0;
+		viewDesc.Texture3D.ResourceMinLODClamp = 0.0f;
+		for (auto volume = scene->get()->mVolume->begin(); volume != scene->get()->mVolume->end(); volume++)
+		{
+			viewDesc.Texture3D.MipLevels = volume->second->mTextureResource->mTexture->GetDesc().MipLevels;
+			viewDesc.Format = volume->second->mTextureResource->mTexture->GetDesc().Format;
+			auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
+			handle.ptr += incrementSize * volume->second->mObjIndex;
+			mDevice->CreateShaderResourceView(volume->second->mTextureResource->mTexture.Get(), &viewDesc, handle);
+		}
 	}
 }
 
@@ -443,7 +457,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	mRootSignatures["Default"] = move(rs);
 
 
-	rsDesc.NumParameters = 2;
+	rsDesc.NumParameters = 3;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),

@@ -42,6 +42,9 @@ cbuffer trans : register(b1)
 	float4x4 InvViewProjection;
 }
 
+texture3D<int> textureMap : register(t0);
+
+
 static Coord coord[36] = {
 	{1.0f,1.0f,-1.0f},
 	{-1.0f,1.0f,1.0f},
@@ -220,7 +223,10 @@ float3 pf(float3 x)
 		float result = 0.0f;
 
 		for (int j = 0; j < steps; ++j)
+		{
+			density = textureMap.Load(int4(j, 0, 0, 0));
 			att *= exp(-stepSize * sigmaT * density);
+		}
 
 		result += att / (fourPi * pow(1 + g * g - 2 * g * dot(posToCamera, posToLight), 1.5f)) * (1 - g * g);
 
@@ -244,6 +250,7 @@ float4 PS(VertexOut pin) : SV_Target
 	float3 result = 0.0f;
 	float density = 1.0f;
 
+
 	if (CubeIntersect(rayOrigin, rayDir, tMin, tMax) == false)
 		clip(-1);
 	
@@ -251,9 +258,11 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
+		density = textureMap.Load(int4(i, 0, 0, 0));
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}
+	
 
 	return float4(result,att);
 }

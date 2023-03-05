@@ -9,7 +9,4 @@ public:
 	VolumeCube();
 	virtual void Draw() override;
 
-	static int cnt;
-
-	unique_ptr<TextureResource> mTextureResource;
 };

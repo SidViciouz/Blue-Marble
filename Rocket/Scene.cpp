@@ -10,6 +10,12 @@ void Scene::Load()
 	{
 		world->second->Load();
 	}
+	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
+	{
+		int data[3000] = { 1,2,3,4,5,6,7,8,9,10 };
+
+		volume->second->mTextureResource->Copy((void*)data, 10, 10, 10, 4);
+	}
 }
 
 void Scene::CreateVertexIndexBuffer()
