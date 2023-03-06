@@ -262,6 +262,7 @@ float4 PS(VertexOut pin) : SV_Target
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}
-
+	textureMap[int3(0, 0, 0)] += 0.1f;
+	//InterlockedAdd(textureMap[int3(0, 0, 0)], 1);
 	return float4(result,att);
 }

@@ -129,6 +129,10 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 		nullptr
 	);
 
+	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_COPY_DEST,
+		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	Pipeline::mCommandList->ResourceBarrier(1, &b);
+
 	//cpu virtual memory address unmap하는 부분
 	mUploadBuffer->Unmap(0, nullptr);
 }
