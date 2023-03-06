@@ -519,11 +519,19 @@ void Game::Draw()
 	mDirectX.SetPSO("Particle");
 	mDirectX.SetRootSignature("Particle");
 	Pipeline::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	Pipeline::mCommandList->IASetVertexBuffers(1, 0, mParticleField->GetVertexBufferView());
+	Pipeline::mCommandList->IASetVertexBuffers(0, 1, mParticleField->GetVertexBufferView());
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mDirectX.getVolumeUavHeap()->GetGPUDescriptorHandleForHeapStart();
+		gpuHandle.ptr += volume->second->mVolumeIndex * Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mDirectX.getInvisibleUavHeap()->GetCPUDescriptorHandleForHeapStart();
+		cpuHandle.ptr += volume->second->mVolumeIndex * Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		UINT color[4] = { 0,0,0,0 };
+		Pipeline::mCommandList->ClearUnorderedAccessViewUint(gpuHandle,cpuHandle, volume->second->mTextureResource->mTexture.Get(), color, 0, nullptr);
 		mDirectX.SetVolumeUavIndex(0, volume->second->mVolumeIndex);
-		Pipeline::mCommandList->DrawInstanced(3,1,0,0);
+		Pipeline::mCommandList->DrawInstanced(mParticleField->NumParticle(),1,0,0);
 	}
 	//
 

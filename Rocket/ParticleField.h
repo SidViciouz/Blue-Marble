@@ -16,6 +16,7 @@ public:
 	ParticleField();
 	void Update(const Timer& timer);
 	D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView();
+	int NumParticle();
 
 private:
 	D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;

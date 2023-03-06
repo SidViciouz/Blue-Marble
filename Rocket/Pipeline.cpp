@@ -204,21 +204,6 @@ void Pipeline::CreateSrv(int size)
 			handle.ptr += incrementSize * world->second->mObjIndex;
 			mDevice->CreateShaderResourceView(world->second->mTexture.mResource.Get(), &viewDesc, handle);
 		}
-
-		/*
-		viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
-		viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		viewDesc.Texture3D.MostDetailedMip = 0;
-		viewDesc.Texture3D.ResourceMinLODClamp = 0.0f;
-		for (auto volume = scene->get()->mVolume->begin(); volume != scene->get()->mVolume->end(); volume++)
-		{
-			viewDesc.Texture3D.MipLevels = volume->second->mTextureResource->mTexture->GetDesc().MipLevels;
-			viewDesc.Format = volume->second->mTextureResource->mTexture->GetDesc().Format;
-			auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
-			handle.ptr += incrementSize * volume->second->mObjIndex;
-			mDevice->CreateShaderResourceView(volume->second->mTextureResource->mTexture.Get(), &viewDesc, handle);
-		}
-		*/
 	}
 }
 
@@ -237,9 +222,6 @@ void Pipeline::CreateVolumeUav(int numVolume)
 	{
 		D3D12_UNORDERED_ACCESS_VIEW_DESC viewDesc = {};
 		viewDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-		//viewDesc.Texture3D.FirstWSlice = ;
-		//viewDesc.Texture3D.MipSlice = ;
-		//viewDesc.Texture3D.WSize = ;
 		for (auto volume = scene->get()->mVolume->begin(); volume != scene->get()->mVolume->end(); volume++)
 		{
 			viewDesc.Format = volume->second->mTextureResource->mTexture->GetDesc().Format;
@@ -249,6 +231,26 @@ void Pipeline::CreateVolumeUav(int numVolume)
 		}
 	}
 
+	//create shader invisible heap
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	heapDesc.NumDescriptors = numVolume;
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+	IfError::Throw(mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeapInvisible.GetAddressOf())),
+		L"create shader invisible srv heap for volume error!");
+
+	for (auto scene = Game::mScenes.begin(); scene != Game::mScenes.end(); scene++)
+	{
+		D3D12_UNORDERED_ACCESS_VIEW_DESC viewDesc = {};
+		viewDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+		for (auto volume = scene->get()->mVolume->begin(); volume != scene->get()->mVolume->end(); volume++)
+		{
+			viewDesc.Format = volume->second->mTextureResource->mTexture->GetDesc().Format;
+			auto handle = mVolumeUavHeapInvisible->GetCPUDescriptorHandleForHeapStart();
+			handle.ptr += incrementSize * volume->second->mVolumeIndex;
+			mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
+		}
+	}
 }
 
 void Pipeline::SetPSO(string name)
@@ -278,6 +280,11 @@ ID3D12DescriptorHeap* Pipeline::getSrvHeap()
 ID3D12DescriptorHeap* Pipeline::getVolumeUavHeap()
 {
 	return mVolumeUavHeap.Get();
+}
+
+ID3D12DescriptorHeap* Pipeline::getInvisibleUavHeap()
+{
+	return mVolumeUavHeapInvisible.Get();
 }
 
 void Pipeline::CreateCommandObjects()

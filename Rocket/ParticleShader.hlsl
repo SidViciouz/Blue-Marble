@@ -24,7 +24,10 @@ void VS(VertexIn vin)
 					continue;
 				pos = int3(posX, posY, posZ);
 
-				InterlockedAdd(textureMap[pos], 1);
+				if(i == 0 && j == 0 && k == 0)
+					InterlockedAdd(textureMap[pos], 2);
+				else
+					InterlockedAdd(textureMap[pos], 1);
 			}
 		}
 	}

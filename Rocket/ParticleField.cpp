@@ -3,9 +3,13 @@
 
 ParticleField::ParticleField()
 {
-	mParticles.push_back({ {0.0f,0.0f,0.0f} ,{0.1f,0.0f,0.0f} });
-	mParticles.push_back({ {0.0f,1.0f,0.0f} ,{0.3f,0.0f,0.0f} });
-	mParticles.push_back({ {0.0f,2.0f,0.0f} ,{0.1f,0.0f,0.0f} });
+	mParticles.push_back({ {0.0f,0.0f,0.0f} ,{0.5f,0.0f,0.0f} });
+	mParticles.push_back({ {0.0f,1.0f,0.0f} ,{0.5f,0.0f,0.0f} });
+	mParticles.push_back({ {0.0f,2.0f,0.0f} ,{0.1f,0.5f,0.3f} });
+	mParticles.push_back({ {0.0f,2.0f,3.0f} ,{0.0f,0.5f,0.0f} });
+	mParticles.push_back({ {0.0f,2.0f,5.0f} ,{0.0f,0.5f,0.2f} });
+	mParticles.push_back({ {0.0f,2.0f,8.0f} ,{0.0f,0.5f,0.3f} });
+	mParticles.push_back({ {0.0f,0.0f,0.0f} ,{0.7f,0.5f,0.3f} });
 
 	//constant buffer size로 만들지 않으면 copy할때 index 0보다 크면 문제가 생길 것 같다. 일단은 임시로 이렇게 해놓음.
 	mBuffer = make_unique<UploadBuffer>(Pipeline::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(Particle)*mParticles.size()));
@@ -49,4 +53,9 @@ D3D12_VERTEX_BUFFER_VIEW* ParticleField::GetVertexBufferView()
 	mVertexBufferView.StrideInBytes = sizeof(Particle);
 
 	return &mVertexBufferView;
+}
+
+int ParticleField:: NumParticle()
+{
+	return mParticles.size();
 }

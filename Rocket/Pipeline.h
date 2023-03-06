@@ -28,6 +28,7 @@ public:
 	void SetVolumeUavIndex(int rootParameter,int index);
 	ID3D12DescriptorHeap* getSrvHeap();
 	ID3D12DescriptorHeap* getVolumeUavHeap();
+	ID3D12DescriptorHeap* getInvisibleUavHeap();
 	void CreateSrv(int size);
 	void CreateVolumeUav(int numVolume);
 	void SetPSO(string name);
@@ -83,4 +84,5 @@ private:
 
 	ComPtr<ID3D12DescriptorHeap> mSrvHeap = nullptr;
 	ComPtr<ID3D12DescriptorHeap> mVolumeUavHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> mVolumeUavHeapInvisible = nullptr;
 };
