@@ -35,6 +35,8 @@ void Game::Initialize()
 	mDirectX.CreateSrv(totalNumModels + totalNumWorlds + totalNumVolumes);
 	mDirectX.CreateVolumeUav(totalNumVolumes);
 
+	mParticleField = make_unique<ParticleField>();
+
 	mTimer.Reset();
 }
 
@@ -504,11 +506,28 @@ void Game::Update()
 		mDirectX.SetObjConstantBuffer(volume->second->mObjIndex, &volume->second->mObjFeature, sizeof(obj));
 	}
 	
+	mParticleField->Update(mTimer);
 }
 
 void Game::Draw()
 {
 	mDirectX.Draw();
+	
+	//particle density update
+	ID3D12DescriptorHeap* heaps[] = { mDirectX.getVolumeUavHeap() };
+	Pipeline::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	mDirectX.SetPSO("Particle");
+	mDirectX.SetRootSignature("Particle");
+	Pipeline::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	Pipeline::mCommandList->IASetVertexBuffers(1, 0, mParticleField->GetVertexBufferView());
+	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
+	{
+		mDirectX.SetVolumeUavIndex(0, volume->second->mVolumeIndex);
+		Pipeline::mCommandList->DrawInstanced(3,1,0,0);
+	}
+	//
+
+	mDirectX.SetRootSignature("Default");
 
 	D3D12_VERTEX_BUFFER_VIEW vbv = {};
 	vbv.BufferLocation = mScenes[mCurrentScene]->mVertexBuffer->GetGpuAddress();
@@ -521,20 +540,18 @@ void Game::Draw()
 	ibv.SizeInBytes = sizeof(uint16_t)* mScenes[mCurrentScene]->mAllIndices.size();
 
 	//vertex buffer, index buffer ¹ÙÀÎµù.
-	ID3D12GraphicsCommandList* cmdList = Pipeline::mCommandList.Get();
+	Pipeline::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	Pipeline::mCommandList->IASetVertexBuffers(0, 1, &vbv);
+	Pipeline::mCommandList->IASetIndexBuffer(&ibv);
 
-	cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	cmdList->IASetVertexBuffers(0, 1, &vbv);
-	cmdList->IASetIndexBuffer(&ibv);
-
-	ID3D12DescriptorHeap* heaps[] = { mDirectX.getSrvHeap()};
-	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
+	heaps[0] = { mDirectX.getSrvHeap()};
+	Pipeline::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
 	mDirectX.SetPSO("World");
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
 		mDirectX.SetSrvIndex(world->second->mObjIndex);
-		cmdList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
+		Pipeline::mCommandList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
 	}
 	mDirectX.SetPSO("Default");
 
@@ -543,7 +560,7 @@ void Game::Draw()
 	{
 		mDirectX.SetPSO("Selected");
 		mDirectX.SetObjConstantIndex(mSelectedModel->mObjIndex);
-		cmdList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mVertexBufferOffset, 0);
+		Pipeline::mCommandList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mVertexBufferOffset, 0);
 		mDirectX.SetPSO("Default");
 	}
 
@@ -551,7 +568,7 @@ void Game::Draw()
 	{
 		mDirectX.SetObjConstantIndex(model->second->mObjIndex);
 		mDirectX.SetSrvIndex(model->second->mObjIndex);
-		cmdList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
+		Pipeline::mCommandList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 
 	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
@@ -561,30 +578,29 @@ void Game::Draw()
 		{
 			mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex);
 			mDirectX.SetSrvIndex(inventory->second->mObjIndex);
-			cmdList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
+			Pipeline::mCommandList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
 		}
 	}
 
 	heaps[0] = {mDirectX.getVolumeUavHeap() };
-	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
-	mDirectX.SetPSO("VolumeSphere");
+	Pipeline::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
 	mDirectX.SetRootSignature("Volume");
-	cmdList->IASetVertexBuffers(0,0,nullptr);
-	cmdList->IASetIndexBuffer(nullptr);
+	Pipeline::mCommandList->IASetVertexBuffers(0,0,nullptr);
+	Pipeline::mCommandList->IASetIndexBuffer(nullptr);
 	int i = 0;
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
 		if (i == 0)
 		{
 			mDirectX.SetPSO("VolumeCube");
-			mDirectX.SetVolumeUavIndex(volume->second->mVolumeIndex);
+			mDirectX.SetVolumeUavIndex(2,volume->second->mVolumeIndex);
 			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}
 		else
 		{
 			mDirectX.SetPSO("VolumeSphere");
-			mDirectX.SetVolumeUavIndex(volume->second->mVolumeIndex);
+			mDirectX.SetVolumeUavIndex(2,volume->second->mVolumeIndex);
 			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}

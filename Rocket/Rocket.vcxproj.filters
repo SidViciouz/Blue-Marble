@@ -198,5 +198,6 @@
     <FxCompile Include="VolumeSphereShader.hlsl" />
     <FxCompile Include="VolumeCubeShader.hlsl" />
     <FxCompile Include="WorldShader.hlsl" />
+    <FxCompile Include="ParticleShader.hlsl" />
   </ItemGroup>
 </Project>

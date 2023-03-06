@@ -14,6 +14,7 @@
 #include "Button.h"
 #include "VolumeCube.h"
 #include "VolumeSphere.h"
+#include "ParticleField.h"
 
 class Game
 {
@@ -81,4 +82,6 @@ private:
 	bool mIsInventorySelected = false;
 	
 	ComPtr<ID3D12Debug> debugController;
+	unique_ptr<ParticleField> mParticleField;
+
 };

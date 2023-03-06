@@ -224,7 +224,9 @@ float3 pf(float3 x)
 
 		for (int j = 0; j < steps; ++j)
 		{
-			density = textureMap.Load(int4(0, 0, 0, 0));
+			int3 coord = x + posToLight * (tMin + stepSize * j);
+			coord = coord / 10;
+			density = float(textureMap.Load(int4(coord, 0))) / 100.0f;
 			att *= exp(-stepSize * sigmaT * density);
 		}
 
@@ -258,11 +260,12 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
-		density = textureMap.Load(int4(0, 0, 0, 0));
+		int3 coord = rayOrigin + rayDir * (tMin + stepSize*i);
+		coord = coord / 10;
+		density = float(textureMap.Load(int4(coord, 0)))/100.0f;
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}
-	textureMap[int3(0, 0, 0)] += 0.1f;
-	//InterlockedAdd(textureMap[int3(0, 0, 0)], 1);
+
 	return float4(result,att);
 }

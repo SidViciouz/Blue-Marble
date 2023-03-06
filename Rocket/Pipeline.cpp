@@ -107,7 +107,7 @@ void Pipeline::Draw()
 	mCommandList->RSSetViewports(1, &mViewport);
 
 	mCommandList->ResourceBarrier(1, &barrier);
-
+	
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * mCurrentBackBuffer;
@@ -263,11 +263,11 @@ void Pipeline::SetSrvIndex(int index)
 	mCommandList->SetGraphicsRootDescriptorTable(2, handle);
 }
 
-void Pipeline::SetVolumeUavIndex(int index)
+void Pipeline::SetVolumeUavIndex(int rootParameter,int index)
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
 	handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * index;
-	mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+	mCommandList->SetGraphicsRootDescriptorTable(rootParameter, handle);
 }
 
 ID3D12DescriptorHeap* Pipeline::getSrvHeap()
@@ -451,6 +451,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["VolumeCubePS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"ParticleShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ParticleVS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -510,6 +514,30 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"create root signature error!");
 
 	mRootSignatures["Volume"] = move(rs);
+
+	range.BaseShaderRegister = 0;
+	range.NumDescriptors = 1;
+	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	range.RegisterSpace = 0;
+
+	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[0].DescriptorTable.pDescriptorRanges = &range;
+
+	rsDesc.NumParameters = 1;
+	rsDesc.pParameters = rootParameter;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+
+	mRootSignatures["Particle"] = move(rs);
 
 }
 
@@ -637,6 +665,24 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["VolumeCube"] = move(pso);
+
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "VELOCITY", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 2;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+	psoDesc.pRootSignature = mRootSignatures["Particle"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["ParticleVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["ParticleVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = nullptr;
+	psoDesc.PS.BytecodeLength = 0;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+	psoDesc.DepthStencilState.DepthEnable = false;
+	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["Particle"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

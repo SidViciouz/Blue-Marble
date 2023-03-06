@@ -25,7 +25,7 @@ public:
 	void DrawFinish();
 	void SetObjConstantIndex(int index);
 	void SetSrvIndex(int index);
-	void SetVolumeUavIndex(int index);
+	void SetVolumeUavIndex(int rootParameter,int index);
 	ID3D12DescriptorHeap* getSrvHeap();
 	ID3D12DescriptorHeap* getVolumeUavHeap();
 	void CreateSrv(int size);
