@@ -42,7 +42,7 @@ cbuffer trans : register(b1)
 	float4x4 InvViewProjection;
 }
 
-texture3D<int> textureMap : register(t0);
+RWTexture3D<int> textureMap : register(u0);
 
 
 static Coord coord[36] = {
@@ -224,7 +224,7 @@ float3 pf(float3 x)
 
 		for (int j = 0; j < steps; ++j)
 		{
-			density = textureMap.Load(int4(j, 0, 0, 0));
+			density = textureMap.Load(int4(0, 0, 0, 0));
 			att *= exp(-stepSize * sigmaT * density);
 		}
 
@@ -258,11 +258,10 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
-		density = textureMap.Load(int4(i, 0, 0, 0));
+		density = textureMap.Load(int4(0, 0, 0, 0));
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}
-	
 
 	return float4(result,att);
 }

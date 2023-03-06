@@ -25,8 +25,11 @@ public:
 	void DrawFinish();
 	void SetObjConstantIndex(int index);
 	void SetSrvIndex(int index);
+	void SetVolumeUavIndex(int index);
 	ID3D12DescriptorHeap* getSrvHeap();
+	ID3D12DescriptorHeap* getVolumeUavHeap();
 	void CreateSrv(int size);
+	void CreateVolumeUav(int numVolume);
 	void SetPSO(string name);
 	void SetRootSignature(string name);
 
@@ -79,4 +82,5 @@ private:
 	D3D12_RECT mScissor;
 
 	ComPtr<ID3D12DescriptorHeap> mSrvHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> mVolumeUavHeap = nullptr;
 };

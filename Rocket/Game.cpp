@@ -33,6 +33,7 @@ void Game::Initialize()
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	mDirectX.CreateSrv(totalNumModels + totalNumWorlds + totalNumVolumes);
+	mDirectX.CreateVolumeUav(totalNumVolumes);
 
 	mTimer.Reset();
 }
@@ -526,7 +527,7 @@ void Game::Draw()
 	cmdList->IASetVertexBuffers(0, 1, &vbv);
 	cmdList->IASetIndexBuffer(&ibv);
 
-	ID3D12DescriptorHeap* heaps[] = { mDirectX.getSrvHeap() };
+	ID3D12DescriptorHeap* heaps[] = { mDirectX.getSrvHeap()};
 	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
 
 	mDirectX.SetPSO("World");
@@ -564,7 +565,8 @@ void Game::Draw()
 		}
 	}
 
-	
+	heaps[0] = {mDirectX.getVolumeUavHeap() };
+	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
 	mDirectX.SetPSO("VolumeSphere");
 	mDirectX.SetRootSignature("Volume");
 	cmdList->IASetVertexBuffers(0,0,nullptr);
@@ -575,14 +577,14 @@ void Game::Draw()
 		if (i == 0)
 		{
 			mDirectX.SetPSO("VolumeCube");
-			mDirectX.SetSrvIndex(volume->second->mObjIndex);
+			mDirectX.SetVolumeUavIndex(volume->second->mVolumeIndex);
 			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}
 		else
 		{
 			mDirectX.SetPSO("VolumeSphere");
-			mDirectX.SetSrvIndex(volume->second->mObjIndex);
+			mDirectX.SetVolumeUavIndex(volume->second->mVolumeIndex);
 			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}

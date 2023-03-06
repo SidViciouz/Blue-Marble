@@ -10,3 +10,5 @@ void Volume::Draw()
 {
 
 }
+
+int Volume::volumeIndex = 0;

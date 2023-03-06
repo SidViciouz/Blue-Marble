@@ -1,6 +1,7 @@
 #pragma once
 #include "Util.h"
 #include "Buffer.h"
+#include "TextureResource.h"
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -13,7 +14,7 @@ public:
 	UINT64 mFenceValue = 0;
 	unique_ptr<UploadBuffer> mObjConstantBuffer = nullptr;
 	unique_ptr<UploadBuffer> mTransConstantBuffer = nullptr;
-	
+
 private:
 	ComPtr<ID3D12CommandAllocator> mCommandAllocator = nullptr;
 };

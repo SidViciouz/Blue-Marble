@@ -41,7 +41,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 	//texture 积己窍绰 何盒
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UINT,width,height);
-
+	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
@@ -103,7 +103,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	//texture 积己窍绰 何盒
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	rd = CD3DX12_RESOURCE_DESC::Tex3D(DXGI_FORMAT_R8G8B8A8_UINT, width, height, depth);
-
+	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,

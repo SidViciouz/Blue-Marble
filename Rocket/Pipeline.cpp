@@ -205,7 +205,7 @@ void Pipeline::CreateSrv(int size)
 			mDevice->CreateShaderResourceView(world->second->mTexture.mResource.Get(), &viewDesc, handle);
 		}
 
-
+		/*
 		viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE3D;
 		viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 		viewDesc.Texture3D.MostDetailedMip = 0;
@@ -218,7 +218,37 @@ void Pipeline::CreateSrv(int size)
 			handle.ptr += incrementSize * volume->second->mObjIndex;
 			mDevice->CreateShaderResourceView(volume->second->mTextureResource->mTexture.Get(), &viewDesc, handle);
 		}
+		*/
 	}
+}
+
+void Pipeline::CreateVolumeUav(int numVolume)
+{
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	heapDesc.NumDescriptors = numVolume;
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+	IfError::Throw(mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeap.GetAddressOf())),
+		L"create srv heap for volume error!");
+
+	auto incrementSize = mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	for (auto scene = Game::mScenes.begin(); scene != Game::mScenes.end(); scene++)
+	{
+		D3D12_UNORDERED_ACCESS_VIEW_DESC viewDesc = {};
+		viewDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+		//viewDesc.Texture3D.FirstWSlice = ;
+		//viewDesc.Texture3D.MipSlice = ;
+		//viewDesc.Texture3D.WSize = ;
+		for (auto volume = scene->get()->mVolume->begin(); volume != scene->get()->mVolume->end(); volume++)
+		{
+			viewDesc.Format = volume->second->mTextureResource->mTexture->GetDesc().Format;
+			auto handle = mVolumeUavHeap->GetCPUDescriptorHandleForHeapStart();
+			handle.ptr += incrementSize * volume->second->mVolumeIndex;
+			mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
+		}
+	}
+
 }
 
 void Pipeline::SetPSO(string name)
@@ -233,9 +263,21 @@ void Pipeline::SetSrvIndex(int index)
 	mCommandList->SetGraphicsRootDescriptorTable(2, handle);
 }
 
+void Pipeline::SetVolumeUavIndex(int index)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
+	handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * index;
+	mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+}
+
 ID3D12DescriptorHeap* Pipeline::getSrvHeap()
 {
 	return mSrvHeap.Get();
+}
+
+ID3D12DescriptorHeap* Pipeline::getVolumeUavHeap()
+{
+	return mVolumeUavHeap.Get();
 }
 
 void Pipeline::CreateCommandObjects()
@@ -460,6 +502,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	rsDesc.NumParameters = 3;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
 
