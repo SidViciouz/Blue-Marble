@@ -154,6 +154,7 @@
     <ClInclude Include="Math\Position.h" />
     <ClInclude Include="Math\Quaternion.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="ParticleField.h" />
     <ClInclude Include="Pipeline.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game.h" />
@@ -183,6 +184,7 @@
     <ClCompile Include="Math\Position.cpp" />
     <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ParticleField.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Rocket.cpp" />
