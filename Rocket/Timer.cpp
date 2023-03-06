@@ -30,7 +30,7 @@ void Timer::Tick()
 	mPreviousTime = mCurrentTime;
 }
 
-float Timer::GetDeltaTime()
+float Timer::GetDeltaTime() const
 {
 	return mDeltaTime;
 }

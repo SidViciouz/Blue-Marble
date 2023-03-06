@@ -125,7 +125,7 @@ void Pipeline::Draw()
 
 void Pipeline::SetObjConstantBuffer(int index, const void* data, int byteSize)
 {
-	mFrames[mCurrentFrame]->mObjConstantBuffer->Copy(index, data, byteSize);
+	mFrames[mCurrentFrame]->mObjConstantBuffer->Copy(index,data, byteSize);
 }
 
 void Pipeline::SetTransConstantBuffer(int index, const void* data, int byteSize)

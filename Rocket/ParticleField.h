@@ -1,6 +1,7 @@
 #pragma once
 #include "Util.h"
 #include "Buffer.h"
+#include "Timer.h"
 #include <vector>
 
 struct Particle
@@ -13,10 +14,11 @@ class ParticleField
 {
 public:
 	ParticleField();
-	void Update();
-	D3D12_VERTEX_BUFFER_VIEW GetView();
+	void Update(const Timer& timer);
+	D3D12_VERTEX_BUFFER_VIEW* GetVertexBufferView();
 
 private:
+	D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
 	vector<Particle> mParticles;
 	unique_ptr<UploadBuffer> mBuffer;
 };
