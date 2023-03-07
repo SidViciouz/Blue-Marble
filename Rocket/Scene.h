@@ -13,7 +13,6 @@ class Scene
 {
 public:
 	void										Load();
-	void										CreateVertexIndexBuffer();
 	void										Update();
 	void										CreateModelSrv(int size);
 	void										CreateVolumeUav(int size);
@@ -25,12 +24,6 @@ public:
 	unique_ptr<Camera>							mCamera = nullptr;
 
 	trans										envFeature;
-
-	unique_ptr<Buffer>							mVertexBuffer;
-	unique_ptr<Buffer>							mIndexBuffer;
-
-	vector<Vertex>								mAllVertices;
-	vector<uint16_t>							mAllIndices;
 
 	ComPtr<ID3D12DescriptorHeap>				mSrvHeap = nullptr;
 	ComPtr<ID3D12DescriptorHeap>				mVolumeUavHeap = nullptr;

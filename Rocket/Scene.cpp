@@ -19,16 +19,6 @@ void Scene::Load()
 	}
 }
 
-void Scene::CreateVertexIndexBuffer()
-{
-	mVertexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(Vertex) * mAllVertices.size());
-	mIndexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(uint16_t) * mAllIndices.size());
-
-	//Vertex, Index 버퍼에 Model 데이터 copy
-	mVertexBuffer->Copy(mAllVertices.data(), sizeof(Vertex) * mAllVertices.size(), Game::mCommandList.Get());
-	mIndexBuffer->Copy(mAllIndices.data(), sizeof(uint16_t) * mAllIndices.size(), Game::mCommandList.Get());
-}
-
 void Scene::Update()
 {
 	for (auto it = mModels->begin(); it != mModels->end(); it++)

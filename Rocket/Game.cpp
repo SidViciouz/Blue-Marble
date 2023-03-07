@@ -441,7 +441,6 @@ void Game::LoadCopyModelToBuffer()
 	for (int i = 0; i <= mCurrentScene; ++i)
 	{
 		mScenes[i]->Load();
-		mScenes[i]->CreateVertexIndexBuffer();
 	}
 }
 
@@ -626,20 +625,8 @@ void Game::Draw()
 	//
 
 	mCommandList->SetGraphicsRootSignature(mDirectX.mRootSignatures["Default"].Get());
-	D3D12_VERTEX_BUFFER_VIEW vbv = {};
-	vbv.BufferLocation = mScenes[mCurrentScene]->mVertexBuffer->GetGpuAddress();
-	vbv.StrideInBytes = sizeof(Vertex);
-	vbv.SizeInBytes = sizeof(Vertex)* mScenes[mCurrentScene]->mAllVertices.size();
 
-	D3D12_INDEX_BUFFER_VIEW ibv = {};
-	ibv.BufferLocation = mScenes[mCurrentScene]->mIndexBuffer->GetGpuAddress();
-	ibv.Format = DXGI_FORMAT_R16_UINT;
-	ibv.SizeInBytes = sizeof(uint16_t)* mScenes[mCurrentScene]->mAllIndices.size();
-
-	//vertex buffer, index buffer ¹ÙÀÎµù.
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	mCommandList->IASetVertexBuffers(0, 1, &vbv);
-	mCommandList->IASetIndexBuffer(&ibv);
 
 	heaps[0] = { mScenes[mCurrentScene]->mSrvHeap.Get() };
 	mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
@@ -650,7 +637,9 @@ void Game::Draw()
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * world->second->mObjIndex;
 		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-		mCommandList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
+		mCommandList->IASetVertexBuffers(0, 1, world->second->GetVertexBufferView());
+		mCommandList->IASetIndexBuffer(world->second->GetIndexBufferView());
+		mCommandList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, 0, 0, 0);
 	}
 	mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
 
@@ -659,7 +648,9 @@ void Game::Draw()
 	{
 		mCommandList->SetPipelineState(mDirectX.mPSOs["Selected"].Get());
 		SetObjConstantIndex(mSelectedModel->mObjIndex);
-		mCommandList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mVertexBufferOffset, 0);
+		mCommandList->IASetVertexBuffers(0, 1, mSelectedModel->GetVertexBufferView());
+		mCommandList->IASetIndexBuffer(mSelectedModel->GetIndexBufferView());
+		mCommandList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, 0, 0, 0);
 		mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
 
 	}
@@ -670,7 +661,9 @@ void Game::Draw()
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
 		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-		mCommandList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
+		mCommandList->IASetVertexBuffers(0, 1, model->second->GetVertexBufferView());
+		mCommandList->IASetIndexBuffer(model->second->GetIndexBufferView());
+		mCommandList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, 0, 0, 0);
 	}
 
 	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
@@ -682,7 +675,9 @@ void Game::Draw()
 			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 			handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * inventory->second->mObjIndex;
 			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-			mCommandList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
+			mCommandList->IASetVertexBuffers(0, 1, inventory->second->GetVertexBufferView());
+			mCommandList->IASetIndexBuffer(inventory->second->GetIndexBufferView());
+			mCommandList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, 0, 0, 0);
 		}
 	}
 

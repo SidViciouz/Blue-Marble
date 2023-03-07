@@ -33,6 +33,8 @@ public:
 
 	void										Load();
 	void										Update();
+	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
+	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
 
 	const char*									mFileName;
 	const wchar_t*								mName;
@@ -53,10 +55,10 @@ public:
 
 	XMFLOAT3									mScale = { 1.0f,1.0f,1.0f };
 
+	D3D12_VERTEX_BUFFER_VIEW					mVertexBufferView;
+	D3D12_INDEX_BUFFER_VIEW						mIndexBufferView;
 	int											mVertexBufferSize = 0;
 	int											mIndexBufferSize = 0;
-	int											mVertexBufferOffset = 0;
-	int											mIndexBufferOffset = 0;
 
 	Texture										mTexture;
 
@@ -64,6 +66,9 @@ public:
 
 	int											mObjIndex = mNextObjConstantIndex++;
 	static int									mNextObjConstantIndex;
+
+	unique_ptr<Buffer>							mVertexBuffer;
+	unique_ptr<Buffer>							mIndexBuffer;
 };
 
 using Models = unordered_map<string, shared_ptr<Model>>;

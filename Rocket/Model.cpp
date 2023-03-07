@@ -109,17 +109,17 @@ void Model::Load()
 	mVertexBufferSize = mVertices.size();
 	mIndexBufferSize = mIndices.size();
 
-	mVertexBufferOffset = Game::mScenes[mSceneIndex]->mAllVertices.size();
-	mIndexBufferOffset = Game::mScenes[mSceneIndex]->mAllIndices.size();
-
-	Game::mScenes[mSceneIndex]->mAllVertices.insert(Game::mScenes[mSceneIndex]->mAllVertices.end(), mVertices.begin(), mVertices.end());
-	Game::mScenes[mSceneIndex]->mAllIndices.insert(Game::mScenes[mSceneIndex]->mAllIndices.end(), mIndices.begin(), mIndices.end());
-
 	BoundingOrientedBox::CreateFromPoints(mBound, mVertices.size(), &mVertices[0].position, sizeof(Vertex));
 
 	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Game::mCommandList.Get(), mName,
 		mTexture.mResource, mTexture.mUpload),
 		L"load dds texture error!");
+
+	mVertexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(Vertex) * mVertices.size());
+	mIndexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(uint16_t) * mIndices.size());
+
+	mVertexBuffer->Copy(mVertices.data(), sizeof(Vertex) * mVertices.size(), Game::mCommandList.Get());
+	mIndexBuffer->Copy(mIndices.data(), sizeof(uint16_t) * mIndices.size(), Game::mCommandList.Get());
 }
 
 // string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환
@@ -178,6 +178,24 @@ int getNumber(string& aWord, bool isFirst)
 	startPosition = endPosition + 1;
 
 	return stoi(numberString);
+}
+
+D3D12_VERTEX_BUFFER_VIEW* Model::GetVertexBufferView()
+{
+	mVertexBufferView.BufferLocation = mVertexBuffer->GetGpuAddress();
+	mVertexBufferView.StrideInBytes = sizeof(Vertex);
+	mVertexBufferView.SizeInBytes = sizeof(Vertex) * mVertices.size();
+
+	return &mVertexBufferView;
+}
+
+D3D12_INDEX_BUFFER_VIEW* Model::GetIndexBufferView()
+{
+	mIndexBufferView.BufferLocation = mIndexBuffer->GetGpuAddress();
+	mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+	mIndexBufferView.SizeInBytes = sizeof(uint16_t) * mIndices.size();
+
+	return &mIndexBufferView;
 }
 
 int Model::mNextObjConstantIndex = 0;
