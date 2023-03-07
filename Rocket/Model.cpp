@@ -117,7 +117,7 @@ void Model::Load()
 
 	BoundingOrientedBox::CreateFromPoints(mBound, mVertices.size(), &mVertices[0].position, sizeof(Vertex));
 
-	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Pipeline::mCommandList.Get(), mName,
+	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Game::mCommandList.Get(), mName,
 		mTexture.mResource, mTexture.mUpload),
 		L"load dds texture error!");
 }

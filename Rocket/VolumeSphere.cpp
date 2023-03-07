@@ -1,7 +1,7 @@
 #include "VolumeSphere.h"
-#include "Pipeline.h"
+#include "Game.h"
 
 void VolumeSphere::Draw()
 {
-	Pipeline::mCommandList->DrawInstanced(6, 1, 0, 0);
+	Game::mCommandList->DrawInstanced(6, 1, 0, 0);
 }

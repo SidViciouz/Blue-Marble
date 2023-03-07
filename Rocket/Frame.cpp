@@ -16,3 +16,13 @@ ID3D12CommandAllocator* Frame::Get()
 {
 	return mCommandAllocator.Get();
 }
+
+void Frame::CopyObjConstantBuffer(int index, const void* data, int byteSize)
+{
+	mObjConstantBuffer->Copy(index, data, byteSize);
+}
+
+void Frame::CopyTransConstantBuffer(int index, const void* data, int byteSize)
+{
+	mTransConstantBuffer->Copy(index, data, byteSize);
+}

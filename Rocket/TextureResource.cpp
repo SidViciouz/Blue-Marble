@@ -1,7 +1,7 @@
 #include "TextureResource.h"
-#include "Pipeline.h"
 #include "d3dx12.h"
 #include "IfError.h"
+#include "Game.h"
 
 int CalculateAlignment(int value, int alignment)
 {
@@ -60,7 +60,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 	D3D12_TEXTURE_COPY_LOCATION tl = CD3DX12_TEXTURE_COPY_LOCATION(mTexture.Get(), 0);
 	D3D12_TEXTURE_COPY_LOCATION ubl = CD3DX12_TEXTURE_COPY_LOCATION(mUploadBuffer.Get(),footPrint );
 	
-	Pipeline::mCommandList->CopyTextureRegion(
+	Game::mCommandList->CopyTextureRegion(
 		&tl,
 		0, 0, 0,
 		&ubl,
@@ -69,7 +69,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 
 	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	Pipeline::mCommandList->ResourceBarrier(1, &b);
+	Game::mCommandList->ResourceBarrier(1, &b);
 
 	//cpu virtual memory address unmap하는 부분
 	mUploadBuffer->Unmap(0, nullptr);
@@ -126,7 +126,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	D3D12_TEXTURE_COPY_LOCATION tl = CD3DX12_TEXTURE_COPY_LOCATION(mTexture.Get(), 0);
 	D3D12_TEXTURE_COPY_LOCATION ubl = CD3DX12_TEXTURE_COPY_LOCATION(mUploadBuffer.Get(), footPrint);
 
-	Pipeline::mCommandList->CopyTextureRegion(
+	Game::mCommandList->CopyTextureRegion(
 		&tl,
 		0, 0, 0,
 		&ubl,
@@ -135,7 +135,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_COPY_DEST,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	Pipeline::mCommandList->ResourceBarrier(1, &b);
+	Game::mCommandList->ResourceBarrier(1, &b);
 
 	//cpu virtual memory address unmap하는 부분
 	mUploadBuffer->Unmap(0, nullptr);

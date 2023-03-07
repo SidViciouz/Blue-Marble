@@ -1,9 +1,10 @@
 #include "Game.h"
 
 vector<unique_ptr<Scene>> Game::mScenes;
+ComPtr<ID3D12GraphicsCommandList> Game::mCommandList;
 
 Game::Game(HINSTANCE hInstance)
-	: mDirectX(mWidth,mHeight)
+	: mDirectX(mWidth,mHeight), mInstance(hInstance)
 {
 	mLatestWindow = this;
 }
@@ -13,16 +14,17 @@ void Game::Initialize()
 	//윈도우 초기화
 	InitializeWindow();
 
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-	{
-		debugController->EnableDebugLayer();
-	}
+	DebugEnable();
 
 	//device, fence 등 생성
 	mDirectX.Initialize();
 	
 	//각 Scene들에 모델, 카메라, 조명 생성
 	LoadScene();
+
+	CreateFrames(totalNumModels + totalNumWorlds + totalNumVolumes);
+
+	CreateCommandObjects();
 
 	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
 	mDirectX.CreateObjects(mWindowHandle, totalNumModels + totalNumWorlds + totalNumVolumes);
@@ -32,9 +34,11 @@ void Game::Initialize()
 	LoadCopyModelToBuffer();
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
-	mDirectX.CreateSrv(totalNumModels + totalNumWorlds + totalNumVolumes);
-	mDirectX.CreateVolumeUav(totalNumVolumes);
-
+	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
+	{
+		scene->get()->CreateModelSrv(totalNumModels + totalNumWorlds + totalNumVolumes);
+		scene->get()->CreateVolumeUav(totalNumVolumes);
+	}
 	mParticleField = make_unique<ParticleField>();
 
 	mTimer.Reset();
@@ -58,6 +62,14 @@ void Game::Run()
 			Update();
 			Draw();
 		}
+	}
+}
+
+void Game::DebugEnable()
+{
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+	{
+		debugController->EnableDebugLayer();
 	}
 }
 
@@ -288,6 +300,7 @@ Game* Game::Get()
 	return mLatestWindow;
 }
 
+
 void Game::LoadScene()
 {
 	//scene 0
@@ -332,6 +345,33 @@ void Game::LoadScene()
 
 	mScenes[mCurrentScene]->envFeature = SetLight();
 }
+
+void Game::CreateFrames(int numObjConstant)
+{
+	//효율성을 위해 cpu에서 미리 프레임을 계산해 놓기위해서 여러개의 프레임 자원을 생성.
+	for (int i = 0; i < mNumberOfFrames; ++i)
+	{
+		mFrames.push_back(make_unique<Frame>(numObjConstant));
+	}
+}
+
+void Game::CreateCommandObjects()
+{
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	queueDesc.NodeMask = 0;
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+
+	IfError::Throw(Pipeline::mDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(mDirectX.mCommandQueue.GetAddressOf())),
+		L"create command queue error!");
+
+	IfError::Throw(Pipeline::mDevice->CreateCommandList(
+		0, D3D12_COMMAND_LIST_TYPE_DIRECT, mFrames[mCurrentFrame]->Get(),
+		nullptr, IID_PPV_ARGS(mCommandList.GetAddressOf())),
+		L"create command list error!");
+}
+
 
 /*
 * model의 vertex,index offset이 scene 내에서 존재하기 buffer가 존재하기 때문에 어떤 scene내에 로드할 건지를 명시해준다.
@@ -474,10 +514,27 @@ trans Game::SetLight()
 	return env;
 }
 
+void Game::SetObjConstantIndex(int index)
+{
+	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		+ index * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+}
+
 void Game::Update()
 {
 	//현재 프레임이 gpu에서 전부 draw되지 않았을 시 기다리고, 완료된 경우에는 다음 frame으로 넘어가는 역할.
-	mDirectX.Update();
+	mCurrentFrame = (mCurrentFrame + 1) % mNumberOfFrames;
+
+	auto currentFrame = mFrames[mCurrentFrame].get();
+
+	if (currentFrame->mFenceValue != 0 && mDirectX.mFence->GetCompletedValue() < currentFrame->mFenceValue)
+	{
+		HANDLE event = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+		IfError::Throw(mDirectX.mFence->SetEventOnCompletion(currentFrame->mFenceValue, event),
+			L"set event on completion error!");
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
 
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
@@ -488,22 +545,22 @@ void Game::Update()
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
 	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
 	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
-	mDirectX.SetTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
+	mFrames[mCurrentFrame]->CopyTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
 
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		mDirectX.SetObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
+		mFrames[mCurrentFrame]->CopyObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
 	}
 
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
-		mDirectX.SetObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
+		mFrames[mCurrentFrame]->CopyObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
 	}
 
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-		mDirectX.SetObjConstantBuffer(volume->second->mObjIndex, &volume->second->mObjFeature, sizeof(obj));
+		mFrames[mCurrentFrame]->CopyObjConstantBuffer(volume->second->mObjIndex, &volume->second->mObjFeature, sizeof(obj));
 	}
 	
 	mParticleField->Update(mTimer);
@@ -511,32 +568,64 @@ void Game::Update()
 
 void Game::Draw()
 {
-	mDirectX.Draw();
-	
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.pResource = mDirectX.mBackBuffers[mDirectX.mCurrentBackBuffer].Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+	IfError::Throw(mFrames[mCurrentFrame]->Get()->Reset(),
+		L"frame command allocator reset error!");
+
+	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
+
+	mCommandList->RSSetScissorRects(1, &mDirectX.mScissor);
+	mCommandList->RSSetViewports(1, &mDirectX.mViewport);
+
+	mCommandList->ResourceBarrier(1, &barrier);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mDirectX.mRtvHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDirectX.mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+	rtvHandle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * mDirectX.mCurrentBackBuffer;
+	float rgba[4] = { 0.0f,0.1f,0.0f,1.0f };
+	mCommandList->ClearRenderTargetView(rtvHandle, rgba, 0, nullptr);
+	mCommandList->ClearDepthStencilView(dsvHandle,
+		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+	mCommandList->OMSetRenderTargets(1, &rtvHandle, true, &dsvHandle);
+
+	mCommandList->SetGraphicsRootSignature(mDirectX.mRootSignatures["Default"].Get());
+
+	mCommandList->SetGraphicsRootConstantBufferView(1, mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
+
+
 	//particle density update
-	ID3D12DescriptorHeap* heaps[] = { mDirectX.getVolumeUavHeap() };
-	Pipeline::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
-	mDirectX.SetPSO("Particle");
-	mDirectX.SetRootSignature("Particle");
-	Pipeline::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	Pipeline::mCommandList->IASetVertexBuffers(0, 1, mParticleField->GetVertexBufferView());
+	ID3D12DescriptorHeap* heaps[] = { mScenes[mCurrentScene]->mVolumeUavHeap.Get() };
+	mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	mCommandList->SetPipelineState(mDirectX.mPSOs["Particle"].Get());
+	mCommandList->SetGraphicsRootSignature(mDirectX.mRootSignatures["Particle"].Get());
+	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	mCommandList->IASetVertexBuffers(0, 1, mParticleField->GetVertexBufferView());
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mDirectX.getVolumeUavHeap()->GetGPUDescriptorHandleForHeapStart();
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
 		gpuHandle.ptr += volume->second->mVolumeIndex * Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mDirectX.getInvisibleUavHeap()->GetCPUDescriptorHandleForHeapStart();
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mScenes[mCurrentScene]->mVolumeUavHeapInvisible->GetCPUDescriptorHandleForHeapStart();
 		cpuHandle.ptr += volume->second->mVolumeIndex * Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		UINT color[4] = { 0,0,0,0 };
-		Pipeline::mCommandList->ClearUnorderedAccessViewUint(gpuHandle,cpuHandle, volume->second->mTextureResource->mTexture.Get(), color, 0, nullptr);
-		mDirectX.SetVolumeUavIndex(0, volume->second->mVolumeIndex);
-		Pipeline::mCommandList->DrawInstanced(mParticleField->NumParticle(),1,0,0);
+		mCommandList->ClearUnorderedAccessViewUint(gpuHandle,cpuHandle, volume->second->mTextureResource->mTexture.Get(), color, 0, nullptr);
+		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
+		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
+		mCommandList->SetGraphicsRootDescriptorTable(0, handle);
+		mCommandList->DrawInstanced(mParticleField->NumParticle(),1,0,0);
 	}
 	//
 
-	mDirectX.SetRootSignature("Default");
-
+	mCommandList->SetGraphicsRootSignature(mDirectX.mRootSignatures["Default"].Get());
 	D3D12_VERTEX_BUFFER_VIEW vbv = {};
 	vbv.BufferLocation = mScenes[mCurrentScene]->mVertexBuffer->GetGpuAddress();
 	vbv.StrideInBytes = sizeof(Vertex);
@@ -548,35 +637,40 @@ void Game::Draw()
 	ibv.SizeInBytes = sizeof(uint16_t)* mScenes[mCurrentScene]->mAllIndices.size();
 
 	//vertex buffer, index buffer 바인딩.
-	Pipeline::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	Pipeline::mCommandList->IASetVertexBuffers(0, 1, &vbv);
-	Pipeline::mCommandList->IASetIndexBuffer(&ibv);
+	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mCommandList->IASetVertexBuffers(0, 1, &vbv);
+	mCommandList->IASetIndexBuffer(&ibv);
 
-	heaps[0] = { mDirectX.getSrvHeap()};
-	Pipeline::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	heaps[0] = { mScenes[mCurrentScene]->mSrvHeap.Get() };
+	mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-	mDirectX.SetPSO("World");
+	mCommandList->SetPipelineState(mDirectX.mPSOs["World"].Get());
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
-		mDirectX.SetSrvIndex(world->second->mObjIndex);
-		Pipeline::mCommandList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
+		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * world->second->mObjIndex;
+		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+		mCommandList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, world->second->mIndexBufferOffset, world->second->mVertexBufferOffset, 0);
 	}
-	mDirectX.SetPSO("Default");
+	mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
 
 	//선택된 물체에 노란색 테두리 렌더링
 	if (mIsModelSelected == true)
 	{
-		mDirectX.SetPSO("Selected");
-		mDirectX.SetObjConstantIndex(mSelectedModel->mObjIndex);
-		Pipeline::mCommandList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mVertexBufferOffset, 0);
-		mDirectX.SetPSO("Default");
+		mCommandList->SetPipelineState(mDirectX.mPSOs["Selected"].Get());
+		SetObjConstantIndex(mSelectedModel->mObjIndex);
+		mCommandList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, mSelectedModel->mIndexBufferOffset, mSelectedModel->mVertexBufferOffset, 0);
+		mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
+
 	}
 
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		mDirectX.SetObjConstantIndex(model->second->mObjIndex);
-		mDirectX.SetSrvIndex(model->second->mObjIndex);
-		Pipeline::mCommandList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
+		SetObjConstantIndex(model->second->mObjIndex);
+		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
+		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+		mCommandList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, model->second->mIndexBufferOffset, model->second->mVertexBufferOffset, 0);
 	}
 
 	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
@@ -584,41 +678,64 @@ void Game::Draw()
 		Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
 		for (auto inventory = invtry->mInventory.begin(); inventory != invtry->mInventory.end(); inventory++)
 		{
-			mDirectX.SetObjConstantIndex(mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex);
-			mDirectX.SetSrvIndex(inventory->second->mObjIndex);
-			Pipeline::mCommandList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
+			SetObjConstantIndex(mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex);
+			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+			handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * inventory->second->mObjIndex;
+			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+			mCommandList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, inventory->second->mIndexBufferOffset, inventory->second->mVertexBufferOffset, 0);
 		}
 	}
 
-	heaps[0] = {mDirectX.getVolumeUavHeap() };
-	Pipeline::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
-	mDirectX.SetRootSignature("Volume");
-	Pipeline::mCommandList->IASetVertexBuffers(0,0,nullptr);
-	Pipeline::mCommandList->IASetIndexBuffer(nullptr);
+	heaps[0] = { mScenes[mCurrentScene]->mVolumeUavHeap.Get() };
+	mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	mCommandList->SetGraphicsRootSignature(mDirectX.mRootSignatures["Volume"].Get());
+	mCommandList->IASetVertexBuffers(0,0,nullptr);
+	mCommandList->IASetIndexBuffer(nullptr);
 	int i = 0;
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
 		if (i == 0)
 		{
-			mDirectX.SetPSO("VolumeCube");
-			mDirectX.SetVolumeUavIndex(2,volume->second->mVolumeIndex);
-			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
+			mCommandList->SetPipelineState(mDirectX.mPSOs["VolumeCube"].Get());
+			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
+			handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
+			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+			SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}
 		else
 		{
-			mDirectX.SetPSO("VolumeSphere");
-			mDirectX.SetVolumeUavIndex(2,volume->second->mVolumeIndex);
-			mDirectX.SetObjConstantIndex(volume->second->mObjIndex);
+			mCommandList->SetPipelineState(mDirectX.mPSOs["VolumeSphere"].Get());
+			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
+			handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
+			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+			SetObjConstantIndex(volume->second->mObjIndex);
 			volume->second->Draw();
 		}
 		++i;
 	}
 
-	mDirectX.TransitionToPresent();
-	mDirectX.CloseAndExecute();
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.pResource = mDirectX.mBackBuffers[mDirectX.mCurrentBackBuffer].Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 
-	mDirectX.DrawFinish();
+	mCommandList->ResourceBarrier(1, &barrier);
+
+	IfError::Throw(mCommandList->Close(),
+		L"command list close error!");
+
+	ID3D12CommandList* lists[] = { mCommandList.Get() };
+	mDirectX.mCommandQueue->ExecuteCommandLists(1, lists);
+
+	IfError::Throw(mDirectX.mSwapChain->Present(0, 0),
+		L"swap chain present error!");
+
+	mDirectX.mCurrentBackBuffer = (mDirectX.mCurrentBackBuffer + 1) % 2;
+	mFrames[mCurrentFrame]->mFenceValue = ++mDirectX.mFenceValue;
+	mDirectX.mCommandQueue->Signal(mDirectX.mFence.Get(), mDirectX.mFenceValue);
 }
 
 void Game::Input()

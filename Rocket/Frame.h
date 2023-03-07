@@ -14,6 +14,8 @@ public:
 	UINT64 mFenceValue = 0;
 	unique_ptr<UploadBuffer> mObjConstantBuffer = nullptr;
 	unique_ptr<UploadBuffer> mTransConstantBuffer = nullptr;
+	void CopyObjConstantBuffer(int index, const void* data, int byteSize);
+	void CopyTransConstantBuffer(int index, const void* data, int byteSize);
 
 private:
 	ComPtr<ID3D12CommandAllocator> mCommandAllocator = nullptr;

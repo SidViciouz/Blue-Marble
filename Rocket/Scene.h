@@ -15,6 +15,8 @@ public:
 	void Load();
 	void CreateVertexIndexBuffer();
 	void Update();
+	void CreateModelSrv(int size);
+	void CreateVolumeUav(int size);
 
 	unique_ptr<Clickables> mModels;
 	unique_ptr<Unclickables> mWorld;
@@ -29,4 +31,8 @@ public:
 
 	vector<Vertex> mAllVertices;
 	vector<uint16_t> mAllIndices;
+
+	ComPtr<ID3D12DescriptorHeap> mSrvHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> mVolumeUavHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> mVolumeUavHeapInvisible = nullptr;
 };

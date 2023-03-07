@@ -39,18 +39,22 @@ public:
 	void SelectInventory(int x, int y);
 
 	static vector<unique_ptr<Scene>> mScenes;
+	static ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
 	//game 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
 	//윈도우 관련 메서드
 	void InitializeWindow();
-
+	void DebugEnable();
 	void LoadScene();
+	void CreateFrames(int numObjConstant);
+	void CreateCommandObjects();
 	unique_ptr<Clickables> CreateModel(int sceneIndex);
 	void LoadCopyModelToBuffer();
 	unique_ptr<Unclickables> CreateWorld(int sceneIndex);
 	unique_ptr<Volumes> CreateVolume(int sceneIndex);
 	trans SetLight();
+	void SetObjConstantIndex(int index);
 	void Update();
 	void Draw();
 	void Input();
@@ -68,6 +72,10 @@ private:
 
 	//shared_ptr로 하는게 좋을 것 같다.
 	Pipeline mDirectX;
+
+	vector<unique_ptr<Frame>> mFrames;
+	int mNumberOfFrames = 3;
+	int mCurrentFrame = 0;
 
 	int mCurrentScene = 0;
 

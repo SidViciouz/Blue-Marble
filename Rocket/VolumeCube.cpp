@@ -1,5 +1,5 @@
 #include "VolumeCube.h"
-#include "Pipeline.h"
+#include "Game.h"
 
 VolumeCube::VolumeCube() :
 	Volume()
@@ -9,5 +9,5 @@ VolumeCube::VolumeCube() :
 
 void VolumeCube::Draw()
 {
-	Pipeline::mCommandList->DrawInstanced(36, 1, 0, 0);
+	Game::mCommandList->DrawInstanced(36, 1, 0, 0);
 }
