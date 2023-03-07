@@ -5,17 +5,18 @@
 
 struct IfError
 {
-	static void Throw(HRESULT&& hr,std::wstring msg)
+												
+	static void									Throw(HRESULT&& hr,std::wstring msg)
 	{
 		if (hr != S_OK)
 			throw IfError{ msg,hr };
 	}
 
-	static void Throw(std::wstring msg)
+	static void									Throw(std::wstring msg)
 	{
 		throw IfError{ msg,0 };
 	}
 
-	std::wstring errorMsg;
-	HRESULT errorCode;
+	std::wstring								errorMsg;
+	HRESULT										errorCode;
 };

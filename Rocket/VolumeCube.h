@@ -6,7 +6,7 @@
 class VolumeCube : public Volume
 {
 public:
-	VolumeCube();
-	virtual void Draw() override;
+												VolumeCube();
+	virtual void								Draw() override;
 
 };

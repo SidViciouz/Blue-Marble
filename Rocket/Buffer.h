@@ -7,51 +7,51 @@ using namespace Microsoft::WRL;
 class BufferInterface
 {
 public:
-	BufferInterface(const BufferInterface& buffer) = delete;
-	BufferInterface(BufferInterface&& buffer) = delete;
-	BufferInterface& operator=(const BufferInterface& buffer) = delete;
-	BufferInterface& operator=(BufferInterface&& buffer) = delete;
-	static UINT ConstantBufferByteSize(UINT byteSize)
+												BufferInterface(const BufferInterface& buffer) = delete;
+												BufferInterface(BufferInterface&& buffer) = delete;
+	BufferInterface&							operator=(const BufferInterface& buffer) = delete;
+	BufferInterface&							operator=(BufferInterface&& buffer) = delete;
+	static UINT									ConstantBufferByteSize(UINT byteSize)
 	{
 		return (byteSize + 255) & ~255;
 	}
-	virtual D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() = 0;
+	virtual D3D12_GPU_VIRTUAL_ADDRESS			GetGpuAddress() = 0;
 
 
 protected:
-	BufferInterface(ID3D12Device* device, int byteSize);
+												BufferInterface(ID3D12Device* device, int byteSize);
 
-	ComPtr<ID3D12Resource> mUploadBuffer;
+	ComPtr<ID3D12Resource>						mUploadBuffer;
 };
 
 class UploadBuffer : public BufferInterface
 {
 public:
-	UploadBuffer(ID3D12Device* device, int byteSize);
-	UploadBuffer(const UploadBuffer& buffer) = delete;
-	UploadBuffer(UploadBuffer&& buffer) = delete;
-	UploadBuffer& operator=(const UploadBuffer& buffer) = delete;
-	UploadBuffer& operator=(UploadBuffer&& buffer) = delete;
-	~UploadBuffer();
+												UploadBuffer(ID3D12Device* device, int byteSize);
+												UploadBuffer(const UploadBuffer& buffer) = delete;
+												UploadBuffer(UploadBuffer&& buffer) = delete;
+	UploadBuffer&								operator=(const UploadBuffer& buffer) = delete;
+	UploadBuffer&								operator=(UploadBuffer&& buffer) = delete;
+												~UploadBuffer();
 
-	virtual void Copy(int index,const void* data, int byteSize);
-	virtual D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() override;
+	virtual void								Copy(int index,const void* data, int byteSize);
+	virtual D3D12_GPU_VIRTUAL_ADDRESS			GetGpuAddress() override;
 protected:
-	BYTE* mMapped = nullptr;
+	BYTE*										mMapped = nullptr;
 };
 
 class Buffer : public BufferInterface
 {
 public:
-	Buffer(ID3D12Device* device, int byteSize);
-	Buffer(const Buffer& buffer) = delete;
-	Buffer(Buffer&& buffer) = delete;
-	Buffer& operator=(const Buffer& buffer) = delete;
-	Buffer& operator=(Buffer&& buffer) = delete;
+												Buffer(ID3D12Device* device, int byteSize);
+												Buffer(const Buffer& buffer) = delete;
+												Buffer(Buffer&& buffer) = delete;
+	Buffer&										operator=(const Buffer& buffer) = delete;
+	Buffer&										operator=(Buffer&& buffer) = delete;
 
-	virtual void Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList);
-	virtual D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() override;
+	virtual void								Copy(const void* data, int byteSize, ID3D12GraphicsCommandList* commandList);
+	virtual D3D12_GPU_VIRTUAL_ADDRESS			GetGpuAddress() override;
 protected:
-	ComPtr<ID3D12Resource> mBuffer;
+	ComPtr<ID3D12Resource>						mBuffer;
 };
 
