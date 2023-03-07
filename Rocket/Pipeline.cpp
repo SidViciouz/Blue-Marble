@@ -38,7 +38,7 @@ void Pipeline::Initialize()
 
 }
 
-void Pipeline::CreateObjects(HWND windowHandle,int numModels)
+void Pipeline::CreateObjects(HWND windowHandle)
 {
 	CreateSwapChain(windowHandle);
 	

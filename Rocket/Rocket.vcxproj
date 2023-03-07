@@ -146,6 +146,7 @@
     <ClInclude Include="Constant.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="Defines.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="IfError.h" />

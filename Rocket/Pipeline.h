@@ -30,7 +30,7 @@ public:
 												
 												Pipeline(const int& width,const int& height);
 	void										Initialize();
-	void										CreateObjects(HWND windowHandle,int numModels);
+	void										CreateObjects(HWND windowHandle);
 
 private:
 	void										CreateBackBuffersAndDepthBufferAndViews();

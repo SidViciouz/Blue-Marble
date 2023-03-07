@@ -22,12 +22,12 @@ void Game::Initialize()
 	//각 Scene들에 모델, 카메라, 조명 생성
 	LoadScene();
 
-	CreateFrames(totalNumModels + totalNumWorlds + totalNumVolumes);
+	CreateFrames(MAX_OBJECT);
 
 	CreateCommandObjects();
 
-	//DirectX 객체들 생성 (Frame, swapchain, depth buffer, command objects, root signature, shader 등)
-	mDirectX.CreateObjects(mWindowHandle, totalNumModels + totalNumWorlds + totalNumVolumes);
+	//DirectX 객체들 생성 (swapchain, depth buffer, root signature, shader 등)
+	mDirectX.CreateObjects(mWindowHandle);
 
 	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
 	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
@@ -36,8 +36,8 @@ void Game::Initialize()
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
 	{
-		scene->get()->CreateModelSrv(totalNumModels + totalNumWorlds + totalNumVolumes);
-		scene->get()->CreateVolumeUav(totalNumVolumes);
+		scene->get()->CreateModelSrv(MAX_OBJECT);
+		scene->get()->CreateVolumeUav(MAX_OBJECT);
 	}
 	mParticleField = make_unique<ParticleField>();
 
@@ -313,12 +313,6 @@ void Game::LoadScene()
 
 	mScenes[mCurrentScene]->mVolume = CreateVolume(0);
 
-	totalNumModels += mScenes[mCurrentScene]->mModels->size();
-
-	totalNumWorlds += mScenes[mCurrentScene]->mWorld->size();
-
-	totalNumVolumes += mScenes[mCurrentScene]->mVolume->size();
-
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 
 	mScenes[mCurrentScene]->envFeature = SetLight();
@@ -334,12 +328,6 @@ void Game::LoadScene()
 	mScenes[mCurrentScene]->mWorld = CreateWorld(1);
 
 	mScenes[mCurrentScene]->mVolume = CreateVolume(1);
-
-	totalNumModels += mScenes[mCurrentScene]->mModels->size();
-
-	totalNumWorlds += mScenes[mCurrentScene]->mWorld->size();
-
-	totalNumVolumes += mScenes[mCurrentScene]->mVolume->size();
 
 	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
 

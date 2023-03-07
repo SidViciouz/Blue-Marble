@@ -1,4 +1,5 @@
 #pragma once
+#include "Defines.h"
 #include "framework.h"
 #include "Pipeline.h"
 #include "Model.h"
@@ -15,6 +16,7 @@
 #include "VolumeCube.h"
 #include "VolumeSphere.h"
 #include "ParticleField.h"
+
 
 class Game
 {
@@ -47,6 +49,9 @@ private:
 	void										InitializeWindow();
 	void										DebugEnable();
 	void										LoadScene();
+	/*
+	* numObjConstant의 수만큼 obj constant buffer의 크기를 만든다.
+	*/
 	void										CreateFrames(int numObjConstant);
 	void										CreateCommandObjects();
 	unique_ptr<Clickables>						CreateModel(int sceneIndex);
@@ -78,10 +83,6 @@ private:
 	int											mCurrentFrame = 0;
 
 	int											mCurrentScene = 0;
-
-	int											totalNumModels = 0;
-	int											totalNumWorlds = 0;
-	int											totalNumVolumes = 0;
 
 	bool										mIsModelSelected = false;
 	string										mSelectedModelName;
