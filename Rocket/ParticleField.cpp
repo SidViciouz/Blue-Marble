@@ -3,20 +3,20 @@
 
 ParticleField::ParticleField()
 {
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{5.0f,6.0f,17.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{5.0f,0.0f,0.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{10.0f,5.0f,-3.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{10.0f,5.0f,0.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{13.0f,5.0f,-2.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{0.0f,5.0f,3.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{7.0f,5.0f,3.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{10.0f,10.0f,-10.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{0.0f,10.0f,0.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{0.0f,10.0f,0.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{0.0f,10.0f,0.0f} });
-	mParticles.push_back({ {5.0f,0.0f,5.0f} ,{0.0f,10.0f,0.0f} });
-	mParticles.push_back({ {9.0f,0.0f,5.0f} ,{0.0f,10.0f,0.0f} });
-	mParticles.push_back({ {9.0f,0.0f,5.0f} ,{0.0f,10.0f,0.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{5.0f,6.0f,17.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{5.0f,0.0f,0.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{-10.0f,5.0f,-3.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{10.0f,5.0f,0.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{-13.0f,5.0f,-2.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{0.0f,5.0f,3.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{-7.0f,5.0f,3.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{10.0f,10.0f,-10.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{-3.0f,10.0f,-10.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{-7.0f,10.0f,8.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{0.0f,10.0f,-10.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{-6.0f,10.0f,18.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{9.0f,10.0f,5.0f} });
+	mParticles.push_back({ {15.0f,0.0f,15.0f} ,{0.0f,10.0f,-5.0f} });
 
 	//constant buffer size로 만들지 않으면 copy할때 index 0보다 크면 문제가 생길 것 같다. 일단은 임시로 이렇게 해놓음.
 	mBuffer = make_unique<UploadBuffer>(Pipeline::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(Particle)*mParticles.size()));
@@ -33,15 +33,15 @@ void ParticleField::Update(const Timer& timer)
 		float x = XMVectorGetX(position);
 		float y = XMVectorGetY(position);
 		float z = XMVectorGetZ(position);
-		if (x > 10.0f)
+		if (x > 30.0f)
 		{
 			position = XMVectorSetX(position, 0.0f);
 		}
-		if (y > 10.0f)
+		if (y > 30.0f)
 		{
 			position = XMVectorSetY(position, 0.0f);
 		}
-		if (z > 10.0f)
+		if (z > 30.0f)
 		{
 			position = XMVectorSetZ(position, 0.0f);
 		}

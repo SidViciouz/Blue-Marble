@@ -201,7 +201,7 @@ float3 pf(float3 x)
 	float fourPi = 4 * 3.14159265f;
 	float sigmaT = 0.2f;
 	float g = 0.25f;
-	float stepSize = 0.1f;
+	float stepSize = 0.2f;
 	float density = 1.0f;
 
 	for (int i = 0; i < 3; ++i)
@@ -224,9 +224,8 @@ float3 pf(float3 x)
 
 		for (int j = 0; j < steps; ++j)
 		{
-			int3 coord = x + posToLight * (tMin + stepSize * j);
-			coord -= int3(4, -5, -5);
-			//coord *= 2;
+			int3 coord = 3.0f*( x + posToLight * (tMin + stepSize * j));
+			coord -= int3(12, -15, -15);
 			density = float(textureMap.Load(int4(coord, 0)));
 			att *= exp(-stepSize * sigmaT * density);
 		}
@@ -246,7 +245,7 @@ float4 PS(VertexOut pin) : SV_Target
 	float3 rayDir = normalize(pin.posW.xyz - cameraPosition);
 	float tMin = 0.0f;
 	float tMax = 100.0f;
-	float stepSize = 0.1f;
+	float stepSize = 0.2f;
 	float sigmaT = 0.2f;
 	float sigmaS = 0.1f;
 	float att = 1.0f;
@@ -261,10 +260,8 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
-		int3 coord = rayOrigin + rayDir * (tMin + stepSize*i);
-		coord -= int3(4, -5, -5);
-		//volume의 한 변의 크기는 10인데, density texture는 한 변이 30이기 때문에 다음과 같은 변환을 한다.
-		//coord *= 2;
+		int3 coord =3.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
+		coord -= int3(12, -15, -15);
 		density = float(textureMap.Load(int4(coord, 0)));
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
