@@ -1,6 +1,12 @@
 #include "Scene.h"
 #include "Game.h"
 
+Scene::Scene() :
+	mSpawnSystem(make_unique<SpawnSystem>())
+{
+
+}
+
 void Scene::Load()
 {
 	for (auto model = mModels->begin(); model != mModels->end(); model++)
@@ -13,9 +19,9 @@ void Scene::Load()
 	}
 	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
 	{
-		int data[3000] = { 1,2,3,4,5,6,7,8,9,10 };
+		int data[3000] = { 0, };
 
-		volume->second->mTextureResource->Copy((void*)data, 10, 10, 10, 4);
+		volume->second->mTextureResource->Copy((void*)data, 30, 30, 30, 4);
 	}
 }
 
@@ -123,4 +129,19 @@ void Scene::CreateVolumeUav(int size)
 		Pipeline::mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
 	}
 	
+}
+
+void Scene::Spawn()
+{
+	mSpawnSystem->Spawn(mModels,mWorld,mVolume);
+}
+
+void Scene::Destroy()
+{
+	mSpawnSystem->Destroy(mModels, mWorld, mVolume);
+}
+
+bool Scene::IsDestroyQueueEmpty() const
+{
+	return mSpawnSystem->IsDestroyQueueEmpty();
 }

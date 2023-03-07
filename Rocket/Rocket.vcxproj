@@ -162,6 +162,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Rocket.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SpawnSystem.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureResource.h" />
@@ -190,6 +191,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Rocket.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SpawnSystem.cpp" />
     <ClCompile Include="TextureResource.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Unclickable.cpp" />

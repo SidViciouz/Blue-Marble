@@ -41,6 +41,12 @@ void Game::Initialize()
 	}
 	mParticleField = make_unique<ParticleField>();
 
+	IfError::Throw(mCommandList->Close(),
+		L"command list close error!");
+
+	ID3D12CommandList* lists[] = { mCommandList.Get() };
+	mDirectX.mCommandQueue->ExecuteCommandLists(1, lists);
+
 	mTimer.Reset();
 }
 
@@ -193,6 +199,20 @@ void Game::SelectInventory(int x, int y)
 	}
 }
 
+void Game::WaitUntilPrevFrameComplete()
+{
+	auto waitFrame = mFrames[(mCurrentFrame + mNumberOfFrames -1)%mNumberOfFrames].get();
+	if (waitFrame->mFenceValue != 0 && mDirectX.mFence->GetCompletedValue() < waitFrame->mFenceValue)
+	{
+		HANDLE event = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+		IfError::Throw(mDirectX.mFence->SetEventOnCompletion(waitFrame->mFenceValue, event),
+			L"set event on completion error!");
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
+}
+
+
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -252,6 +272,15 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			// mInventory의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
 		}
+		else if (wParam == 0x45)
+		{
+			mScenes[mCurrentScene]->mSpawnSystem->SpawnPush({"Clickable","../Model/ball.obj",L"../Model/textures/bricks1.dds",{0.3f,3.0f,1.0f} });
+		}
+		else if (wParam == 0x52)
+		{
+			mScenes[mCurrentScene]->mSpawnSystem->DestroyPush({ "Clickable","0"});
+		}
+
 		return 0;
 	}
 	
@@ -372,19 +401,19 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Clickable>(sceneIndex,"../Model/table.obj", L"../Model/textures/bricks1.dds");
+		m = make_shared<Clickable>("../Model/table.obj", L"../Model/textures/bricks1.dds");
 		m->SetPosition(3.0f, 0.0f, 0.0f);
 		(*model)["table"] = move(m);
 
-		m = make_shared<Clickable>(sceneIndex,"../Model/sword.obj", L"../Model/textures/bricks2.dds");
+		m = make_shared<Clickable>("../Model/sword.obj", L"../Model/textures/bricks2.dds");
 		m->SetPosition(-3.0f, 0.0f, 0.0f);
 		m->mScale = { 0.1f,0.1f,0.1f };
 		(*model)["sword"] = move(m);
 
-		m = make_shared<Clickable>(sceneIndex,"../Model/my.obj", L"../Model/textures/checkboard.dds");
+		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/checkboard.dds");
 		(*model)["my"] = move(m);
 
-		shared_ptr<Button> b = make_shared<Button>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/earth.dds");
+		shared_ptr<Button> b = make_shared<Button>("../Model/inventory.obj", L"../Model/textures/earth.dds");
 		b->SetPosition(0.0f, -3.0f, 5.0f);
 		b->Set([&]() {
 			ChangeScene(1);
@@ -393,24 +422,24 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Clickable>(sceneIndex,"../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
+		m = make_shared<Clickable>("../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, 0.2f, 0.0f);
 		m->mScale = { 0.5f,0.5f,0.5f };
 		(*model)["rifle"] = move(m);
 
-		m = make_shared<Clickable>(sceneIndex, "../Model/ball.obj", L"../Model/textures/earth.dds");
+		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
 		(*model)["earth"] = move(m);
 
-		m = make_shared<Clickable>(sceneIndex, "../Model/box.obj", L"../Model/textures/bricks3.dds");
+		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, -5.0f, 0.0f);
 		m->mScale = { 15.0f,0.5f,15.0f };
 		(*model)["lamp"] = move(m);
 
-		m = make_shared<Inventory>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/inventory.dds");
+		m = make_shared<Inventory>("../Model/inventory.obj", L"../Model/textures/inventory.dds");
 		m->SetPosition(0.0f, -1.5f, 5.0f);
 		(*model)["inventory"] = move(m);
 		
-		shared_ptr<Button> b = make_shared<Button>(sceneIndex, "../Model/inventory.obj", L"../Model/textures/earth.dds");
+		shared_ptr<Button> b = make_shared<Button>("../Model/inventory.obj", L"../Model/textures/earth.dds");
 		b->SetPosition(0.0f, -3.0f, 5.0f);
 		b->Set([&](){
 			ChangeScene(0);
@@ -440,12 +469,12 @@ unique_ptr<Unclickables> Game::CreateWorld(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Unclickable>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
+		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
 		(*model)["space"] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Unclickable>(sceneIndex, "../Model/space.obj", L"../Model/textures/stars.dds");
+		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
 		(*model)["space"] = move(m);
 	}
 
@@ -567,6 +596,14 @@ void Game::Draw()
 		L"frame command allocator reset error!");
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
+
+	mScenes[mCurrentScene]->Spawn();
+
+	if (!mScenes[mCurrentScene]->IsDestroyQueueEmpty())
+	{
+		WaitUntilPrevFrameComplete();
+		mScenes[mCurrentScene]->Destroy();
+	}
 
 	mCommandList->RSSetScissorRects(1, &mDirectX.mScissor);
 	mCommandList->RSSetViewports(1, &mDirectX.mViewport);

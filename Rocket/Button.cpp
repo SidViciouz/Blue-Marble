@@ -1,7 +1,7 @@
 #include "Button.h"
 
-Button::Button(int sceneIndex, const char* fileName, const wchar_t* name)
-	: Clickable(sceneIndex, fileName, name)
+Button::Button(const char* fileName, const wchar_t* name)
+	: Clickable(fileName, name)
 {
 
 }

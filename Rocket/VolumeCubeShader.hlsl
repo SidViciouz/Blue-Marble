@@ -226,6 +226,7 @@ float3 pf(float3 x)
 		{
 			int3 coord = x + posToLight * (tMin + stepSize * j);
 			coord -= int3(4, -5, -5);
+			//coord *= 2;
 			density = float(textureMap.Load(int4(coord, 0)));
 			att *= exp(-stepSize * sigmaT * density);
 		}
@@ -262,6 +263,8 @@ float4 PS(VertexOut pin) : SV_Target
 	{
 		int3 coord = rayOrigin + rayDir * (tMin + stepSize*i);
 		coord -= int3(4, -5, -5);
+		//volume의 한 변의 크기는 10인데, density texture는 한 변이 30이기 때문에 다음과 같은 변환을 한다.
+		//coord *= 2;
 		density = float(textureMap.Load(int4(coord, 0)));
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;

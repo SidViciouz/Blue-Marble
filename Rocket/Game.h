@@ -39,6 +39,10 @@ public:
 	void										MoveObject(int x, int y);
 	void										SelectObject(int x,int y);
 	void										SelectInventory(int x, int y);
+	/*
+	* 현재 프레임 전까지의 프레임에서 GPU가 모든 연산을 마칠 때까지 기다린다.
+	*/
+	void										WaitUntilPrevFrameComplete();
 
 	static vector<unique_ptr<Scene>>			mScenes;
 	static ComPtr<ID3D12GraphicsCommandList>	mCommandList;

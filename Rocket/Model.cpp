@@ -6,9 +6,8 @@
 string getToken(string& aLine, bool isFirst); 
 int getNumber(string& aWord, bool isFirst);
 
-Model::Model(int sceneIndex,const char* fileName, const wchar_t* name)
+Model::Model(const char* fileName, const wchar_t* name)
 {
-	mSceneIndex = sceneIndex;
 	mFileName = fileName;
 	mName = name;
 }

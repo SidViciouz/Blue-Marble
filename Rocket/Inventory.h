@@ -7,7 +7,7 @@ using Inventories = unordered_map<string, shared_ptr<Clickable>>;
 class Inventory : public Clickable
 {
 public:
-												Inventory(int sceneIndex, const char* fileName, const wchar_t* name);
+												Inventory(const char* fileName, const wchar_t* name);
 												Inventory(const Inventory& inventory) = delete;
 												Inventory(Inventory&& inventory) = delete;
 	Inventory&									operator=(const Inventory& inventory) = delete;

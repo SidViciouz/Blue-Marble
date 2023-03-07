@@ -25,7 +25,7 @@ struct Vertex
 class Model : public Entity
 {
 public:
-												Model(int sceneIndex,const char* fileName, const wchar_t* name);
+												Model(const char* fileName, const wchar_t* name);
 												Model(const Model& model) = delete;
 												Model(Model&& model) = delete;
 	Model&										operator=(const Model& model) = delete;

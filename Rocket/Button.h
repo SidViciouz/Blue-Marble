@@ -6,7 +6,7 @@
 class Button : public Clickable
 {
 public:
-												Button(int sceneIndex, const char* fileName, const wchar_t* name);
+												Button(const char* fileName, const wchar_t* name);
 												Button(const Button& button) = delete;
 												Button(Button&& button) = delete;
 	Button&										operator=(const Button& button) = delete;
