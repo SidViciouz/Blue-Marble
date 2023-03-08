@@ -1,4 +1,5 @@
 #include "SpawnSystem.h"
+#include "RigidBody.h"
 
 void SpawnSystem::Spawn(shared_ptr<Clickables> mModels, shared_ptr<Unclickables> mWorld, shared_ptr<Volumes> mVolume)
 {

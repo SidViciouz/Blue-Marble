@@ -9,14 +9,6 @@ Scene::Scene() :
 
 void Scene::Load()
 {
-	for (auto model = mModels->begin(); model != mModels->end(); model++)
-	{
-		model->second->Load();
-	}
-	for (auto world = mWorld->begin(); world != mWorld->end(); world++)
-	{
-		world->second->Load();
-	}
 	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
 	{
 		int data[3000] = { 0, };

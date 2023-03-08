@@ -2,6 +2,7 @@
 #include "IfError.h"
 #include "Game.h"
 #include "DDSTextureLoader.h"
+#include "RigidBody.h"
 
 string getToken(string& aLine, bool isFirst); 
 int getNumber(string& aWord, bool isFirst);
@@ -10,9 +11,11 @@ Model::Model(const char* fileName, const wchar_t* name)
 {
 	mFileName = fileName;
 	mName = name;
+	if(fileName != nullptr && name != nullptr)
+		Load();
+	mRigidBody = make_shared<RigidBody>(this);
 }
 
-//이 메서드 entity로 옮기는게 나을 것 같다.
 void Model::Update()
 {
 	XMFLOAT3 pos = mPosition.Get();

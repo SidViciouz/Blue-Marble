@@ -19,8 +19,6 @@ void Game::Initialize()
 	//device, fence 등 생성
 	mDirectX.Initialize();
 	
-	//각 Scene들에 모델, 카메라, 조명 생성
-	LoadScene();
 
 	CreateFrames(MAX_OBJECT);
 
@@ -29,8 +27,10 @@ void Game::Initialize()
 	//DirectX 객체들 생성 (swapchain, depth buffer, root signature, shader 등)
 	mDirectX.CreateObjects(mWindowHandle);
 
+	//각 Scene들에 모델, 카메라, 조명 생성
 	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
 	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
+	LoadScene();
 	LoadCopyModelToBuffer();
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.

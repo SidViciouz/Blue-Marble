@@ -14,6 +14,7 @@ using namespace std;
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
+class RigidBody;
 
 struct Vertex
 {
@@ -32,7 +33,7 @@ public:
 	Model&										operator=(Model&& model) = delete;
 
 	void										Load();
-	void										Update();
+	virtual void								Update() override;
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
 
@@ -69,6 +70,8 @@ public:
 
 	unique_ptr<Buffer>							mVertexBuffer;
 	unique_ptr<Buffer>							mIndexBuffer;
+
+	shared_ptr<RigidBody>						mRigidBody;
 };
 
 using Models = unordered_map<string, shared_ptr<Model>>;

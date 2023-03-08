@@ -114,6 +114,9 @@
     <ClInclude Include="SpawnSystem.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="RigidBody.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rocket.cpp">
@@ -188,6 +191,9 @@
     <ClCompile Include="SpawnSystem.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="RigidBody.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rocket.rc">
@@ -208,5 +214,6 @@
     <FxCompile Include="VolumeCubeShader.hlsl" />
     <FxCompile Include="WorldShader.hlsl" />
     <FxCompile Include="ParticleShader.hlsl" />
+    <FxCompile Include="RigidParticleShader.hlsl" />
   </ItemGroup>
 </Project>

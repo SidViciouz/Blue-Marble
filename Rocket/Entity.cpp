@@ -1,5 +1,15 @@
 #include "Entity.h"
 
+void Entity::Update()
+{
+	XMFLOAT3 pos = mPosition.Get();
+	XMMATRIX world = XMMatrixTranslation(pos.x, pos.y, pos.z);
+
+	XMStoreFloat4x4(&mObjFeature.world, world);
+
+	mDirty = false;
+}
+
 void Entity::SetPosition(const XMFLOAT3& position)
 {
 	mPosition.Set(position);
