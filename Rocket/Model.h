@@ -36,6 +36,7 @@ public:
 	virtual void								Update() override;
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
+	void										Draw();
 
 	const char*									mFileName;
 	const wchar_t*								mName;

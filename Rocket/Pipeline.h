@@ -21,12 +21,12 @@ public:
 	ComPtr<IDXGISwapChain>						mSwapChain;
 	ComPtr<ID3D12Resource>						mBackBuffers[2];
 	int											mCurrentBackBuffer = 0;
-	PSOs mPSOs;
+	static PSOs									mPSOs;
 	D3D12_VIEWPORT								mViewport;
 	D3D12_RECT									mScissor;
 	ComPtr<ID3D12DescriptorHeap>				mRtvHeap;
 	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
-	RootSigs									mRootSignatures;
+	static RootSigs								mRootSignatures;
 												
 												Pipeline(const int& width,const int& height);
 	void										Initialize();

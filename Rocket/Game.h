@@ -16,7 +16,7 @@
 #include "VolumeCube.h"
 #include "VolumeSphere.h"
 #include "ParticleField.h"
-
+#include "RigidBodySystem.h"
 
 class Game
 {
@@ -45,6 +45,7 @@ public:
 	void										WaitUntilPrevFrameComplete();
 
 	static vector<unique_ptr<Scene>>			mScenes;
+	static int									mCurrentScene;
 	static ComPtr<ID3D12GraphicsCommandList>	mCommandList;
 
 	//game 객체 내부적으로 사용되는 메서드와 멤버 변수
@@ -86,7 +87,6 @@ private:
 	int											mNumberOfFrames = 3;
 	int											mCurrentFrame = 0;
 
-	int											mCurrentScene = 0;
 
 	bool										mIsModelSelected = false;
 	string										mSelectedModelName;

@@ -2,6 +2,7 @@
 
 vector<unique_ptr<Scene>> Game::mScenes;
 ComPtr<ID3D12GraphicsCommandList> Game::mCommandList;
+int Game::mCurrentScene;
 
 Game::Game(HINSTANCE hInstance)
 	: mDirectX(mWidth,mHeight), mInstance(hInstance)
@@ -662,33 +663,28 @@ void Game::Draw()
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * world->second->mObjIndex;
 		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-		mCommandList->IASetVertexBuffers(0, 1, world->second->GetVertexBufferView());
-		mCommandList->IASetIndexBuffer(world->second->GetIndexBufferView());
-		mCommandList->DrawIndexedInstanced(world->second->mIndexBufferSize, 1, 0, 0, 0);
+		world->second->Draw();
 	}
-	mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
 
 	//선택된 물체에 노란색 테두리 렌더링
 	if (mIsModelSelected == true)
 	{
 		mCommandList->SetPipelineState(mDirectX.mPSOs["Selected"].Get());
-		SetObjConstantIndex(mSelectedModel->mObjIndex);
-		mCommandList->IASetVertexBuffers(0, 1, mSelectedModel->GetVertexBufferView());
-		mCommandList->IASetIndexBuffer(mSelectedModel->GetIndexBufferView());
-		mCommandList->DrawIndexedInstanced(mSelectedModel->mIndexBufferSize, 1, 0, 0, 0);
-		mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
-
+		Game::mCommandList->SetGraphicsRootConstantBufferView(0, Game::mFrames[Game::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+			+ mSelectedModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		mSelectedModel->Draw();
 	}
-
+	
+	mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		SetObjConstantIndex(model->second->mObjIndex);
+		Game::mCommandList->SetGraphicsRootConstantBufferView(0, Game::mFrames[Game::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
 		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-		mCommandList->IASetVertexBuffers(0, 1, model->second->GetVertexBufferView());
-		mCommandList->IASetIndexBuffer(model->second->GetIndexBufferView());
-		mCommandList->DrawIndexedInstanced(model->second->mIndexBufferSize, 1, 0, 0, 0);
+		model->second->Draw();
 	}
 
 	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
@@ -700,9 +696,7 @@ void Game::Draw()
 			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 			handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * inventory->second->mObjIndex;
 			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-			mCommandList->IASetVertexBuffers(0, 1, inventory->second->GetVertexBufferView());
-			mCommandList->IASetIndexBuffer(inventory->second->GetIndexBufferView());
-			mCommandList->DrawIndexedInstanced(inventory->second->mIndexBufferSize, 1, 0, 0, 0);
+			inventory->second->Draw();
 		}
 	}
 
@@ -733,6 +727,14 @@ void Game::Draw()
 			volume->second->Draw();
 		}
 		++i;
+	}
+
+	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
+	{
+		Game::mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+			+ (*rigid)->mModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		Game::mCommandList->SetGraphicsRootConstantBufferView(1, mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
+		(*rigid)->DrawParticles();
 	}
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

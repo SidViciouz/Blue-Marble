@@ -27,15 +27,9 @@ public:
 
 	void										DrawParticles();
 
-	unique_ptr<TextureResource>					mRigidBodyTexture; //texture 2d array로 uav를 생성한다. (write용, read용이 필요하기 때문이다.)
-	unique_ptr<TextureResource>					mParticleTexture; //위와 동일
-	unique_ptr<TextureResource>					mGrid;	// texture 3d array로 생성한다.
-
-	static vector<RigidBody*>					mRigidBodies;
+	Model*										mModel;
 
 protected:
-	Model*										mModel;
 	vector<Particle>							mParticles;
 	XMFLOAT3									mVelocity;
-	int											mCurrentTexture = 0;
 };

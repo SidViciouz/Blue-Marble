@@ -5,6 +5,8 @@
 #include "DDSTextureLoader.h"
 
 ComPtr<ID3D12Device> Pipeline::mDevice = nullptr;
+PSOs Pipeline::mPSOs;
+RootSigs Pipeline::mRootSignatures;
 
 Pipeline::Pipeline(const int& width, const int& height):
 	mWidth(width), mHeight(height)
@@ -212,6 +214,14 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["ParticleVS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"RigidParticleShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["RigidParticleVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"RigidParticleShader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["RigidParticlePS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -271,6 +281,19 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"create root signature error!");
 
 	mRootSignatures["Volume"] = move(rs);
+
+
+	rsDesc.NumParameters = 2;
+	rsDesc.pParameters = rootParameter;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+
+	mRootSignatures["RigidParticle"] = move(rs);
 
 	range.BaseShaderRegister = 0;
 	range.NumDescriptors = 1;
@@ -440,6 +463,25 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["Particle"] = move(pso);
+
+
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "VELOCITY", 0, DXGI_FORMAT_R32G32B32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 2;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+	psoDesc.pRootSignature = mRootSignatures["RigidParticle"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["RigidParticleVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["RigidParticleVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["RigidParticlePS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["RigidParticlePS"]->GetBufferSize();
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.StencilEnable = true;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["RigidParticle"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

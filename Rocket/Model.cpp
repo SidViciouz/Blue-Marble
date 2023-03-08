@@ -200,4 +200,11 @@ D3D12_INDEX_BUFFER_VIEW* Model::GetIndexBufferView()
 	return &mIndexBufferView;
 }
 
+void Model::Draw()
+{
+	Game::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
+	Game::mCommandList->IASetIndexBuffer(GetIndexBufferView());
+	Game::mCommandList->DrawIndexedInstanced(mIndexBufferSize, 1, 0, 0, 0);
+}
+
 int Model::mNextObjConstantIndex = 0;
