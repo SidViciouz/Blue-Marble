@@ -201,7 +201,7 @@ float3 pf(float3 x)
 	float fourPi = 4 * 3.14159265f;
 	float sigmaT = 0.2f;
 	float g = 0.25f;
-	float stepSize = 0.2f;
+	float stepSize = 0.5f;
 	float density = 1.0f;
 
 	for (int i = 0; i < 3; ++i)
@@ -224,8 +224,8 @@ float3 pf(float3 x)
 
 		for (int j = 0; j < steps; ++j)
 		{
-			int3 coord = 3.0f*( x + posToLight * (tMin + stepSize * j));
-			coord -= int3(12, -15, -15);
+			int3 coord = 10.0f*( x + posToLight * (tMin + stepSize * j));
+			coord -= int3(40, -50, -50);
 			density = float(textureMap.Load(int4(coord, 0)));
 			att *= exp(-stepSize * sigmaT * density);
 		}
@@ -245,7 +245,7 @@ float4 PS(VertexOut pin) : SV_Target
 	float3 rayDir = normalize(pin.posW.xyz - cameraPosition);
 	float tMin = 0.0f;
 	float tMax = 100.0f;
-	float stepSize = 0.2f;
+	float stepSize = 0.5f;
 	float sigmaT = 0.2f;
 	float sigmaS = 0.1f;
 	float att = 1.0f;
@@ -260,8 +260,8 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
-		int3 coord =3.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
-		coord -= int3(12, -15, -15);
+		int3 coord =10.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
+		coord -= int3(40, -40, -50);
 		density = float(textureMap.Load(int4(coord, 0)));
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;

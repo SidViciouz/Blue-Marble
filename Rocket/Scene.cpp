@@ -21,7 +21,7 @@ void Scene::Load()
 	{
 		int data[3000] = { 0, };
 
-		volume->second->mTextureResource->Copy((void*)data, 30, 30, 30, 4);
+		volume->second->mTextureResource->Copy((void*)data, 100, 100, 100, 4);
 	}
 }
 
