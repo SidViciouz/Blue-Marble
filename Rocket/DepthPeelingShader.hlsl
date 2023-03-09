@@ -7,7 +7,7 @@ cbuffer constant : register(b0)
 
 float4 VS(float3 pos : POSITION) : SV_POSITION
 {
-	return float4(pos.x,pos.y,(pos.z+1.0f)*0.5f,1.0f);
+	return float4(pos.x,pos.y, (pos.z + 1.0f) * 0.5f,1.0f);
 
 }
 
@@ -20,8 +20,8 @@ void PS( float4 pos : SV_POSITION)
 
 	else
 	{
-		//if (depthMap[int3(pos.x, pos.y, currentLevel - 1)] >= pos.z)
-		//	clip(-1);
+		if (depthMap[int3(pos.x, pos.y, currentLevel - 1)] > pos.z || abs(depthMap[int3(pos.x, pos.y, currentLevel - 1)]-pos.z) < 0.001f)
+			clip(-1);
 	}
 
 

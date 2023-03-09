@@ -90,12 +90,12 @@ void RigidBodySystem::GenerateParticle()
 		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)*i;
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 		dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-		dsvDesc.Texture2D.MipSlice = 0;
-		//dsvDesc.Texture2DArray.ArraySize = 4;
-		//dsvDesc.Texture2DArray.FirstArraySlice = 0;
-		//dsvDesc.Texture2DArray.MipSlice = 0;
+		//dsvDesc.Texture2D.MipSlice = 0;
+		dsvDesc.Texture2DArray.ArraySize = 4-i;
+		dsvDesc.Texture2DArray.FirstArraySlice = i;
+		dsvDesc.Texture2DArray.MipSlice = 0;
 		Pipeline::mDevice->CreateDepthStencilView(mDepthTexture->mTexture.Get(), &dsvDesc,handle);
 	}
 
@@ -135,7 +135,7 @@ void RigidBodySystem::GenerateParticle()
 		DepthPass(rigidBody);
 	}
 	*/
-	//DepthPass(mRigidBodies[8]);
+	DepthPass(mRigidBodies[8]);
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)
