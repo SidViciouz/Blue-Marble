@@ -3,6 +3,7 @@
 #include "Util.h"
 #include "TextureResource.h"
 #include "RigidBody.h"
+#include "Buffer.h"
 
 
 class RigidBodySystem
@@ -18,6 +19,8 @@ public:
 	*/
 	void										GenerateParticle();
 
+	void										DepthPass(RigidBody* rigidBody);
+
 	static vector<RigidBody*>					mRigidBodies;
 
 protected:
@@ -26,9 +29,16 @@ protected:
 	unique_ptr<TextureResource>					mGrid;	// texture 3d array로 생성한다.
 
 	unique_ptr<TextureResource>					mDepthTexture;
+	unique_ptr<TextureResource>					mPrevDepthTexture;
+	unique_ptr<UploadBuffer>					mCbvBuffer;
 
 	ComPtr<ID3D12DescriptorHeap>				mSrvHeap;
+	ComPtr<ID3D12DescriptorHeap>				mInvisibleSrvHeap;
 	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
+	ComPtr<ID3D12DescriptorHeap>				mCbvHeap;
+
+	D3D12_VIEWPORT								mViewport;
+	D3D12_RECT									mScissor;
 
 	int											mCurrentTexture = 0;
 };

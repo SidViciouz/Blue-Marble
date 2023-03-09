@@ -12,8 +12,9 @@ public:
 	TextureResource&							operator=(TextureResource&& t) = delete;
 
 	void										Copy(void* pData,int width, int height, int elementByte);
-	void										Copy(void* pData, int width, int height, int depth, int elementByte);
+	void										Copy(void* pData, int width, int height, int depth, int elementByte, bool isArray = false);
 	void										CreateDepth(int width, int height, int depth, int elementByte);
+	void										Create(int width, int height, int depth, int elementByte, bool isArray = false);
 
 	ComPtr<ID3D12Resource>						mUploadBuffer;
 	ComPtr<ID3D12Resource>						mTexture;

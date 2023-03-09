@@ -221,5 +221,6 @@
     <FxCompile Include="WorldShader.hlsl" />
     <FxCompile Include="ParticleShader.hlsl" />
     <FxCompile Include="RigidParticleShader.hlsl" />
+    <FxCompile Include="DepthPeelingShader.hlsl" />
   </ItemGroup>
 </Project>

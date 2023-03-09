@@ -35,8 +35,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	if (pData != nullptr)
-		memcpy(pBegin, pData, sizeof(int) * 11);
+	memcpy(pBegin, pData, sizeof(int) * 11);
 
 
 	//texture 생성하는 부분
@@ -77,7 +76,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 }
 
 //한번만 호출해야한다.
-void TextureResource::Copy(void* pData, int width, int height, int depth, int elementByte)
+void TextureResource::Copy(void* pData, int width, int height, int depth, int elementByte, bool isArray)
 {
 	//upload buffer 생성하는 부분
 
@@ -102,13 +101,16 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	if(pData != nullptr)
-		memcpy(pBegin, pData, sizeof(int) * 3000);
+	memcpy(pBegin, pData, sizeof(int) * 3000);
 
 
 	//texture 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	rd = CD3DX12_RESOURCE_DESC::Tex3D(DXGI_FORMAT_R8G8B8A8_UINT, width, height, depth);
+	if(isArray == false)
+		rd = CD3DX12_RESOURCE_DESC::Tex3D(DXGI_FORMAT_R8G8B8A8_UINT, width, height, depth);
+	else
+		rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UINT, width, height, depth);
+
 	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
@@ -160,4 +162,25 @@ void TextureResource::CreateDepth(int width, int height, int depth, int elementB
 		&rd, D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&clearValue, IID_PPV_ARGS(mTexture.GetAddressOf())
 	), L"create texture for depth error!");
+}
+
+void TextureResource::Create(int width, int height, int depth, int elementByte, bool isArray)
+{
+	D3D12_RESOURCE_DESC rd;
+
+	//texture 생성하는 부분
+	//float으로 생성함.
+	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	if (isArray == false)
+		rd = CD3DX12_RESOURCE_DESC::Tex3D(DXGI_FORMAT_R32_FLOAT, width, height, depth);
+	else
+		rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, width, height, depth);
+
+	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+		&hp, D3D12_HEAP_FLAG_NONE,
+		&rd, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+		nullptr, IID_PPV_ARGS(mTexture.GetAddressOf())
+	), L"create texture for texture resource error!");
 }

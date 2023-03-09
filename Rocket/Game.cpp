@@ -409,7 +409,7 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 	if (sceneIndex == 0)
 	{
 		m = make_shared<Clickable>("../Model/table.obj", L"../Model/textures/bricks1.dds");
-		m->SetPosition(3.0f, 0.0f, 0.0f);
+		m->SetPosition(0.0f, 0.0f, 0.0f);
 		(*model)["table"] = move(m);
 
 		m = make_shared<Clickable>("../Model/sword.obj", L"../Model/textures/bricks2.dds");
@@ -617,6 +617,8 @@ void Game::Draw()
 	mCommandList->RSSetViewports(1, &mDirectX.mViewport);
 
 	mCommandList->ResourceBarrier(1, &barrier);
+
+	//mRigidBodySystem->DepthPass(RigidBodySystem::mRigidBodies[8]);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mDirectX.mRtvHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDirectX.mDsvHeap->GetCPUDescriptorHandleForHeapStart();
