@@ -30,12 +30,11 @@ protected:
 
 	unique_ptr<TextureResource>					mDepthTexture;
 	unique_ptr<TextureResource>					mPrevDepthTexture;
-	unique_ptr<UploadBuffer>					mCbvBuffer;
 
-	ComPtr<ID3D12DescriptorHeap>				mSrvHeap;
+	ComPtr<ID3D12DescriptorHeap>				mUavHeap;
 	ComPtr<ID3D12DescriptorHeap>				mInvisibleSrvHeap;
 	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
-	ComPtr<ID3D12DescriptorHeap>				mCbvHeap;
+	ComPtr<ID3D12DescriptorHeap>				mSrvHeap;
 
 	D3D12_VIEWPORT								mViewport;
 	D3D12_RECT									mScissor;

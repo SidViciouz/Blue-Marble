@@ -618,7 +618,7 @@ void Game::Draw()
 
 	mCommandList->ResourceBarrier(1, &barrier);
 
-	//mRigidBodySystem->DepthPass(RigidBodySystem::mRigidBodies[8]);
+	mRigidBodySystem->DepthPass(RigidBodySystem::mRigidBodies[8]);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mDirectX.mRtvHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDirectX.mDsvHeap->GetCPUDescriptorHandleForHeapStart();

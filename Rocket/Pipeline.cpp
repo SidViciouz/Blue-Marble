@@ -330,7 +330,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	range.BaseShaderRegister = 0;
 	range.NumDescriptors = 1;
 	range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	range.RegisterSpace = 0;
 
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -529,8 +529,9 @@ void Pipeline::CreatePso()
 	psoDesc.PS.pShaderBytecode = mShaders["DepthPeelingPS"]->GetBufferPointer();
 	psoDesc.PS.BytecodeLength = mShaders["DepthPeelingPS"]->GetBufferSize();
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
-	psoDesc.RasterizerState.DepthClipEnable = FALSE;
+	psoDesc.RasterizerState.DepthClipEnable = false;
 	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 	psoDesc.DepthStencilState.StencilEnable = false;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0;

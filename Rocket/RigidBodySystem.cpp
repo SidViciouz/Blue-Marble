@@ -25,7 +25,7 @@ RigidBodySystem::RigidBodySystem()
 	heapDesc.NumDescriptors = 1;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
+	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mUavHeap.GetAddressOf())),
 		L"create uav descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -36,7 +36,7 @@ RigidBodySystem::RigidBodySystem()
 		L"create uav shader-invisible descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	heapDesc.NumDescriptors = 1;
+	heapDesc.NumDescriptors = 4;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())),
@@ -45,9 +45,9 @@ RigidBodySystem::RigidBodySystem()
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	heapDesc.NumDescriptors = 1;
 	heapDesc.NodeMask = 0;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mCbvHeap.GetAddressOf())),
-		L"create dsv descriptor heap in rigid body system error!");
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
+		L"create srv descriptor heap in rigid body system error!");
 
 
 }
@@ -84,20 +84,38 @@ void RigidBodySystem::GenerateParticle()
 
 	mDepthTexture->CreateDepth(20, 20, 4, 4);
 
-	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-	dsvDesc.Texture2DArray.ArraySize = 4;
-	dsvDesc.Texture2DArray.FirstArraySlice = 0;
-	dsvDesc.Texture2DArray.MipSlice = 0;
-	Pipeline::mDevice->CreateDepthStencilView(mDepthTexture->mTexture.Get(),&dsvDesc,mDsvHeap->GetCPUDescriptorHandleForHeapStart());
+	for (int i = 0; i < 4; ++i)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE handle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)*i;
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+		dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+		dsvDesc.Texture2D.MipSlice = 0;
+		//dsvDesc.Texture2DArray.ArraySize = 4;
+		//dsvDesc.Texture2DArray.FirstArraySlice = 0;
+		//dsvDesc.Texture2DArray.MipSlice = 0;
+		Pipeline::mDevice->CreateDepthStencilView(mDepthTexture->mTexture.Get(), &dsvDesc,handle);
+	}
 
 	/*
-	* depth buffer에 대한 srv를 생성할때 다음과 같은 format을 사용한다.
+	* depth buffer에 대한 srv를 생성할때 DXGI_FORMAT_R24_UNORM_X8_TYPELESS format을 사용한다.
 	* depth buffer의 format은 DXGI_FORMAT_R24G8_TYPELESS를 사용했다.
 	*/
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Texture2DArray.ArraySize = 4;
+	srvDesc.Texture2DArray.MipLevels = -1;
+	srvDesc.Texture2DArray.FirstArraySlice = 0;
+	srvDesc.Texture2DArray.MostDetailedMip = 0;
+	srvDesc.Texture2DArray.PlaneSlice = 0;
+	srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
+	Pipeline::mDevice->CreateShaderResourceView(mDepthTexture->mTexture.Get(), &srvDesc, mSrvHeap->GetCPUDescriptorHandleForHeapStart());
 
+	
 	mPrevDepthTexture->Create(20, 20, 4, 4,true);
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
 	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
@@ -106,22 +124,9 @@ void RigidBodySystem::GenerateParticle()
 	uavDesc.Texture2DArray.FirstArraySlice = 0;
 	uavDesc.Texture2DArray.MipSlice = 0;
 	uavDesc.Texture2DArray.PlaneSlice = 0;
-	Pipeline::mDevice->CreateUnorderedAccessView(mPrevDepthTexture->mTexture.Get(), nullptr,&uavDesc, mSrvHeap->GetCPUDescriptorHandleForHeapStart());
+	Pipeline::mDevice->CreateUnorderedAccessView(mPrevDepthTexture->mTexture.Get(), nullptr,&uavDesc, mUavHeap->GetCPUDescriptorHandleForHeapStart());
 	Pipeline::mDevice->CreateUnorderedAccessView(mPrevDepthTexture->mTexture.Get(), nullptr, &uavDesc, mInvisibleSrvHeap->GetCPUDescriptorHandleForHeapStart());
-
-	mCbvBuffer = make_unique<UploadBuffer>(Pipeline::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(XMFLOAT4X4)));
-	XMMATRIX proj;
-	XMMATRIX cam;
-	XMMATRIX m;
-	XMFLOAT4X4 mat;
-
-	cam =  XMMatrixLookAtLH(XMVectorSet(0.0f, 0.0f, -5.0f,1.0f), XMVectorSet(0.0f, 0.0f, 0.0f,1.0f), XMVectorSet(0.0f, 1.0f, 0.0f,1.0f));
-	proj = XMMatrixOrthographicLH(800.0f, 600.0f, 1.0f, 1000.0f);
-	m = XMMatrixMultiply(cam,proj);
-
-	XMStoreFloat4x4(&mat, m);
 	
-	mCbvBuffer->Copy(0, &mat, BufferInterface::ConstantBufferByteSize(sizeof(XMFLOAT4X4)));
 	/*
 	for (auto rigidBody : mRigidBodies)
 	{
@@ -130,7 +135,7 @@ void RigidBodySystem::GenerateParticle()
 		DepthPass(rigidBody);
 	}
 	*/
-	DepthPass(mRigidBodies[8]);
+	//DepthPass(mRigidBodies[8]);
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)
@@ -159,22 +164,32 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 	Game::mCommandList->SetGraphicsRootDescriptorTable(0, handle);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE Invisiblehandle = mInvisibleSrvHeap->GetCPUDescriptorHandleForHeapStart();
+	//D3D12_CPU_DESCRIPTOR_HANDLE Invisiblehandle = mInvisibleSrvHeap->GetCPUDescriptorHandleForHeapStart();
 
-	FLOAT color[4] = { 1.0f,1.0f,1.0f,1.0f };
-	Game::mCommandList->ClearUnorderedAccessViewFloat(handle, Invisiblehandle, mPrevDepthTexture->mTexture.Get(), color, 0, nullptr);
-
-	Game::mCommandList->SetGraphicsRootConstantBufferView(2, mCbvBuffer->GetGpuAddress());
+	//FLOAT color[4] = { 3.0f,1.0f,1.0f,1.0f };
+	//Game::mCommandList->ClearUnorderedAccessViewFloat(handle, Invisiblehandle, mPrevDepthTexture->mTexture.Get(), color, 0, nullptr);
 
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 0, 0);
 	rigidBody->mModel->Draw();
-
+	
+	dsvHandle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	Game::mCommandList->ClearDepthStencilView(dsvHandle,
+		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 1, 0);
 	rigidBody->mModel->Draw();
 
+	dsvHandle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	Game::mCommandList->ClearDepthStencilView(dsvHandle,
+		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 2, 0);
 	rigidBody->mModel->Draw();
 
+	dsvHandle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	Game::mCommandList->ClearDepthStencilView(dsvHandle,
+		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 3, 0);
 	rigidBody->mModel->Draw();
 }
