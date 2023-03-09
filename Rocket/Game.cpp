@@ -40,7 +40,13 @@ void Game::Initialize()
 		scene->get()->CreateModelSrv(MAX_OBJECT);
 		scene->get()->CreateVolumeUav(MAX_OBJECT);
 	}
+
 	mParticleField = make_unique<ParticleField>();
+
+	mRigidBodySystem = make_unique<RigidBodySystem>();
+
+	mRigidBodySystem->Load();
+	mRigidBodySystem->GenerateParticle();
 
 	IfError::Throw(mCommandList->Close(),
 		L"command list close error!");
@@ -429,6 +435,7 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		(*model)["rifle"] = move(m);
 
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
+		m->mScale = { 1.0f,1.0f,1.0f };
 		(*model)["earth"] = move(m);
 
 		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");

@@ -97,4 +97,5 @@ private:
 	ComPtr<ID3D12Debug>							debugController;
 	unique_ptr<ParticleField>					mParticleField;
 
+	unique_ptr<RigidBodySystem>					mRigidBodySystem;
 };

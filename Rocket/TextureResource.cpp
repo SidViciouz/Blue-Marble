@@ -34,8 +34,9 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 	mUploadBuffer->Map(0, &range, &pDataBegin);
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
-	
-	memcpy(pBegin, pData, sizeof(int) * 11);
+
+	if (pData != nullptr)
+		memcpy(pBegin, pData, sizeof(int) * 11);
 
 
 	//texture 생성하는 부분
@@ -101,7 +102,8 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	memcpy(pBegin, pData, sizeof(int) * 3000);
+	if(pData != nullptr)
+		memcpy(pBegin, pData, sizeof(int) * 3000);
 
 
 	//texture 생성하는 부분
@@ -139,4 +141,23 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	//cpu virtual memory address unmap하는 부분
 	mUploadBuffer->Unmap(0, nullptr);
+}
+
+void TextureResource::CreateDepth(int width, int height, int depth, int elementByte)
+{
+	//texture 생성하는 부분
+	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R24G8_TYPELESS, width, height, depth);
+	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	D3D12_CLEAR_VALUE clearValue;
+	clearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	clearValue.DepthStencil.Depth = 1.0f;
+	clearValue.DepthStencil.Stencil = 0;
+
+	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+		&hp, D3D12_HEAP_FLAG_NONE,
+		&rd, D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&clearValue, IID_PPV_ARGS(mTexture.GetAddressOf())
+	), L"create texture for depth error!");
 }

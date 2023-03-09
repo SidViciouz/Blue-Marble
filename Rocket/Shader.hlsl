@@ -139,6 +139,7 @@ VertexOut SelectedVS(VertexIn vin)
 	return vout;
 }
 
+
 float4 PS(VertexOut pin) : SV_Target
 {
 	float3 L = {0.0f,0.0f,1.0f};
@@ -146,6 +147,8 @@ float4 PS(VertexOut pin) : SV_Target
 	float4 color = float4(diffuseAlbedo * float3(0.1f, 0.1f, 0.1f), 1.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
+
+	pin.normal = normalize(pin.normal);
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -186,6 +189,8 @@ float4 PS(VertexOut pin) : SV_Target
 
 	return color;
 }
+
+
 
 float4 SelectedPS(VertexOut pin) : SV_Target
 {

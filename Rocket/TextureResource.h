@@ -13,6 +13,7 @@ public:
 
 	void										Copy(void* pData,int width, int height, int elementByte);
 	void										Copy(void* pData, int width, int height, int depth, int elementByte);
+	void										CreateDepth(int width, int height, int depth, int elementByte);
 
 	ComPtr<ID3D12Resource>						mUploadBuffer;
 	ComPtr<ID3D12Resource>						mTexture;
