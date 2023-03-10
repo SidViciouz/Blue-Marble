@@ -30,10 +30,13 @@ protected:
 	unique_ptr<TextureResource>					mDepthTexture;
 
 	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
-	ComPtr<ID3D12DescriptorHeap>				mSrvHeap;
+	ComPtr<ID3D12DescriptorHeap>				mSrvUavHeap;
 
 	D3D12_VIEWPORT								mViewport;
 	D3D12_RECT									mScissor;
+
+	UINT										mDsvIncrementSize;
+	UINT										mSrvUavIncrementSize;
 
 	int											mCurrentTexture = 0;
 

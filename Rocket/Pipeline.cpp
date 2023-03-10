@@ -230,6 +230,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["DepthPeelingPS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"ParticleUploadShader.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ParticleUploadCS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -344,6 +348,38 @@ void Pipeline::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 	mRootSignatures["DepthPeeling"] = move(rs);
+
+
+	D3D12_DESCRIPTOR_RANGE rangeCompute[2];
+	rangeCompute[0].BaseShaderRegister = 0;
+	rangeCompute[0].NumDescriptors = 1;
+	rangeCompute[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeCompute[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeCompute[0].RegisterSpace = 0;
+	rangeCompute[1].BaseShaderRegister = 0;
+	rangeCompute[1].NumDescriptors = 1;
+	rangeCompute[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeCompute[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	rangeCompute[1].RegisterSpace = 0;
+
+	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[0].DescriptorTable.pDescriptorRanges = &rangeCompute[0];
+	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[1].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[1].DescriptorTable.pDescriptorRanges = &rangeCompute[1];
+
+	rsDesc.NumParameters = 2;
+	rsDesc.pParameters = rootParameter;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["ParticleUpload"] = move(rs);
 
 }
 
@@ -528,6 +564,19 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["DepthPeeling"] = move(pso);
+
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC computePsoDesc = {};
+	computePsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	computePsoDesc.CachedPSO.pCachedBlob = nullptr;
+	computePsoDesc.CS.BytecodeLength = mShaders["ParticleUploadCS"]->GetBufferSize();
+	computePsoDesc.CS.pShaderBytecode = mShaders["ParticleUploadCS"]->GetBufferPointer();
+	computePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	computePsoDesc.NodeMask = 0;
+	computePsoDesc.pRootSignature = mRootSignatures["ParticleUpload"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&computePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["ParticleUpload"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

@@ -28,12 +28,15 @@ RigidBodySystem::RigidBodySystem()
 		L"create dsv descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 1;
+	heapDesc.NumDescriptors = 2;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
+	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvUavHeap.GetAddressOf())),
 		L"create srv descriptor heap in rigid body system error!");
 
+
+	mDsvIncrementSize = Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	mSrvUavIncrementSize = Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 }
 
@@ -61,7 +64,7 @@ void RigidBodySystem::Load()
 		printf("%8X\n", reinterpret_cast<UINT32&>(data[i]));
 
 	mRigidBodyTexture->Copy(data, 256, 256, 2, 4);
-	mParticleTexture->Create(1024, 1024, 2, 4, true);
+	mParticleTexture->Create(32, 32, 2, 4, true);
 }
 
 void RigidBodySystem::GenerateParticle()
@@ -73,7 +76,7 @@ void RigidBodySystem::GenerateParticle()
 	for (int i = 0; i < 4; ++i)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE handle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
-		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV)*i;
+		handle.ptr += mDsvIncrementSize *i;
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 		dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
@@ -89,6 +92,7 @@ void RigidBodySystem::GenerateParticle()
 	* depth buffer에 대한 srv를 생성할때 DXGI_FORMAT_R24_UNORM_X8_TYPELESS format을 사용한다.
 	* depth buffer의 format은 DXGI_FORMAT_R24G8_TYPELESS를 사용했다.
 	*/
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = mSrvUavHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
@@ -99,7 +103,18 @@ void RigidBodySystem::GenerateParticle()
 	srvDesc.Texture2DArray.MostDetailedMip = 0;
 	srvDesc.Texture2DArray.PlaneSlice = 0;
 	srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
-	Pipeline::mDevice->CreateShaderResourceView(mDepthTexture->mTexture.Get(), &srvDesc, mSrvHeap->GetCPUDescriptorHandleForHeapStart());
+	Pipeline::mDevice->CreateShaderResourceView(mDepthTexture->mTexture.Get(), &srvDesc, srvHandle);
+
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	uavDesc.Texture2DArray.ArraySize = 2;
+	uavDesc.Texture2DArray.FirstArraySlice = 0;
+	uavDesc.Texture2DArray.MipSlice = 0;
+	uavDesc.Texture2DArray.PlaneSlice = 0;
+	Pipeline::mDevice->CreateUnorderedAccessView(mParticleTexture->mTexture.Get(), nullptr, &uavDesc, srvHandle);
 
 	/*
 	for (auto rigidBody : mRigidBodies)
@@ -124,10 +139,10 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 
-	ID3D12DescriptorHeap* heaps[] = { mSrvHeap.Get() };
+	ID3D12DescriptorHeap* heaps[] = { mSrvUavHeap.Get() };
 	Game::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
 
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 	Game::mCommandList->SetGraphicsRootDescriptorTable(0, handle);
 
 
@@ -137,21 +152,21 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 0, 0);
 	rigidBody->mModel->Draw();
 	
-	dsvHandle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	dsvHandle.ptr += mDsvIncrementSize;
 	Game::mCommandList->ClearDepthStencilView(dsvHandle,
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 1, 0);
 	rigidBody->mModel->Draw();
 
-	dsvHandle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	dsvHandle.ptr += mDsvIncrementSize;
 	Game::mCommandList->ClearDepthStencilView(dsvHandle,
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 2, 0);
 	rigidBody->mModel->Draw();
 
-	dsvHandle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	dsvHandle.ptr += mDsvIncrementSize;
 	Game::mCommandList->ClearDepthStencilView(dsvHandle,
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
@@ -161,5 +176,12 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 
 void RigidBodySystem::UploadParticleFromDepth()
 {
-
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
+	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["ParticleUpload"].Get());
+	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["ParticleUpload"].Get());
+	Game::mCommandList->SetDescriptorHeaps(1,mSrvUavHeap.GetAddressOf());
+	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
+	handle.ptr += mSrvUavIncrementSize;
+	Game::mCommandList->SetComputeRootDescriptorTable(1, handle);
+	Game::mCommandList->Dispatch(1,1,1);
 }
