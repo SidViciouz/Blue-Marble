@@ -17,24 +17,9 @@ RigidBodySystem::RigidBodySystem()
 	mRigidBodyTexture = make_unique<TextureResource>();
 	mParticleTexture = make_unique<TextureResource>();
 	mDepthTexture = make_unique<TextureResource>();
-	mPrevDepthTexture = make_unique<TextureResource>();
 
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 1;
-	heapDesc.NodeMask = 0;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mUavHeap.GetAddressOf())),
-		L"create uav descriptor heap in rigid body system error!");
-
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 1;
-	heapDesc.NodeMask = 0;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mInvisibleSrvHeap.GetAddressOf())),
-		L"create uav shader-invisible descriptor heap in rigid body system error!");
-
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	heapDesc.NumDescriptors = 4;
 	heapDesc.NodeMask = 0;
@@ -76,6 +61,7 @@ void RigidBodySystem::Load()
 		printf("%8X\n", reinterpret_cast<UINT32&>(data[i]));
 
 	mRigidBodyTexture->Copy(data, 256, 256, 2, 4);
+	mParticleTexture->Create(1024, 1024, 2, 4, true);
 }
 
 void RigidBodySystem::GenerateParticle()
@@ -115,18 +101,6 @@ void RigidBodySystem::GenerateParticle()
 	srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
 	Pipeline::mDevice->CreateShaderResourceView(mDepthTexture->mTexture.Get(), &srvDesc, mSrvHeap->GetCPUDescriptorHandleForHeapStart());
 
-	
-	mPrevDepthTexture->Create(20, 20, 4, 4,true);
-	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-	uavDesc.Texture2DArray.ArraySize = 4;
-	uavDesc.Texture2DArray.FirstArraySlice = 0;
-	uavDesc.Texture2DArray.MipSlice = 0;
-	uavDesc.Texture2DArray.PlaneSlice = 0;
-	Pipeline::mDevice->CreateUnorderedAccessView(mPrevDepthTexture->mTexture.Get(), nullptr,&uavDesc, mUavHeap->GetCPUDescriptorHandleForHeapStart());
-	Pipeline::mDevice->CreateUnorderedAccessView(mPrevDepthTexture->mTexture.Get(), nullptr, &uavDesc, mInvisibleSrvHeap->GetCPUDescriptorHandleForHeapStart());
-	
 	/*
 	for (auto rigidBody : mRigidBodies)
 	{
@@ -136,6 +110,7 @@ void RigidBodySystem::GenerateParticle()
 	}
 	*/
 	DepthPass(mRigidBodies[8]);
+	UploadParticleFromDepth();
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)
@@ -143,20 +118,11 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 
 	Game::mCommandList->RSSetScissorRects(1, &mScissor);
 	Game::mCommandList->RSSetViewports(1, &mViewport);
-
 	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["DepthPeeling"].Get());
-
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
-
-	Game::mCommandList->ClearDepthStencilView(dsvHandle,
-		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-
-	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
-
 	Game::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	Game::mCommandList->SetGraphicsRootSignature(Pipeline::mRootSignatures["DepthPeeling"].Get());
 
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 
 	ID3D12DescriptorHeap* heaps[] = { mSrvHeap.Get() };
 	Game::mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
@@ -164,11 +130,10 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 	Game::mCommandList->SetGraphicsRootDescriptorTable(0, handle);
 
-	//D3D12_CPU_DESCRIPTOR_HANDLE Invisiblehandle = mInvisibleSrvHeap->GetCPUDescriptorHandleForHeapStart();
 
-	//FLOAT color[4] = { 3.0f,1.0f,1.0f,1.0f };
-	//Game::mCommandList->ClearUnorderedAccessViewFloat(handle, Invisiblehandle, mPrevDepthTexture->mTexture.Get(), color, 0, nullptr);
-
+	Game::mCommandList->ClearDepthStencilView(dsvHandle,
+		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 0, 0);
 	rigidBody->mModel->Draw();
 	
@@ -192,4 +157,9 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 	Game::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Game::mCommandList->SetGraphicsRoot32BitConstant(1, 3, 0);
 	rigidBody->mModel->Draw();
+}
+
+void RigidBodySystem::UploadParticleFromDepth()
+{
+
 }

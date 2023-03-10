@@ -19,7 +19,6 @@ public:
 	*/
 	void										GenerateParticle();
 
-	void										DepthPass(RigidBody* rigidBody);
 
 	static vector<RigidBody*>					mRigidBodies;
 
@@ -29,10 +28,7 @@ protected:
 	unique_ptr<TextureResource>					mGrid;	// texture 3d array로 생성한다.
 
 	unique_ptr<TextureResource>					mDepthTexture;
-	unique_ptr<TextureResource>					mPrevDepthTexture;
 
-	ComPtr<ID3D12DescriptorHeap>				mUavHeap;
-	ComPtr<ID3D12DescriptorHeap>				mInvisibleSrvHeap;
 	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
 	ComPtr<ID3D12DescriptorHeap>				mSrvHeap;
 
@@ -40,5 +36,14 @@ protected:
 	D3D12_RECT									mScissor;
 
 	int											mCurrentTexture = 0;
+
+	/*
+	* 입력된 rigidBody에 대한 depth peeling을 통해 4개의 depth buffer에 깊이 값들을 만든다.
+	*/
+	void										DepthPass(RigidBody* rigidBody);
+	/*
+	* depth buffer들에서 particle의 개수와 위치를 파악해서 mParticleTexture에 업로드한다.
+	*/
+	void										UploadParticleFromDepth();
 };
 

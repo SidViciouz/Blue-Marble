@@ -222,5 +222,6 @@
     <FxCompile Include="ParticleShader.hlsl" />
     <FxCompile Include="RigidParticleShader.hlsl" />
     <FxCompile Include="DepthPeelingShader.hlsl" />
+    <FxCompile Include="ParticleUploadShader.hlsl" />
   </ItemGroup>
 </Project>
