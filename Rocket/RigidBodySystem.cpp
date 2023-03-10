@@ -11,8 +11,8 @@ RigidBodySystem::RigidBodySystem()
 	/*
 	* rigid body system에 필요한 자원을 생성한다.
 	*/
-	mViewport = { 0.0f, 0.0f, 20.0f, 20.0f, 0.0f, 1.0f };
-	mScissor = { 0, 0, 20, 20 };
+	mViewport = { 0.0f, 0.0f, 32.0f, 32.0f, 0.0f, 1.0f };
+	mScissor = { 0, 0, 32, 32 };
 
 	mRigidBodyTexture = make_unique<TextureResource>();
 	mParticleTexture = make_unique<TextureResource>();
@@ -68,7 +68,7 @@ void RigidBodySystem::GenerateParticle()
 {
 	int offset = 0;
 
-	mDepthTexture->CreateDepth(20, 20, 4, 4);
+	mDepthTexture->CreateDepth(32, 32, 4, 4);
 
 	for (int i = 0; i < 4; ++i)
 	{

@@ -20,7 +20,7 @@ void PS( float4 pos : SV_POSITION)
 
 	else
 	{
-		if (depthMap[int3(pos.x, pos.y, currentLevel - 1)] > pos.z || abs(depthMap[int3(pos.x, pos.y, currentLevel - 1)]-pos.z) < 0.001f)
+		if (depthMap.Load(int4(pos.x, pos.y, currentLevel - 1,0)) > pos.z || abs(depthMap.Load(int4(pos.x, pos.y, currentLevel - 1,0))-pos.z) < 0.001f)
 			clip(-1);
 	}
 	return;

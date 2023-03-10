@@ -271,10 +271,8 @@ void Pipeline::CreateShaderAndRootSignature()
 
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
-
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
-
 	mRootSignatures["Default"] = move(rs);
 
 
@@ -284,10 +282,8 @@ void Pipeline::CreateShaderAndRootSignature()
 	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
-
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
-
 	mRootSignatures["Volume"] = move(rs);
 
 
@@ -297,10 +293,8 @@ void Pipeline::CreateShaderAndRootSignature()
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
-
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
-
 	mRootSignatures["RigidParticle"] = move(rs);
 
 	range.BaseShaderRegister = 0;
@@ -321,10 +315,8 @@ void Pipeline::CreateShaderAndRootSignature()
 	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
-
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
-
 	mRootSignatures["Particle"] = move(rs);
 
 	range.BaseShaderRegister = 0;
@@ -349,10 +341,8 @@ void Pipeline::CreateShaderAndRootSignature()
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
-
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
-
 	mRootSignatures["DepthPeeling"] = move(rs);
 
 }
