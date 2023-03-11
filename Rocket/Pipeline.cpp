@@ -350,7 +350,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	mRootSignatures["DepthPeeling"] = move(rs);
 
 
-	D3D12_DESCRIPTOR_RANGE rangeCompute[2];
+	D3D12_DESCRIPTOR_RANGE rangeCompute[3];
 	rangeCompute[0].BaseShaderRegister = 0;
 	rangeCompute[0].NumDescriptors = 1;
 	rangeCompute[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -361,15 +361,21 @@ void Pipeline::CreateShaderAndRootSignature()
 	rangeCompute[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeCompute[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	rangeCompute[1].RegisterSpace = 0;
+	rangeCompute[2].BaseShaderRegister = 1;
+	rangeCompute[2].NumDescriptors = 1;
+	rangeCompute[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeCompute[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	rangeCompute[2].RegisterSpace = 0;
 
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
-	rootParameter[0].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameter[0].DescriptorTable.pDescriptorRanges = &rangeCompute[0];
-	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
-	rootParameter[1].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameter[1].DescriptorTable.pDescriptorRanges = &rangeCompute[1];
+	rootParameter[0].DescriptorTable.NumDescriptorRanges = 3;
+	rootParameter[0].DescriptorTable.pDescriptorRanges = rangeCompute;
+	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameter[1].Constants.Num32BitValues = 1;
+	rootParameter[1].Constants.RegisterSpace = 0;
+	rootParameter[1].Constants.ShaderRegister = 0;
 
 	rsDesc.NumParameters = 2;
 	rsDesc.pParameters = rootParameter;

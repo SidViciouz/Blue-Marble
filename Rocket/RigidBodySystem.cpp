@@ -11,8 +11,8 @@ RigidBodySystem::RigidBodySystem()
 	/*
 	* rigid body system에 필요한 자원을 생성한다.
 	*/
-	mViewport = { 0.0f, 0.0f, 32.0f, 32.0f, 0.0f, 1.0f };
-	mScissor = { 0, 0, 32, 32 };
+	mViewport = { 0.0f, 0.0f, 5.0f, 5.0f, 0.0f, 1.0f };
+	mScissor = { 0, 0, 5, 5 };
 
 	mRigidBodyTexture = make_unique<TextureResource>();
 	mParticleTexture = make_unique<TextureResource>();
@@ -28,7 +28,7 @@ RigidBodySystem::RigidBodySystem()
 		L"create dsv descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 2;
+	heapDesc.NumDescriptors = 3;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvUavHeap.GetAddressOf())),
@@ -50,28 +50,32 @@ void RigidBodySystem::Load()
 
 	for (int i = 0; i < mRigidBodies.size(); ++i)
 	{
-		int x = 3 * i;
-		int y = 3 * i + 1;
-		int z = 3 * i + 2;
+		int x = 5 * i;
+		int y = 5 * i + 1;
+		int z = 5 * i + 2;
+		int particleNumber = 5 * i + 3;
+		int offset = 5 * i + 4;
 
 		XMFLOAT3 position = mRigidBodies[i]->mModel->GetPosition();
 		data[x] = position.x;
 		data[y] = position.y;
 		data[z] = position.z;
+		data[particleNumber] = 0;
+		data[offset] = 0;
 	}
 
 	for (int i = 0; i < 3 * mRigidBodies.size(); ++i)
 		printf("%8X\n", reinterpret_cast<UINT32&>(data[i]));
 
 	mRigidBodyTexture->Copy(data, 256, 256, 2, 4);
-	mParticleTexture->Create(32, 32, 2, 4, true);
+	mParticleTexture->Create(100, 100, 2, 4, true);
 }
 
 void RigidBodySystem::GenerateParticle()
 {
 	int offset = 0;
 
-	mDepthTexture->CreateDepth(32, 32, 4, 4);
+	mDepthTexture->CreateDepth(5, 5, 4, 4);
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -81,7 +85,6 @@ void RigidBodySystem::GenerateParticle()
 		dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-		//dsvDesc.Texture2D.MipSlice = 0;
 		dsvDesc.Texture2DArray.ArraySize = 4-i;
 		dsvDesc.Texture2DArray.FirstArraySlice = i;
 		dsvDesc.Texture2DArray.MipSlice = 0;
@@ -116,16 +119,30 @@ void RigidBodySystem::GenerateParticle()
 	uavDesc.Texture2DArray.PlaneSlice = 0;
 	Pipeline::mDevice->CreateUnorderedAccessView(mParticleTexture->mTexture.Get(), nullptr, &uavDesc, srvHandle);
 
-	/*
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyUavDesc = {};
+	rigidBodyUavDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	rigidBodyUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyUavDesc.Texture3D.FirstWSlice = 0;
+	rigidBodyUavDesc.Texture3D.MipSlice = 0;
+	rigidBodyUavDesc.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyTexture->mTexture.Get(), nullptr, &rigidBodyUavDesc, srvHandle);
+
+	
+	int i = -1;
 	for (auto rigidBody : mRigidBodies)
 	{
+		++i;
 		if (rigidBody->mModel->mVertexBufferSize == 0)
-			return;
+			continue;
 		DepthPass(rigidBody);
+		UploadParticleFromDepth(i);
 	}
-	*/
+	
+	/*
 	DepthPass(mRigidBodies[8]);
-	UploadParticleFromDepth();
+	UploadParticleFromDepth(8);
+	*/
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)
@@ -174,14 +191,13 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 	rigidBody->mModel->Draw();
 }
 
-void RigidBodySystem::UploadParticleFromDepth()
+void RigidBodySystem::UploadParticleFromDepth(int index)
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["ParticleUpload"].Get());
 	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["ParticleUpload"].Get());
 	Game::mCommandList->SetDescriptorHeaps(1,mSrvUavHeap.GetAddressOf());
 	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
-	handle.ptr += mSrvUavIncrementSize;
-	Game::mCommandList->SetComputeRootDescriptorTable(1, handle);
+	Game::mCommandList->SetComputeRoot32BitConstant(1, index, 0);
 	Game::mCommandList->Dispatch(1,1,1);
 }

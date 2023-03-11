@@ -47,6 +47,6 @@ protected:
 	/*
 	* depth buffer들에서 particle의 개수와 위치를 파악해서 mParticleTexture에 업로드한다.
 	*/
-	void										UploadParticleFromDepth();
+	void										UploadParticleFromDepth(int index);
 };
 

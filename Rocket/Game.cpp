@@ -238,8 +238,6 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_LBUTTONUP:
-		mIsModelSelected = false;
-		mSelectedModel = nullptr;
 		if (mIsInventorySelected == true)
 		{
 			mIsInventorySelected = false;
@@ -256,6 +254,8 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			Button* b = static_cast<Button*>(mSelectedModel.get());
 			b->Click();
 		}
+		mIsModelSelected = false;
+		mSelectedModel = nullptr;
 
 		return 0;
 
