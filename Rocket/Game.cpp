@@ -239,6 +239,7 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	case WM_LBUTTONUP:
 		mIsModelSelected = false;
+		mSelectedModel = nullptr;
 		if (mIsInventorySelected == true)
 		{
 			mIsInventorySelected = false;
