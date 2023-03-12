@@ -17,6 +17,7 @@ RigidBodySystem::RigidBodySystem()
 	mRigidBodyTexture = make_unique<TextureResource>();
 	mParticleTexture = make_unique<TextureResource>();
 	mDepthTexture = make_unique<TextureResource>();
+	mRigidInfos = make_unique<TextureResource>();
 
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
@@ -28,7 +29,7 @@ RigidBodySystem::RigidBodySystem()
 		L"create dsv descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 3;
+	heapDesc.NumDescriptors = 4;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvUavHeap.GetAddressOf())),
@@ -69,13 +70,14 @@ void RigidBodySystem::Load()
 
 	mRigidBodyTexture->Copy(data, 256, 256, 2, 4);
 	mParticleTexture->Create(100, 100, 2, 4, true);
+	mDepthTexture->CreateDepth(5, 5, 4, 4);
+	mRigidInfos->Create(256, 3, 1, 4, true, DXGI_FORMAT_R32_UINT); //2d이기 때문에 isarray를 true로 설정한다.
 }
 
 void RigidBodySystem::GenerateParticle()
 {
 	int offset = 0;
 
-	mDepthTexture->CreateDepth(5, 5, 4, 4);
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -129,20 +131,32 @@ void RigidBodySystem::GenerateParticle()
 	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyTexture->mTexture.Get(), nullptr, &rigidBodyUavDesc, srvHandle);
 
 	
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidInfosUavDesc = {};
+	rigidInfosUavDesc.Format = DXGI_FORMAT_R32_UINT;
+	rigidInfosUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	rigidInfosUavDesc.Texture2D.MipSlice = 0;
+	rigidInfosUavDesc.Texture2D.PlaneSlice = 0;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidInfos->mTexture.Get(), nullptr, &rigidInfosUavDesc, srvHandle);
+
+	
+	
 	int i = -1;
 	for (auto rigidBody : mRigidBodies)
 	{
 		++i;
+		//volume과 world를 제외하도록 추가해야함.
+		//현재는 vertex buffer를 할당하지 않는 volume만 제외됨.
 		if (rigidBody->mModel->mVertexBufferSize == 0)
 			continue;
 		DepthPass(rigidBody);
 		UploadParticleFromDepth(i);
 	}
 	
-	/*
-	DepthPass(mRigidBodies[8]);
-	UploadParticleFromDepth(8);
-	*/
+	
+	//DepthPass(mRigidBodies[8]);
+	//UploadParticleFromDepth(8);
+	
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)

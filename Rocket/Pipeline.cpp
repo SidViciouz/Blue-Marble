@@ -357,19 +357,19 @@ void Pipeline::CreateShaderAndRootSignature()
 	rangeCompute[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangeCompute[0].RegisterSpace = 0;
 	rangeCompute[1].BaseShaderRegister = 0;
-	rangeCompute[1].NumDescriptors = 1;
+	rangeCompute[1].NumDescriptors = 3;
 	rangeCompute[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeCompute[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	rangeCompute[1].RegisterSpace = 0;
-	rangeCompute[2].BaseShaderRegister = 1;
-	rangeCompute[2].NumDescriptors = 1;
-	rangeCompute[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	rangeCompute[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-	rangeCompute[2].RegisterSpace = 0;
+	//rangeCompute[2].BaseShaderRegister = 1;
+	//rangeCompute[2].NumDescriptors = 1;
+	//rangeCompute[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	//rangeCompute[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	//rangeCompute[2].RegisterSpace = 0;
 
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
-	rootParameter[0].DescriptorTable.NumDescriptorRanges = 3;
+	rootParameter[0].DescriptorTable.NumDescriptorRanges = 2;
 	rootParameter[0].DescriptorTable.pDescriptorRanges = rangeCompute;
 	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;

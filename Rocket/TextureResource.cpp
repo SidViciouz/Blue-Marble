@@ -10,7 +10,7 @@ int CalculateAlignment(int value, int alignment)
 }
 
 //한번만 호출해야한다.
-void TextureResource::Copy(void* pData, int width, int height, int elementByte)
+void TextureResource::Copy(void* pData, int width, int height, int elementByte, DXGI_FORMAT format)
 {
 	//upload buffer 생성하는 부분
 
@@ -40,7 +40,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 
 	//texture 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT,width,height);
+	rd = CD3DX12_RESOURCE_DESC::Tex2D(format,width,height);
 	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
@@ -52,7 +52,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint = {};
 	footPrint.Offset = 0;
 	footPrint.Footprint.Depth = 1;
-	footPrint.Footprint.Format = DXGI_FORMAT_R32_FLOAT;
+	footPrint.Footprint.Format = format;
 	footPrint.Footprint.Height = height;
 	footPrint.Footprint.Width = width;
 	footPrint.Footprint.RowPitch = CalculateAlignment(width * elementByte, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
@@ -76,7 +76,7 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte)
 }
 
 //한번만 호출해야한다.
-void TextureResource::Copy(void* pData, int width, int height, int depth, int elementByte, bool isArray)
+void TextureResource::Copy(void* pData, int width, int height, int depth, int elementByte, bool isArray, DXGI_FORMAT format)
 {
 	//upload buffer 생성하는 부분
 
@@ -107,9 +107,9 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	//texture 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	if(isArray == false)
-		rd = CD3DX12_RESOURCE_DESC::Tex3D(DXGI_FORMAT_R32_FLOAT, width, height, depth);
+		rd = CD3DX12_RESOURCE_DESC::Tex3D(format, width, height, depth);
 	else
-		rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, width, height, depth);
+		rd = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height, depth);
 
 	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
@@ -122,7 +122,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint = {};
 	footPrint.Offset = 0;
 	footPrint.Footprint.Depth = depth;
-	footPrint.Footprint.Format = DXGI_FORMAT_R32_FLOAT;
+	footPrint.Footprint.Format = format;
 	footPrint.Footprint.Height = height;
 	footPrint.Footprint.Width = width;
 	footPrint.Footprint.RowPitch = CalculateAlignment(width * elementByte, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
@@ -164,7 +164,7 @@ void TextureResource::CreateDepth(int width, int height, int depth, int elementB
 	), L"create texture for depth error!");
 }
 
-void TextureResource::Create(int width, int height, int depth, int elementByte, bool isArray)
+void TextureResource::Create(int width, int height, int depth, int elementByte, bool isArray, DXGI_FORMAT format)
 {
 	D3D12_RESOURCE_DESC rd;
 
@@ -172,9 +172,9 @@ void TextureResource::Create(int width, int height, int depth, int elementByte, 
 	//float으로 생성함.
 	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	if (isArray == false)
-		rd = CD3DX12_RESOURCE_DESC::Tex3D(DXGI_FORMAT_R32_FLOAT, width, height, depth);
+		rd = CD3DX12_RESOURCE_DESC::Tex3D(format, width, height, depth);
 	else
-		rd = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, width, height, depth);
+		rd = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height, depth);
 
 	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 

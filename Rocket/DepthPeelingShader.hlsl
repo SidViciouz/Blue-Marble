@@ -7,8 +7,8 @@ cbuffer constant : register(b0)
 
 float4 VS(float3 pos : POSITION) : SV_POSITION
 {
+	//z방향을 [-1,1]->[0,1]공간으로 변환
 	return float4(pos.x,pos.y, (pos.z + 1.0f) * 0.5f,1.0f);
-
 }
 
 void PS( float4 pos : SV_POSITION)
