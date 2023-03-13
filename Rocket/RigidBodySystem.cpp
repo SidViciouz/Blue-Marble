@@ -14,11 +14,16 @@ RigidBodySystem::RigidBodySystem()
 	mViewport = { 0.0f, 0.0f, 5.0f, 5.0f, 0.0f, 1.0f };
 	mScissor = { 0, 0, 5, 5 };
 
-	mRigidBodyTexture = make_unique<TextureResource>();
-	mParticleTexture = make_unique<TextureResource>();
+	mRigidBodyPosTexture = make_unique<TextureResource>();
+	mRigidBodyQuatTexture = make_unique<TextureResource>();
+	mRigidBodyLMTexture = make_unique<TextureResource>();
+	mRigidBodyAMTexture = make_unique<TextureResource>();
+	mParticleCOMTexture = make_unique<TextureResource>();
+	mParticlePosTexture = make_unique<TextureResource>();
+	mParticleVelTexture = make_unique<TextureResource>();
 	mDepthTexture = make_unique<TextureResource>();
 	mRigidInfos = make_unique<TextureResource>();
-
+	mGrid = make_unique<TextureResource>();
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -29,7 +34,7 @@ RigidBodySystem::RigidBodySystem()
 		L"create dsv descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 4;
+	heapDesc.NumDescriptors = 10;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvUavHeap.GetAddressOf())),
@@ -90,10 +95,11 @@ void RigidBodySystem::Load()
 	for (int i = 0; i < 3 * mRigidBodies.size(); ++i)
 		printf("%8X\n", reinterpret_cast<UINT32&>(data[i]));
 
-	mRigidBodyTexture->Copy(data, 256, 256, 2, 4);
-	mParticleTexture->Create(512, 512, 2, 4, true);
+	mRigidBodyPosTexture->Copy(data, 256, 256, 2, 4);
+	mParticleCOMTexture->Create(512, 512, 2, 4, true);
 	mDepthTexture->CreateDepth(5, 5, 4, 4);
 	mRigidInfos->Create(256, 3, 1, 4, true, DXGI_FORMAT_R32_UINT); //2d이기 때문에 isarray를 true로 설정한다.
+	mGrid->Create(32, 32, 32, 4,false,DXGI_FORMAT_R32_UINT);
 }
 
 void RigidBodySystem::GenerateParticle()
@@ -141,7 +147,7 @@ void RigidBodySystem::GenerateParticle()
 	uavDesc.Texture2DArray.FirstArraySlice = 0;
 	uavDesc.Texture2DArray.MipSlice = 0;
 	uavDesc.Texture2DArray.PlaneSlice = 0;
-	Pipeline::mDevice->CreateUnorderedAccessView(mParticleTexture->mTexture.Get(), nullptr, &uavDesc, srvHandle);
+	Pipeline::mDevice->CreateUnorderedAccessView(mParticleCOMTexture->mTexture.Get(), nullptr, &uavDesc, srvHandle);
 
 	srvHandle.ptr += mSrvUavIncrementSize;
 	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyUavDesc = {};
@@ -150,7 +156,7 @@ void RigidBodySystem::GenerateParticle()
 	rigidBodyUavDesc.Texture3D.FirstWSlice = 0;
 	rigidBodyUavDesc.Texture3D.MipSlice = 0;
 	rigidBodyUavDesc.Texture3D.WSize = 2;
-	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyTexture->mTexture.Get(), nullptr, &rigidBodyUavDesc, srvHandle);
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyPosTexture->mTexture.Get(), nullptr, &rigidBodyUavDesc, srvHandle);
 
 	
 	srvHandle.ptr += mSrvUavIncrementSize;
@@ -160,6 +166,15 @@ void RigidBodySystem::GenerateParticle()
 	rigidInfosUavDesc.Texture2D.MipSlice = 0;
 	rigidInfosUavDesc.Texture2D.PlaneSlice = 0;
 	Pipeline::mDevice->CreateUnorderedAccessView(mRigidInfos->mTexture.Get(), nullptr, &rigidInfosUavDesc, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC gridUavDesc = {};
+	gridUavDesc.Format = DXGI_FORMAT_R32_UINT;
+	gridUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	gridUavDesc.Texture3D.FirstWSlice = 0;
+	gridUavDesc.Texture3D.MipSlice = 0;
+	gridUavDesc.Texture3D.WSize = 32;
+	Pipeline::mDevice->CreateUnorderedAccessView(mGrid->mTexture.Get(), nullptr, &gridUavDesc, srvHandle);
 
 	
 	int i = -1;

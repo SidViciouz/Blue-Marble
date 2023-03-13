@@ -409,7 +409,7 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Clickable>("../Model/table.obj", L"../Model/textures/bricks1.dds");
+		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks1.dds");
 		m->SetPosition(3.0f, 0.0f, 0.0f);
 		(*model)["table"] = move(m);
 
@@ -563,7 +563,7 @@ void Game::Update()
 
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
-	mScenes[mCurrentScene]->mModels->at("earth")->MulQuaternion(0.0f, sinf(mTimer.GetDeltaTime()), 0.0f,cosf(mTimer.GetDeltaTime()));
+	//mScenes[mCurrentScene]->mModels->at("earth")->MulQuaternion(0.0f, sinf(mTimer.GetDeltaTime()), 0.0f,cosf(mTimer.GetDeltaTime()));
 	mScenes[mCurrentScene]->Update();
 	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
 	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;

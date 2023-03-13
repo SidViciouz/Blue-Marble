@@ -45,6 +45,7 @@ void CS(int id : SV_GroupIndex)
 	float xFromCOM;
 	float yFromCOM;
 	float zFromCOM;
+	float inertia;
 
 	int rigidIdxX = rigidIdx % 256;
 	int rigidIdxY = rigidIdx / 256;
@@ -80,6 +81,36 @@ void CS(int id : SV_GroupIndex)
 	rigidIdxY = rigidIdx / 256;
 	float rigidQtW = rigidBodyMap[int3(rigidIdxX, rigidIdxY, 0)];
 
+	rigidIdx += 1;
+	rigidIdxX = rigidIdx % 256;
+	rigidIdxY = rigidIdx / 256;
+	float rigidLmX = rigidBodyMap[int3(rigidIdxX, rigidIdxY, 0)];
+
+	rigidIdx += 1;
+	rigidIdxX = rigidIdx % 256;
+	rigidIdxY = rigidIdx / 256;
+	float rigidLmY = rigidBodyMap[int3(rigidIdxX, rigidIdxY, 0)];
+
+	rigidIdx += 1;
+	rigidIdxX = rigidIdx % 256;
+	rigidIdxY = rigidIdx / 256;
+	float rigidLmZ = rigidBodyMap[int3(rigidIdxX, rigidIdxY, 0)];
+
+	rigidIdx += 1;
+	rigidIdxX = rigidIdx % 256;
+	rigidIdxY = rigidIdx / 256;
+	float rigidAmX = rigidBodyMap[int3(rigidIdxX, rigidIdxY, 0)];
+
+	rigidIdx += 1;
+	rigidIdxX = rigidIdx % 256;
+	rigidIdxY = rigidIdx / 256;
+	float rigidAmY = rigidBodyMap[int3(rigidIdxX, rigidIdxY, 0)];
+
+	rigidIdx += 1;
+	rigidIdxX = rigidIdx % 256;
+	rigidIdxY = rigidIdx / 256;
+	float rigidAmZ = rigidBodyMap[int3(rigidIdxX, rigidIdxY, 0)];
+
 	int particleNumber = 0;
 	for (int i = 0; i < 2; ++i)
 	{
@@ -110,6 +141,8 @@ void CS(int id : SV_GroupIndex)
 			particleMap[int3(particleIdxX, particleIdxY, 0)] = zFromCOM;
 			particleIdx += 1;
 
+			int r = float3(xFromCOM, yFromCOM, zFromCOM);
+			inertia += dot(r, r);
 			/*
 			* particle들의 위치 계산
 			* rigid body의 position과 quaternion을 이용한다.
@@ -129,10 +162,53 @@ void CS(int id : SV_GroupIndex)
 			particleIdxX = particleIdx % 512;
 			particleIdxY = particleIdx / 512;
 			particleMap[int3(particleIdxX, particleIdxY, 0)] = rotatedP.z + rigidPosZ;
-			particleIdx += 1;
+			particleIdx += 4; // particle의 velocity를 위한 3바이트를 건너뛴다.
+
 		}
 		particleNumber += int((exit - enter)*5.0f);
 	}
-	InterlockedAdd(rigidInfoMap[int2(objIndex%256, objIndex/256)], particleNumber);
+	int objIdx = objIndex * 2;
+	InterlockedAdd(rigidInfoMap[int2(objIdx%256, objIdx/256)], particleNumber);
+	objIdx += 1;
+	InterlockedAdd(rigidInfoMap[int2(objIdx % 256, objIdx / 256)], inertia);
 	GroupMemoryBarrierWithGroupSync();
+
+	/*
+	* particle들의 velocity 계산
+	* rigid body의 linear momentum과 angular momentum을 이용한다.
+	*/
+	objIdx = objIndex * 2;
+	particleIdx = objIndex * 9 * 125 + id * 5 * 9 + 6;
+	particleNumber = rigidInfoMap[int2(objIdx % 256, objIdx / 256)];
+	objIdx += 1;
+	inertia = rigidInfoMap [int2(objIdx % 256, objIdx / 256)];
+
+	for (int i = 0; i < 2; ++i)
+	{
+		float enter = depthMap.Load(int4(idx, idy, i * 2, 0));
+		float exit = depthMap.Load(int4(idx, idy, i * 2 + 1, 0));
+
+		for (float j = enter; j <= exit && abs(exit - j) > 0.00001f; j += 0.2f)
+		{
+			/*
+			* 512은 particle Map의 x방향 크기이다.
+			* 아래에서 계산하는 값은 center of mass에 대한 상대적인 particle들의 위치이다.
+			*/
+			int r = float3(xFromCOM, yFromCOM, zFromCOM);
+			particleIdxX = particleIdx % 512;
+			particleIdxY = particleIdx / 512;
+			particleMap[int3(particleIdxX, particleIdxY, 0)] = (rigidLmX / particleNumber);// +cross(rigidAmX / inertia,r).x
+			particleIdx += 1;
+
+			particleIdxX = particleIdx % 512;
+			particleIdxY = particleIdx / 512;
+			particleMap[int3(particleIdxX, particleIdxY, 0)] = rigidLmY / particleNumber; //+cross(rigidAmX / inertia,r).y
+			particleIdx += 1;
+
+			particleIdxX = particleIdx % 512;
+			particleIdxY = particleIdx / 512;
+			particleMap[int3(particleIdxX, particleIdxY, 0)] = rigidLmZ / particleNumber; // +cross(rigidAmX / inertia,r).z;
+			particleIdx += 7;
+		}
+	}
 }
