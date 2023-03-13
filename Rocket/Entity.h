@@ -12,6 +12,8 @@ protected:
 	Quaternion									mQuaternion;
 												
 public:
+												Entity();
+
 	bool										mDirty = true;
 	virtual void								Update();
 
@@ -24,6 +26,8 @@ public:
 
 	void										SetQuaternion(const XMFLOAT4& quaternion);
 	void										SetQuaternion(const float& x, const float& y, const float& z, const float& w);
+	void										MulQuaternion(const XMFLOAT4& quaternion);
+	void										MulQuaternion(const float& x, const float& y, const float& z, const float& w);
 	const XMFLOAT4&								GetQuaternion();
 
 	obj											mObjFeature =

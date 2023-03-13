@@ -20,7 +20,8 @@ void Model::Update()
 {
 	XMFLOAT3 pos = mPosition.Get();
 	XMFLOAT3 scale = mScale;
-	XMMATRIX world = XMMatrixScaling(scale.x, scale.y, scale.z) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+	XMMATRIX world = XMMatrixRotationQuaternion(XMLoadFloat4(&mQuaternion.Get())) *
+		XMMatrixScaling(scale.x, scale.y, scale.z) * XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 	XMStoreFloat4x4(&mObjFeature.world, world);
 	

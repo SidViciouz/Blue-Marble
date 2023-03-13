@@ -1,9 +1,15 @@
 #include "Entity.h"
 
+Entity::Entity()
+{
+	mPosition.Set(0.0f, 0.0f, 0.0f);
+	mQuaternion.Set(0.0f, 0.0f, 0.0f,1.0f);
+}
+
 void Entity::Update()
 {
 	XMFLOAT3 pos = mPosition.Get();
-	XMMATRIX world = XMMatrixTranslation(pos.x, pos.y, pos.z);
+	XMMATRIX world = XMMatrixRotationQuaternion(XMLoadFloat4(&mQuaternion.Get()))* XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 	XMStoreFloat4x4(&mObjFeature.world, world);
 
@@ -48,6 +54,18 @@ void Entity::SetQuaternion(const XMFLOAT4& quaternion)
 void Entity::SetQuaternion(const float& x, const float& y, const float& z, const float& w)
 {
 	mQuaternion.Set(x, y, z, w);
+	mDirty = true;
+}
+
+void Entity::MulQuaternion(const XMFLOAT4& quaternion)
+{
+	mQuaternion.Mul(quaternion);
+	mDirty = true;
+}
+
+void Entity::MulQuaternion(const float& x, const float& y, const float& z, const float& w)
+{
+	mQuaternion.Mul(x, y, z, w);
 	mDirty = true;
 }
 
