@@ -47,29 +47,51 @@ void RigidBodySystem::Load()
 	//새롭게 생성되는 rigidbody에는 따로 처리가 필요하다.
 
 	//TextureResource에서 float을 지원하도록 수정해야함.
-	float data[256*5*2] = { 0, };
+	float data[256*10*2] = { 0, };
 
 	for (int i = 0; i < mRigidBodies.size(); ++i)
 	{
-		int x = 5 * i;
-		int y = 5 * i + 1;
-		int z = 5 * i + 2;
-		int particleNumber = 5 * i + 3;
-		int offset = 5 * i + 4;
+		int offset = i * 13;
+
+		int x = offset;
+		int y = offset + 1;
+		int z = offset + 2;
+		int qX = offset + 3;
+		int qY = offset + 4;
+		int qZ = offset + 5;
+		int qW = offset + 6;
+		int lmX = offset + 7;
+		int lmY = offset + 8;
+		int lmZ = offset + 9;
+		int amX = offset + 10;
+		int amY = offset + 11;
+		int amZ = offset + 12;
 
 		XMFLOAT3 position = mRigidBodies[i]->mModel->GetPosition();
+		XMFLOAT4 quaternion = mRigidBodies[i]->mModel->GetQuaternion();
+		XMFLOAT3 linearMomentum = mRigidBodies[i]->GetLinearMomentum();
+		XMFLOAT3 angularMomentum = mRigidBodies[i]->GetAngularMomentum();
+
 		data[x] = position.x;
 		data[y] = position.y;
 		data[z] = position.z;
-		data[particleNumber] = 0;
-		data[offset] = 0;
+		data[qX] = quaternion.x;
+		data[qY] = quaternion.y;
+		data[qZ] = quaternion.z;
+		data[qW] = quaternion.w;
+		data[lmX] = linearMomentum.x;
+		data[lmY] = linearMomentum.y;
+		data[lmZ] = linearMomentum.z;
+		data[amX] = angularMomentum.x;
+		data[amY] = angularMomentum.y;
+		data[amZ] = angularMomentum.z;
 	}
 
 	for (int i = 0; i < 3 * mRigidBodies.size(); ++i)
 		printf("%8X\n", reinterpret_cast<UINT32&>(data[i]));
 
 	mRigidBodyTexture->Copy(data, 256, 256, 2, 4);
-	mParticleTexture->Create(100, 100, 2, 4, true);
+	mParticleTexture->Create(512, 512, 2, 4, true);
 	mDepthTexture->CreateDepth(5, 5, 4, 4);
 	mRigidInfos->Create(256, 3, 1, 4, true, DXGI_FORMAT_R32_UINT); //2d이기 때문에 isarray를 true로 설정한다.
 }
@@ -140,7 +162,6 @@ void RigidBodySystem::GenerateParticle()
 	Pipeline::mDevice->CreateUnorderedAccessView(mRigidInfos->mTexture.Get(), nullptr, &rigidInfosUavDesc, srvHandle);
 
 	
-	
 	int i = -1;
 	for (auto rigidBody : mRigidBodies)
 	{
@@ -152,10 +173,8 @@ void RigidBodySystem::GenerateParticle()
 		DepthPass(rigidBody);
 		UploadParticleFromDepth(i);
 	}
-	
-	
-	//DepthPass(mRigidBodies[8]);
-	//UploadParticleFromDepth(8);
+	//DepthPass(mRigidBodies[0]);
+	//UploadParticleFromDepth(0);
 	
 }
 

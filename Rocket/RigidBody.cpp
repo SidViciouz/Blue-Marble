@@ -6,7 +6,8 @@
 RigidBody::RigidBody(Model* model):
 	mModel(model)
 {
-	mVelocity = { 0.0f,-1.0f,0.0f };
+	SetLinearMomentum(0.0f, -10.0f, 0.0f);
+	SetAngularMomentum(0.0f, 3.0f, 0.0f);
 
 	RigidBodySystem::mRigidBodies.push_back(this);
 
@@ -24,19 +25,33 @@ RigidBody::~RigidBody()
 	printf("erase rigid body [total rigid body :  %d->%d]\n", beforeCnt, RigidBodySystem::mRigidBodies.size());
 }
 
-void RigidBody::SetVelocity(const XMFLOAT3& velocity)
+void RigidBody::SetLinearMomentum(const XMFLOAT3& linearMomentum)
 {
-	mVelocity = velocity;
+	mLinearMomentum = linearMomentum;
 }
 
-void RigidBody::SetVelocity(const float& x, const float& y, const float& z)
+void RigidBody::SetLinearMomentum(const float& x, const float& y, const float& z)
 {
-	mVelocity = { x,y,z };
+	mLinearMomentum = { x,y,z };
 }
 
-const XMFLOAT3& RigidBody::GetVelocity() const
+const XMFLOAT3& RigidBody::GetLinearMomentum() const
 {
-	return mVelocity;
+	return mLinearMomentum;
+}
+
+void RigidBody::SetAngularMomentum(const XMFLOAT3& AngularMomentum)
+{
+	mAngularMomentum = AngularMomentum;
+}
+void RigidBody::SetAngularMomentum(const float& x, const float& y, const float& z)
+{
+	mAngularMomentum = { x,y,z };
+}
+
+const XMFLOAT3& RigidBody::GetAngularMomentum() const
+{
+	return mAngularMomentum;
 }
 
 void RigidBody::CreateParticles()
@@ -55,7 +70,7 @@ void RigidBody::CreateParticles()
 	vector<Vertex>& vertices = mModel->mVertices;
 	vector<uint16_t>& indices = mModel->mIndices;
 
-	XMFLOAT3 velocity = GetVelocity();
+	XMFLOAT3 velocity = GetLinearMomentum();
 
 	//삼각형 하나를 하나의 particle로 변환
 	

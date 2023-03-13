@@ -15,10 +15,13 @@ public:
 	RigidBody&									operator=(const RigidBody& r) = delete;
 	RigidBody&									operator=(RigidBody&& r) = delete;
 
+	void										SetLinearMomentum(const XMFLOAT3& linearMomentum);
+	void										SetLinearMomentum(const float& x, const float& y, const float& z);
+	const XMFLOAT3&								GetLinearMomentum() const;
 
-	void										SetVelocity(const XMFLOAT3& velocity);
-	void										SetVelocity(const float& x, const float& y, const float& z);
-	const XMFLOAT3&								GetVelocity() const;
+	void										SetAngularMomentum(const XMFLOAT3& AngularMomentum);
+	void										SetAngularMomentum(const float& x, const float& y, const float& z);
+	const XMFLOAT3&								GetAngularMomentum() const;
 
 	void										CreateParticles();
 
@@ -31,5 +34,6 @@ public:
 
 protected:
 	vector<Particle>							mParticles;
-	XMFLOAT3									mVelocity;
+	XMFLOAT3									mLinearMomentum;
+	XMFLOAT3									mAngularMomentum;
 };

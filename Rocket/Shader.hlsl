@@ -64,7 +64,7 @@ VertexOut VS(VertexIn vin)
 
 	//non uniform scaling이라고 가정했을때 world matrix를 곱한다. 그렇지 않은 경우에는 inverse-transpose를 이용해야함.
 	//빛 계산에 이용할 것이므로 world space로 변환
-	vout.normal = mul(vin.normal, (float3x3)world);
+	vout.normal = mul(vin.normal, (float3x3)transpose(world));
 
 	//uv좌표계
 	vout.tex = vin.tex;
@@ -109,10 +109,10 @@ VertexOut DistortionVS(VertexIn vin)
 
 	//non uniform scaling이라고 가정했을때 world matrix를 곱한다. 그렇지 않은 경우에는 inverse-transpose를 이용해야함.
 	//빛 계산에 이용할 것이므로 world space로 변환
-	vout.normal = mul(vin.normal,(float3x3)world);
+	vout.normal = mul(vin.normal,(float3x3)transpose(world));
 	
 	//uv좌표계
-	vout.tex = vin.tex;
+	vout.tex =vin.tex;
 
 	return vout;
 }

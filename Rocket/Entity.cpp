@@ -3,7 +3,7 @@
 Entity::Entity()
 {
 	mPosition.Set(0.0f, 0.0f, 0.0f);
-	mQuaternion.Set(0.0f, 0.0f, 0.0f,1.0f);
+	mQuaternion.Set(0.0f, cosf(30.0f), 0.0f, sinf(30.0f) *1.0f);
 }
 
 void Entity::Update()
