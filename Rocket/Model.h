@@ -26,7 +26,7 @@ struct Vertex
 class Model : public Entity
 {
 public:
-												Model(const char* fileName, const wchar_t* name);
+												Model(const char* fileName, const wchar_t* name,bool hasRigidBody = true);
 												Model(const Model& model) = delete;
 												Model(Model&& model) = delete;
 	Model&										operator=(const Model& model) = delete;
@@ -73,6 +73,7 @@ public:
 	unique_ptr<Buffer>							mIndexBuffer;
 
 	shared_ptr<RigidBody>						mRigidBody;
+	bool										mHasRigidBody = true;
 };
 
 using Models = unordered_map<string, shared_ptr<Model>>;

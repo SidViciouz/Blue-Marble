@@ -7,13 +7,18 @@
 string getToken(string& aLine, bool isFirst); 
 int getNumber(string& aWord, bool isFirst);
 
-Model::Model(const char* fileName, const wchar_t* name)
+Model::Model(const char* fileName, const wchar_t* name,bool hasRigidBody)
 {
 	mFileName = fileName;
 	mName = name;
+
 	if(fileName != nullptr && name != nullptr)
 		Load();
-	mRigidBody = make_shared<RigidBody>(this);
+
+	mHasRigidBody = hasRigidBody;
+
+	if(mHasRigidBody)
+		mRigidBody = make_shared<RigidBody>(this);
 }
 
 void Model::Update()

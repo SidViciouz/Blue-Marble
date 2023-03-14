@@ -96,6 +96,12 @@ void RigidBodySystem::Load()
 		printf("%8X\n", reinterpret_cast<UINT32&>(data[i]));
 
 	mRigidBodyPosTexture->Copy(data, 256, 256, 2, 4);
+	mRigidBodyQuatTexture;
+	mRigidBodyLMTexture;
+	mRigidBodyAMTexture;
+	mParticleCOMTexture;
+	mParticlePosTexture;
+	mParticleVelTexture;
 	mParticleCOMTexture->Create(512, 512, 2, 4, true);
 	mDepthTexture->CreateDepth(5, 5, 4, 4);
 	mRigidInfos->Create(256, 3, 1, 4, true, DXGI_FORMAT_R32_UINT); //2d이기 때문에 isarray를 true로 설정한다.
@@ -183,8 +189,8 @@ void RigidBodySystem::GenerateParticle()
 		++i;
 		//volume과 world를 제외하도록 추가해야함.
 		//현재는 vertex buffer를 할당하지 않는 volume만 제외됨.
-		if (rigidBody->mModel->mVertexBufferSize == 0)
-			continue;
+		//if (rigidBody->mModel->mVertexBufferSize == 0)
+		//	continue;
 		DepthPass(rigidBody);
 		UploadParticleFromDepth(i);
 	}
