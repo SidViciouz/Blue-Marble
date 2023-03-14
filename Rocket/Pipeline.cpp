@@ -230,9 +230,17 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["DepthPeelingPS"] = move(blob);
 
-	IfError::Throw(D3DCompileFromFile(L"ParticleUploadShader.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+	IfError::Throw(D3DCompileFromFile(L"CreateParticles.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
-	mShaders["ParticleUploadCS"] = move(blob);
+	mShaders["CreateParticlesCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"particlePosition.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["particlePositionCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"particleVelocity.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["particleVelocityCS"] = move(blob);
 
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
@@ -357,15 +365,10 @@ void Pipeline::CreateShaderAndRootSignature()
 	rangeCompute[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangeCompute[0].RegisterSpace = 0;
 	rangeCompute[1].BaseShaderRegister = 0;
-	rangeCompute[1].NumDescriptors = 3;
+	rangeCompute[1].NumDescriptors = 10;
 	rangeCompute[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeCompute[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	rangeCompute[1].RegisterSpace = 0;
-	//rangeCompute[2].BaseShaderRegister = 1;
-	//rangeCompute[2].NumDescriptors = 1;
-	//rangeCompute[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	//rangeCompute[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-	//rangeCompute[2].RegisterSpace = 0;
 
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
@@ -385,7 +388,7 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"serialize root signature error!");
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
-	mRootSignatures["ParticleUpload"] = move(rs);
+	mRootSignatures["CreateParticles"] = move(rs);
 
 }
 
@@ -575,14 +578,38 @@ void Pipeline::CreatePso()
 	D3D12_COMPUTE_PIPELINE_STATE_DESC computePsoDesc = {};
 	computePsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
 	computePsoDesc.CachedPSO.pCachedBlob = nullptr;
-	computePsoDesc.CS.BytecodeLength = mShaders["ParticleUploadCS"]->GetBufferSize();
-	computePsoDesc.CS.pShaderBytecode = mShaders["ParticleUploadCS"]->GetBufferPointer();
+	computePsoDesc.CS.BytecodeLength = mShaders["CreateParticlesCS"]->GetBufferSize();
+	computePsoDesc.CS.pShaderBytecode = mShaders["CreateParticlesCS"]->GetBufferPointer();
 	computePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 	computePsoDesc.NodeMask = 0;
-	computePsoDesc.pRootSignature = mRootSignatures["ParticleUpload"].Get();
+	computePsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
 	IfError::Throw(mDevice->CreateComputePipelineState(&computePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
-	mPSOs["ParticleUpload"] = move(pso);
+	mPSOs["CreateParticles"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC particlePosComputePsoDesc = {};
+	particlePosComputePsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	particlePosComputePsoDesc.CachedPSO.pCachedBlob = nullptr;
+	particlePosComputePsoDesc.CS.BytecodeLength = mShaders["particlePositionCS"]->GetBufferSize();
+	particlePosComputePsoDesc.CS.pShaderBytecode = mShaders["particlePositionCS"]->GetBufferPointer();
+	particlePosComputePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	particlePosComputePsoDesc.NodeMask = 0;
+	particlePosComputePsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&particlePosComputePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["particlePosition"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC particleVelComputePsoDesc = {};
+	particleVelComputePsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	particleVelComputePsoDesc.CachedPSO.pCachedBlob = nullptr;
+	particleVelComputePsoDesc.CS.BytecodeLength = mShaders["particleVelocityCS"]->GetBufferSize();
+	particleVelComputePsoDesc.CS.pShaderBytecode = mShaders["particleVelocityCS"]->GetBufferPointer();
+	particleVelComputePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	particleVelComputePsoDesc.NodeMask = 0;
+	particleVelComputePsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&particleVelComputePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["particleVelocity"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

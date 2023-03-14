@@ -14,16 +14,17 @@ RigidBodySystem::RigidBodySystem()
 	mViewport = { 0.0f, 0.0f, 5.0f, 5.0f, 0.0f, 1.0f };
 	mScissor = { 0, 0, 5, 5 };
 
+	mDepthTexture = make_unique<TextureResource>();
+	mParticleCOMTexture = make_unique<TextureResource>();
+	mParticlePosTexture = make_unique<TextureResource>();
+	mParticleVelTexture = make_unique<TextureResource>();
 	mRigidBodyPosTexture = make_unique<TextureResource>();
 	mRigidBodyQuatTexture = make_unique<TextureResource>();
 	mRigidBodyLMTexture = make_unique<TextureResource>();
 	mRigidBodyAMTexture = make_unique<TextureResource>();
-	mParticleCOMTexture = make_unique<TextureResource>();
-	mParticlePosTexture = make_unique<TextureResource>();
-	mParticleVelTexture = make_unique<TextureResource>();
-	mDepthTexture = make_unique<TextureResource>();
 	mRigidInfos = make_unique<TextureResource>();
 	mGrid = make_unique<TextureResource>();
+	mRigidInertia = make_unique<TextureResource>();
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -34,7 +35,7 @@ RigidBodySystem::RigidBodySystem()
 		L"create dsv descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 10;
+	heapDesc.NumDescriptors = 11;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvUavHeap.GetAddressOf())),
@@ -52,60 +53,51 @@ void RigidBodySystem::Load()
 	//새롭게 생성되는 rigidbody에는 따로 처리가 필요하다.
 
 	//TextureResource에서 float을 지원하도록 수정해야함.
-	float data[256*10*2] = { 0, };
+	float pos[1000] = { 0, };
+	float quat[1000] = { 0, };
+	float lm[1000] = { 0, };
+	float am[1000] = { 0, };
 
 	for (int i = 0; i < mRigidBodies.size(); ++i)
 	{
-		int offset = i * 13;
+		int offset = i * 4;
 
 		int x = offset;
 		int y = offset + 1;
 		int z = offset + 2;
-		int qX = offset + 3;
-		int qY = offset + 4;
-		int qZ = offset + 5;
-		int qW = offset + 6;
-		int lmX = offset + 7;
-		int lmY = offset + 8;
-		int lmZ = offset + 9;
-		int amX = offset + 10;
-		int amY = offset + 11;
-		int amZ = offset + 12;
+		int w = offset + 3;
 
 		XMFLOAT3 position = mRigidBodies[i]->mModel->GetPosition();
 		XMFLOAT4 quaternion = mRigidBodies[i]->mModel->GetQuaternion();
 		XMFLOAT3 linearMomentum = mRigidBodies[i]->GetLinearMomentum();
 		XMFLOAT3 angularMomentum = mRigidBodies[i]->GetAngularMomentum();
 
-		data[x] = position.x;
-		data[y] = position.y;
-		data[z] = position.z;
-		data[qX] = quaternion.x;
-		data[qY] = quaternion.y;
-		data[qZ] = quaternion.z;
-		data[qW] = quaternion.w;
-		data[lmX] = linearMomentum.x;
-		data[lmY] = linearMomentum.y;
-		data[lmZ] = linearMomentum.z;
-		data[amX] = angularMomentum.x;
-		data[amY] = angularMomentum.y;
-		data[amZ] = angularMomentum.z;
+		pos[x] = position.x;
+		pos[y] = position.y;
+		pos[z] = position.z;
+		quat[x] = quaternion.x;
+		quat[y] = quaternion.y;
+		quat[z] = quaternion.z;
+		quat[w] = quaternion.w;
+		lm[x] = linearMomentum.x;
+		lm[y] = linearMomentum.y;
+		lm[z] = linearMomentum.z;
+		am[x] = angularMomentum.x;
+		am[y] = angularMomentum.y;
+		am[z] = angularMomentum.z;
 	}
 
-	for (int i = 0; i < 3 * mRigidBodies.size(); ++i)
-		printf("%8X\n", reinterpret_cast<UINT32&>(data[i]));
-
-	mRigidBodyPosTexture->Copy(data, 256, 256, 2, 4);
-	mRigidBodyQuatTexture;
-	mRigidBodyLMTexture;
-	mRigidBodyAMTexture;
-	mParticleCOMTexture;
-	mParticlePosTexture;
-	mParticleVelTexture;
-	mParticleCOMTexture->Create(512, 512, 2, 4, true);
+	mRigidBodyPosTexture->Copy(pos, 128,128,2,16,false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture->Copy(quat, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture->Copy(lm, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture->Copy(am, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mParticleCOMTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	mParticlePosTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	mParticleVelTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mDepthTexture->CreateDepth(5, 5, 4, 4);
-	mRigidInfos->Create(256, 3, 1, 4, true, DXGI_FORMAT_R32_UINT); //2d이기 때문에 isarray를 true로 설정한다.
+	mRigidInfos->Create(128, 3, 1, 4, true, DXGI_FORMAT_R32_UINT); //2d이기 때문에 isarray를 true로 설정한다.
 	mGrid->Create(32, 32, 32, 4,false,DXGI_FORMAT_R32_UINT);
+	mRigidInertia->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 }
 
 void RigidBodySystem::GenerateParticle()
@@ -146,25 +138,71 @@ void RigidBodySystem::GenerateParticle()
 
 
 	srvHandle.ptr += mSrvUavIncrementSize;
-	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-	uavDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-	uavDesc.Texture2DArray.ArraySize = 2;
-	uavDesc.Texture2DArray.FirstArraySlice = 0;
-	uavDesc.Texture2DArray.MipSlice = 0;
-	uavDesc.Texture2DArray.PlaneSlice = 0;
-	Pipeline::mDevice->CreateUnorderedAccessView(mParticleCOMTexture->mTexture.Get(), nullptr, &uavDesc, srvHandle);
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavComDesc = {};
+	uavComDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	uavComDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	uavComDesc.Texture2DArray.ArraySize = 2;
+	uavComDesc.Texture2DArray.FirstArraySlice = 0;
+	uavComDesc.Texture2DArray.MipSlice = 0;
+	uavComDesc.Texture2DArray.PlaneSlice = 0;
+	Pipeline::mDevice->CreateUnorderedAccessView(mParticleCOMTexture->mTexture.Get(), nullptr, &uavComDesc, srvHandle);
 
 	srvHandle.ptr += mSrvUavIncrementSize;
-	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyUavDesc = {};
-	rigidBodyUavDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	rigidBodyUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-	rigidBodyUavDesc.Texture3D.FirstWSlice = 0;
-	rigidBodyUavDesc.Texture3D.MipSlice = 0;
-	rigidBodyUavDesc.Texture3D.WSize = 2;
-	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyPosTexture->mTexture.Get(), nullptr, &rigidBodyUavDesc, srvHandle);
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavPosDesc = {};
+	uavPosDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	uavPosDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	uavPosDesc.Texture2DArray.ArraySize = 2;
+	uavPosDesc.Texture2DArray.FirstArraySlice = 0;
+	uavPosDesc.Texture2DArray.MipSlice = 0;
+	uavPosDesc.Texture2DArray.PlaneSlice = 0;
+	Pipeline::mDevice->CreateUnorderedAccessView(mParticlePosTexture->mTexture.Get(), nullptr, &uavPosDesc, srvHandle);
 
-	
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavVelDesc = {};
+	uavVelDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	uavVelDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+	uavVelDesc.Texture2DArray.ArraySize = 2;
+	uavVelDesc.Texture2DArray.FirstArraySlice = 0;
+	uavVelDesc.Texture2DArray.MipSlice = 0;
+	uavVelDesc.Texture2DArray.PlaneSlice = 0;
+	Pipeline::mDevice->CreateUnorderedAccessView(mParticleVelTexture->mTexture.Get(), nullptr, &uavVelDesc, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyPosUavDesc = {};
+	rigidBodyPosUavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyPosUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyPosUavDesc.Texture3D.FirstWSlice = 0;
+	rigidBodyPosUavDesc.Texture3D.MipSlice = 0;
+	rigidBodyPosUavDesc.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyPosTexture->mTexture.Get(), nullptr, &rigidBodyPosUavDesc, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyQuatUavDesc = {};
+	rigidBodyQuatUavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyQuatUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyQuatUavDesc.Texture3D.FirstWSlice = 0;
+	rigidBodyQuatUavDesc.Texture3D.MipSlice = 0;
+	rigidBodyQuatUavDesc.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyQuatTexture->mTexture.Get(), nullptr, &rigidBodyQuatUavDesc, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyLMUavDesc = {};
+	rigidBodyLMUavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyLMUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyLMUavDesc.Texture3D.FirstWSlice = 0;
+	rigidBodyLMUavDesc.Texture3D.MipSlice = 0;
+	rigidBodyLMUavDesc.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyLMTexture->mTexture.Get(), nullptr, &rigidBodyLMUavDesc, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyAMUavDesc = {};
+	rigidBodyAMUavDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyAMUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyAMUavDesc.Texture3D.FirstWSlice = 0;
+	rigidBodyAMUavDesc.Texture3D.MipSlice = 0;
+	rigidBodyAMUavDesc.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyAMTexture->mTexture.Get(), nullptr, &rigidBodyAMUavDesc, srvHandle);
+
 	srvHandle.ptr += mSrvUavIncrementSize;
 	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidInfosUavDesc = {};
 	rigidInfosUavDesc.Format = DXGI_FORMAT_R32_UINT;
@@ -182,20 +220,24 @@ void RigidBodySystem::GenerateParticle()
 	gridUavDesc.Texture3D.WSize = 32;
 	Pipeline::mDevice->CreateUnorderedAccessView(mGrid->mTexture.Get(), nullptr, &gridUavDesc, srvHandle);
 
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidInertiaUavDesc = {};
+	rigidInertiaUavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	rigidInertiaUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	rigidInertiaUavDesc.Texture2D.MipSlice = 0;
+	rigidInertiaUavDesc.Texture2D.PlaneSlice = 0;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidInertia->mTexture.Get(), nullptr, &rigidInertiaUavDesc, srvHandle);
 	
 	int i = -1;
 	for (auto rigidBody : mRigidBodies)
 	{
 		++i;
-		//volume과 world를 제외하도록 추가해야함.
-		//현재는 vertex buffer를 할당하지 않는 volume만 제외됨.
-		//if (rigidBody->mModel->mVertexBufferSize == 0)
-		//	continue;
 		DepthPass(rigidBody);
 		UploadParticleFromDepth(i);
+		CalculateRigidInertia(i);
 	}
-	//DepthPass(mRigidBodies[0]);
-	//UploadParticleFromDepth(0);
+	CalculateParticlePosition(mRigidBodies.size());
+	CalculateParticleVelocity(mRigidBodies.size());
 	
 }
 
@@ -248,10 +290,61 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 void RigidBodySystem::UploadParticleFromDepth(int index)
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
-	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["ParticleUpload"].Get());
-	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["ParticleUpload"].Get());
+	D3D12_RESOURCE_BARRIER barrier[2];
+	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());
+	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInertia->mTexture.Get());
+	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["CreateParticles"].Get());
+	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
 	Game::mCommandList->SetDescriptorHeaps(1,mSrvUavHeap.GetAddressOf());
 	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
 	Game::mCommandList->SetComputeRoot32BitConstant(1, index, 0);
+	/*
+	* 이전 오브젝트가 offset과 particle 개수를 모두 계산해야
+	* 다음 오브젝트가 그 결과를 이용해서 자신의 offset을 계산한다.
+	* 따라서 barrier가 필요하다.
+	*/
+	Game::mCommandList->ResourceBarrier(2,barrier);
 	Game::mCommandList->Dispatch(1,1,1);
+}
+
+void RigidBodySystem::CalculateRigidInertia(int objNum)
+{
+
+}
+
+void RigidBodySystem::CalculateParticlePosition(int objNum)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
+	D3D12_RESOURCE_BARRIER barrier[2];
+	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());
+	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mParticleCOMTexture->mTexture.Get());
+	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["particlePosition"].Get());
+	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
+	Game::mCommandList->SetDescriptorHeaps(1, mSrvUavHeap.GetAddressOf());
+	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
+	Game::mCommandList->SetComputeRoot32BitConstant(1, objNum, 0);
+	/*
+	* particle COM과, offset 계산을 모두 마친 후에 그 결과를 이용해야한다.
+	*/
+	Game::mCommandList->ResourceBarrier(2, barrier);
+	Game::mCommandList->Dispatch(1, 1, 1);
+}
+
+void RigidBodySystem::CalculateParticleVelocity(int objNum)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
+	D3D12_RESOURCE_BARRIER barrier[3];
+	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());
+	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mParticleCOMTexture->mTexture.Get());
+	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInertia->mTexture.Get());
+	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["particleVelocity"].Get());
+	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
+	Game::mCommandList->SetDescriptorHeaps(1, mSrvUavHeap.GetAddressOf());
+	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
+	Game::mCommandList->SetComputeRoot32BitConstant(1, objNum, 0);
+	/*
+	* particle COM과, offset 계산을 모두 마친 후에 그 결과를 이용해야한다.
+	*/
+	Game::mCommandList->ResourceBarrier(3, barrier);
+	Game::mCommandList->Dispatch(1, 1, 1);
 }

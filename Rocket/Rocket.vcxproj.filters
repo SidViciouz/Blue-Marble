@@ -224,5 +224,9 @@
     <FxCompile Include="DepthPeelingShader.hlsl" />
     <FxCompile Include="ParticleUploadShader.hlsl" />
     <FxCompile Include="GridShader.hlsl" />
+    <FxCompile Include="CreateParticles.hlsl" />
+    <FxCompile Include="particlePosition.hlsl" />
+    <FxCompile Include="ParticleVelocity.hlsl" />
+    <FxCompile Include="RigidInertia.hlsl" />
   </ItemGroup>
 </Project>

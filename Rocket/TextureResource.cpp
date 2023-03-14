@@ -101,8 +101,10 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	memcpy(pBegin, pData, sizeof(int) * 3000);
-
+	if(format == DXGI_FORMAT_R32G32B32A32_FLOAT)
+		memcpy(pBegin, pData, sizeof(float) * 1000);
+	else
+		memcpy(pBegin, pData, sizeof(int) * 1000);
 
 	//texture 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);

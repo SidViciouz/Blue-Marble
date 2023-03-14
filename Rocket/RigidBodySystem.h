@@ -31,7 +31,14 @@ protected:
 	unique_ptr<TextureResource>					mParticlePosTexture;
 	unique_ptr<TextureResource>					mParticleVelTexture;
 	unique_ptr<TextureResource>					mGrid;	// texture 3d array로 생성한다.
+	/*
+	* particle개수 int 1개 + 현재 rigid body의 particle offset int 1개 -> stride는 2이다.
+	*/
 	unique_ptr<TextureResource>					mRigidInfos;
+	/*
+	* initial_inertia float3 *3개 current_inertia float3 * 3개 -> stride는 6이다.
+	*/
+	unique_ptr<TextureResource>					mRigidInertia;
 
 	unique_ptr<TextureResource>					mDepthTexture;
 
@@ -51,8 +58,24 @@ protected:
 	*/
 	void										DepthPass(RigidBody* rigidBody);
 	/*
-	* depth buffer들에서 particle의 개수와 위치를 파악해서 mParticleTexture에 업로드한다.
+	* depth buffer들에서 particle의 개수와 위치를 파악해서 mParticleCOMTexture에 업로드한다.
 	*/
 	void										UploadParticleFromDepth(int index);
+	/*
+	* mRigidBodyPosTexture와 mRigidBodyQuatTexture, mParticleCOMTexture를 이용해서 particle들의 position을
+	* 계산하여, mParticlePosTexture에 저장한다.
+	*/
+	void										CalculateParticlePosition(int objNum);
+	/*
+	* mRigidBodyLMTexture와 mRigidBodyAMTexture, mParticleCOMTexture를 이용해서 particle들의 velocity를
+	* 계산하여, mParticleVelTexture에 저장한다.
+	*/
+	void										CalculateParticleVelocity(int objNum);
+	/*
+	* rigidbody의 inertia를 계산해서 mRigidInfos에 저장한다.
+	*/
+	void										CalculateRigidInertia(int objNum);
+
 };
+
 
