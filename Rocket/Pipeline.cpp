@@ -242,6 +242,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["particleVelocityCS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"RigidInertia.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["RigidInertiaCS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -610,6 +614,18 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&particleVelComputePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["particleVelocity"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC rigidInertiaComputePsoDesc = {};
+	rigidInertiaComputePsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	rigidInertiaComputePsoDesc.CachedPSO.pCachedBlob = nullptr;
+	rigidInertiaComputePsoDesc.CS.BytecodeLength = mShaders["RigidInertiaCS"]->GetBufferSize();
+	rigidInertiaComputePsoDesc.CS.pShaderBytecode = mShaders["RigidInertiaCS"]->GetBufferPointer();
+	rigidInertiaComputePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	rigidInertiaComputePsoDesc.NodeMask = 0;
+	rigidInertiaComputePsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&rigidInertiaComputePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["RigidInertia"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

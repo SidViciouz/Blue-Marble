@@ -38,8 +38,8 @@ void CS( int id : SV_GroupIndex)
 	int i = 0;
 	for (i = 0; i < objNum; ++i)
 	{
-		int particleNumIdx = 3 * i;
-		int offsetIdx = 3 * i + 1;
+		int particleNumIdx = 2 * i;
+		int offsetIdx = 2 * i + 1;
 		
 		int offset = mRigidInfos[int2(offsetIdx % 128, offsetIdx / 128)];
 		int particleNum = mRigidInfos[int2(particleNumIdx % 128, particleNumIdx / 128)];

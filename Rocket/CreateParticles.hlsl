@@ -22,7 +22,7 @@ groupshared int index = 0;
 void CS( uint3 id : SV_DispatchThreadID )
 {
 	//같은 rigidbody에 대한 particle들의 offset
-	int infoIdx = objIndex * 3 + 1;
+	int infoIdx = objIndex * 2 + 1;
 
 	if (objIndex == 0)
 	{
@@ -30,7 +30,7 @@ void CS( uint3 id : SV_DispatchThreadID )
 	}
 	else
 	{
-		int prevInfoIdx = (objIndex - 1) * 3;
+		int prevInfoIdx = (objIndex - 1) * 2;
 		InterlockedCompareStore(mRigidInfos[int2(infoIdx % 128, infoIdx / 128)], 0, mRigidInfos[int2(prevInfoIdx % 128, prevInfoIdx / 128)]
 			+ mRigidInfos[int2((prevInfoIdx + 1) % 128, (prevInfoIdx + 1) / 128)]);
 	}
@@ -64,7 +64,7 @@ void CS( uint3 id : SV_DispatchThreadID )
 					/*
 					* rigid body의 inertia_0 를 계산후 저장.
 					*/
-					int inertiaIdx = idx * 6;
+					int inertiaIdx = objIndex * 6;
 					mRigidInertia[int2(inertiaIdx % 128, inertiaIdx / 128)] += 
 						float4(coord.y*coord.y + coord.z*coord.z, -coord.x * coord.y, -coord.x * coord.z,0.0f);
 					inertiaIdx += 1;

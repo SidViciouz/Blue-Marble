@@ -309,7 +309,18 @@ void RigidBodySystem::UploadParticleFromDepth(int index)
 
 void RigidBodySystem::CalculateRigidInertia(int objNum)
 {
-
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
+	D3D12_RESOURCE_BARRIER barrier[3];
+	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());
+	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mParticleCOMTexture->mTexture.Get());
+	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInertia->mTexture.Get());
+	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["RigidInertia"].Get());
+	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
+	Game::mCommandList->SetDescriptorHeaps(1, mSrvUavHeap.GetAddressOf());
+	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
+	Game::mCommandList->SetComputeRoot32BitConstant(1, objNum, 0);
+	Game::mCommandList->ResourceBarrier(3, barrier);
+	Game::mCommandList->Dispatch(1, 1, 1);
 }
 
 void RigidBodySystem::CalculateParticlePosition(int objNum)
