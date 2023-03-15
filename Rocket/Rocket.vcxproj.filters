@@ -230,5 +230,6 @@
     <FxCompile Include="RigidInertia.hlsl" />
     <FxCompile Include="Collision.hlsl" />
     <FxCompile Include="RigidMomentum.hlsl" />
+    <FxCompile Include="RigidPosQuat.hlsl" />
   </ItemGroup>
 </Project>

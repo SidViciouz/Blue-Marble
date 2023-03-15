@@ -258,6 +258,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["RigidMomentumCS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"RigidPosQuat.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["RigidPosQuatCS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -392,7 +396,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	rootParameter[0].DescriptorTable.pDescriptorRanges = rangeCompute;
 	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
 	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameter[1].Constants.Num32BitValues = 1;
+	rootParameter[1].Constants.Num32BitValues = 2;
 	rootParameter[1].Constants.RegisterSpace = 0;
 	rootParameter[1].Constants.ShaderRegister = 0;
 
@@ -674,6 +678,18 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&rigidMomentumPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["RigidMomentum"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC rigidPosQuatPsoDesc = {};
+	rigidPosQuatPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	rigidPosQuatPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	rigidPosQuatPsoDesc.CS.BytecodeLength = mShaders["RigidPosQuatCS"]->GetBufferSize();
+	rigidPosQuatPsoDesc.CS.pShaderBytecode = mShaders["RigidPosQuatCS"]->GetBufferPointer();
+	rigidPosQuatPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	rigidPosQuatPsoDesc.NodeMask = 0;
+	rigidPosQuatPsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&rigidPosQuatPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["RigidPosQuat"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

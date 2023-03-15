@@ -253,7 +253,8 @@ void RigidBodySystem::GenerateParticle()
 	CalculateParticleVelocity(mRigidBodies.size());
 	PutParticleOnGrid(mRigidBodies.size());
 	ParticleCollision();
-	NextRigidMomentum(0.1);
+	NextRigidMomentum(0.1f);
+	NextRigidPosQuat(mRigidBodies.size(), 0.1f);
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)
@@ -423,4 +424,23 @@ void RigidBodySystem::NextRigidMomentum(float deltaTime)
 	Game::mCommandList->SetComputeRoot32BitConstant(1,reinterpret_cast<UINT&>(deltaTime), 0);
 	Game::mCommandList->ResourceBarrier(5, barrier);
 	Game::mCommandList->Dispatch(mRigidBodies.size(), 1, 1);
+}
+
+void RigidBodySystem::NextRigidPosQuat(int objNum, float deltaTime)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
+	D3D12_RESOURCE_BARRIER barrier[5];
+	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mParticlePosTexture->mTexture.Get());
+	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyLMTexture->mTexture.Get());
+	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyAMTexture->mTexture.Get());
+	barrier[3] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());
+	barrier[4] = CD3DX12_RESOURCE_BARRIER::UAV(mParticleForce->mTexture.Get());
+	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["RigidPosQuat"].Get());
+	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
+	Game::mCommandList->SetDescriptorHeaps(1, mSrvUavHeap.GetAddressOf());
+	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
+	Game::mCommandList->SetComputeRoot32BitConstant(1, objNum, 0);
+	Game::mCommandList->SetComputeRoot32BitConstant(1, reinterpret_cast<UINT&>(deltaTime), 1);
+	Game::mCommandList->ResourceBarrier(5, barrier);
+	Game::mCommandList->Dispatch(1, 1, 1);
 }

@@ -91,6 +91,10 @@ protected:
 	* particle마다 작용하는 force를 이용해서 rigidBody의 next linear, angular momentum을 계산한다.
 	*/
 	void										NextRigidMomentum(float deltaTime);
+	/*
+	* rigid body의 linear, angular momentum을 이용해서 rigid body의 position과 quaternion을 계산한다.
+	*/
+	void										NextRigidPosQuat(int objNum,float deltaTime);
 };
 
 
