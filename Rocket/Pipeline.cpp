@@ -246,6 +246,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["RigidInertiaCS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"GridShader.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["GridShaderCS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -626,6 +630,18 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&rigidInertiaComputePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["RigidInertia"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC gridComputePsoDesc = {};
+	gridComputePsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	gridComputePsoDesc.CachedPSO.pCachedBlob = nullptr;
+	gridComputePsoDesc.CS.BytecodeLength = mShaders["GridShaderCS"]->GetBufferSize();
+	gridComputePsoDesc.CS.pShaderBytecode = mShaders["GridShaderCS"]->GetBufferPointer();
+	gridComputePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	gridComputePsoDesc.NodeMask = 0;
+	gridComputePsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&gridComputePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["GridShader"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

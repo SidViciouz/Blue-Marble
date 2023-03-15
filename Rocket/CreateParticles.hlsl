@@ -52,8 +52,11 @@ void CS( uint3 id : SV_DispatchThreadID )
 		{
 			bool locked = true;
 			int original = 1;
-			float4 coord = float4((float)id.x / 4.0f, (float)id.y / 4.0f, j*2.0f-1.0f,0.0f);
-
+			/*
+			* x in [-2,2], y in [-2,2], z in [-2,2]
+			*/
+			float4 coord = float4((float)id.x - 2.0f, (float)id.y - 2.0f, j*4.0f-2.0f,0.0f);
+			
 			while (locked)
 			{
 				InterlockedCompareExchange(mutex, 0, 1, original);

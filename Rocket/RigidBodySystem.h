@@ -75,6 +75,10 @@ protected:
 	* rigidbody의 inertia를 계산해서 mRigidInfos에 저장한다.
 	*/
 	void										CalculateRigidInertia(int objNum);
+	/*
+	* particle들을 grid에 올린다.
+	*/
+	void										PutParticleOnGrid(int objNum);
 
 };
 
