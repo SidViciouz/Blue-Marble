@@ -47,9 +47,9 @@ void CS( int id : SV_GroupIndex)
 
 	float4 position = particlePosMap.Load(int4(particleIdxX, particleIdxY, 0, 0));
 	//
-	position.x += 5.0f;
-	position.y += 5.0f;
-	position.z += 5.0f;
+	//position.x += 5.0f;
+	//position.y += 5.0f;
+	//position.z += 5.0f;
 	//
 	int3 integerPosition = int3((int)position.x, (int)position.y, (int)position.z);
 

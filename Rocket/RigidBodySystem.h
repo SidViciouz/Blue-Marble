@@ -39,6 +39,10 @@ protected:
 	* initial_inertia float3 *3개 current_inertia float3 * 3개 -> stride는 6이다.
 	*/
 	unique_ptr<TextureResource>					mRigidInertia;
+	/*
+	* 각 particle에 작용하는 force를 저장하는 텍스처이다.
+	*/
+	unique_ptr<TextureResource>					mParticleForce;
 
 	unique_ptr<TextureResource>					mDepthTexture;
 
@@ -79,7 +83,10 @@ protected:
 	* particle들을 grid에 올린다.
 	*/
 	void										PutParticleOnGrid(int objNum);
-
+	/*
+	* collision을 적용한다.
+	*/
+	void										ParticleCollision();
 };
 
 

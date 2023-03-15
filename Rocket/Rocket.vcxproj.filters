@@ -228,5 +228,6 @@
     <FxCompile Include="particlePosition.hlsl" />
     <FxCompile Include="ParticleVelocity.hlsl" />
     <FxCompile Include="RigidInertia.hlsl" />
+    <FxCompile Include="Collision.hlsl" />
   </ItemGroup>
 </Project>

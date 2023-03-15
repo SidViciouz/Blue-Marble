@@ -250,6 +250,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["GridShaderCS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"Collision.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["CollisionCS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -373,7 +377,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	rangeCompute[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangeCompute[0].RegisterSpace = 0;
 	rangeCompute[1].BaseShaderRegister = 0;
-	rangeCompute[1].NumDescriptors = 10;
+	rangeCompute[1].NumDescriptors = 11;
 	rangeCompute[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeCompute[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	rangeCompute[1].RegisterSpace = 0;
@@ -642,6 +646,18 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&gridComputePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["GridShader"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC collisionPsoDesc = {};
+	collisionPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	collisionPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	collisionPsoDesc.CS.BytecodeLength = mShaders["CollisionCS"]->GetBufferSize();
+	collisionPsoDesc.CS.pShaderBytecode = mShaders["CollisionCS"]->GetBufferPointer();
+	collisionPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	collisionPsoDesc.NodeMask = 0;
+	collisionPsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&collisionPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["Collision"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

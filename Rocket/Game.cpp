@@ -410,11 +410,11 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 	if (sceneIndex == 0)
 	{
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks1.dds");
-		m->SetPosition(0.0f, 0.0f, 0.0f);
+		m->SetPosition(5.0f, 3.0f, 3.0f);
 		(*model)["table"] = move(m);
 
 		m = make_shared<Clickable>("../Model/sword.obj", L"../Model/textures/bricks2.dds");
-		m->SetPosition(-3.0f, 0.0f, 0.0f);
+		m->SetPosition(2.0f, 0.0f, 0.0f);
 		m->mScale = { 0.1f,0.1f,0.1f };
 		(*model)["sword"] = move(m);
 

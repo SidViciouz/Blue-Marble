@@ -25,6 +25,7 @@ RigidBodySystem::RigidBodySystem()
 	mRigidInfos = make_unique<TextureResource>();
 	mGrid = make_unique<TextureResource>();
 	mRigidInertia = make_unique<TextureResource>();
+	mParticleForce = make_unique<TextureResource>();
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -35,7 +36,7 @@ RigidBodySystem::RigidBodySystem()
 		L"create dsv descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 11;
+	heapDesc.NumDescriptors = 12;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvUavHeap.GetAddressOf())),
@@ -101,6 +102,7 @@ void RigidBodySystem::Load()
 	*/
 	mGrid->Create(32, 32, 32, 8, false, DXGI_FORMAT_R16G16B16A16_UINT);
 	mRigidInertia->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	mParticleForce->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 }
 
 void RigidBodySystem::GenerateParticle()
@@ -230,6 +232,14 @@ void RigidBodySystem::GenerateParticle()
 	rigidInertiaUavDesc.Texture2D.MipSlice = 0;
 	rigidInertiaUavDesc.Texture2D.PlaneSlice = 0;
 	Pipeline::mDevice->CreateUnorderedAccessView(mRigidInertia->mTexture.Get(), nullptr, &rigidInertiaUavDesc, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC particleForceUavDesc = {};
+	particleForceUavDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	particleForceUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+	particleForceUavDesc.Texture2D.MipSlice = 0;
+	particleForceUavDesc.Texture2D.PlaneSlice = 0;
+	Pipeline::mDevice->CreateUnorderedAccessView(mParticleForce->mTexture.Get(), nullptr, &particleForceUavDesc, srvHandle);
 	
 	int i = -1;
 	for (auto rigidBody : mRigidBodies)
@@ -242,6 +252,7 @@ void RigidBodySystem::GenerateParticle()
 	CalculateParticlePosition(mRigidBodies.size());
 	CalculateParticleVelocity(mRigidBodies.size());
 	PutParticleOnGrid(mRigidBodies.size());
+	ParticleCollision();
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)
@@ -378,4 +389,19 @@ void RigidBodySystem::PutParticleOnGrid(int objNum)
 	Game::mCommandList->SetComputeRoot32BitConstant(1, objNum, 0);
 	Game::mCommandList->ResourceBarrier(4, barrier);
 	Game::mCommandList->Dispatch(1, 1, 1);
+}
+
+void RigidBodySystem::ParticleCollision()
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
+	D3D12_RESOURCE_BARRIER barrier[3];
+	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mParticleVelTexture->mTexture.Get());
+	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mParticlePosTexture->mTexture.Get());
+	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mGrid->mTexture.Get());
+	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["Collision"].Get());
+	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
+	Game::mCommandList->SetDescriptorHeaps(1, mSrvUavHeap.GetAddressOf());
+	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
+	Game::mCommandList->ResourceBarrier(3, barrier);
+	Game::mCommandList->Dispatch(32, 1, 1);
 }
