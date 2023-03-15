@@ -254,6 +254,10 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["CollisionCS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"RigidMomentum.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["RigidMomentumCS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -658,6 +662,18 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&collisionPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["Collision"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC rigidMomentumPsoDesc = {};
+	rigidMomentumPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	rigidMomentumPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	rigidMomentumPsoDesc.CS.BytecodeLength = mShaders["RigidMomentumCS"]->GetBufferSize();
+	rigidMomentumPsoDesc.CS.pShaderBytecode = mShaders["RigidMomentumCS"]->GetBufferPointer();
+	rigidMomentumPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	rigidMomentumPsoDesc.NodeMask = 0;
+	rigidMomentumPsoDesc.pRootSignature = mRootSignatures["CreateParticles"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&rigidMomentumPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["RigidMomentum"] = move(pso);
 }
 
 void Pipeline::SetViewportAndScissor()

@@ -87,6 +87,10 @@ protected:
 	* collision을 적용한다.
 	*/
 	void										ParticleCollision();
+	/*
+	* particle마다 작용하는 force를 이용해서 rigidBody의 next linear, angular momentum을 계산한다.
+	*/
+	void										NextRigidMomentum(float deltaTime);
 };
 
 
