@@ -65,31 +65,10 @@ float3x3 GetRotationMatrixFromQuaternion(float4 Q)
 [numthreads(1024, 1, 1)]
 void CS(int id : SV_GroupIndex)
 {
-
-	int rigidBodyIndex = -1;
-
-	int particleIdxX = id % 128;
-	int particleIdxY = id / 128;
-
-	int i = 0;
-	for (i = 0; i < objNum; ++i)
-	{
-		int particleNumIdx = 2 * i;
-		int offsetIdx = 2 * i + 1;
-
-		int offset = mRigidInfos[int2(offsetIdx % 128, offsetIdx / 128)];
-		int particleNum = mRigidInfos[int2(particleNumIdx % 128, particleNumIdx / 128)];
-
-		if (offset <= id && id < offset + particleNum)
-		{
-			rigidBodyIndex = i;
-			break;
-		}
-	}
-
-	if (i >= objNum)
+	if (id >= objNum)
 		return;
 
+	int rigidBodyIndex = id;
 
 	int inertiaIdx = rigidBodyIndex * 6;
 	float3 inertia0 = rigidInertia.Load(int3(inertiaIdx % 128, inertiaIdx / 128, 0)).xyz;

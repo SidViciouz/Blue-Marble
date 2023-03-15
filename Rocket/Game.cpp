@@ -454,6 +454,7 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 			ChangeScene(0);
 		});
 		(*model)["button"] = move(b);
+
 	}
 
 	return move(model);
