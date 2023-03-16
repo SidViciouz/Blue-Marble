@@ -10,7 +10,7 @@ int CalculateAlignment(int value, int alignment)
 }
 
 //한번만 호출해야한다.
-void TextureResource::Copy(void* pData, int width, int height, int elementByte, DXGI_FORMAT format)
+void TextureResource::CopyCreate(void* pData, int width, int height, int elementByte, DXGI_FORMAT format)
 {
 	//upload buffer 생성하는 부분
 
@@ -28,7 +28,6 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte, 
 	range.Begin = 0;
 	range.End = 0;
 
-	void* pDataBegin;
 	UINT8* pBegin;
 
 	mUploadBuffer->Map(0, &range, &pDataBegin);
@@ -72,11 +71,11 @@ void TextureResource::Copy(void* pData, int width, int height, int elementByte, 
 	Game::mCommandList->ResourceBarrier(1, &b);
 
 	//cpu virtual memory address unmap하는 부분
-	mUploadBuffer->Unmap(0, nullptr);
+	//mUploadBuffer->Unmap(0, nullptr);
 }
 
 //한번만 호출해야한다.
-void TextureResource::Copy(void* pData, int width, int height, int depth, int elementByte, bool isArray, DXGI_FORMAT format)
+void TextureResource::CopyCreate(void* pData, int width, int height, int depth, int elementByte, bool isArray, DXGI_FORMAT format)
 {
 	//upload buffer 생성하는 부분
 
@@ -94,7 +93,6 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	range.Begin = 0;
 	range.End = 0;
 
-	void* pDataBegin;
 	UINT8* pBegin;
 
 	mUploadBuffer->Map(0, &range, &pDataBegin);
@@ -144,7 +142,59 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	Game::mCommandList->ResourceBarrier(1, &b);
 
 	//cpu virtual memory address unmap하는 부분
-	mUploadBuffer->Unmap(0, nullptr);
+	//mUploadBuffer->Unmap(0, nullptr);
+}
+
+void TextureResource::Copy(void* pData, int width, int height, int depth, int elementByte, DXGI_FORMAT format)
+{
+	D3D12_RANGE range = {};
+	range.Begin = 0;
+	range.End = 0;
+
+	UINT8* pBegin;
+
+	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
+
+	/*
+	* 1000*sizeof()만큼 데이터를 카피하는 것에서
+	* 256바이트씩 align된 형태로 카피하는 것으로 수정해야함.
+	*/
+	if (format == DXGI_FORMAT_R32G32B32A32_FLOAT)
+		memcpy(pBegin, pData, sizeof(float) * 1000);
+	else
+		memcpy(pBegin, pData, sizeof(int) * 1000);
+
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint = {};
+	footPrint.Offset = 0;
+	footPrint.Footprint.Depth = depth;
+	footPrint.Footprint.Format = format;
+	footPrint.Footprint.Height = height;
+	footPrint.Footprint.Width = width;
+	footPrint.Footprint.RowPitch = CalculateAlignment(width * elementByte, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+
+	D3D12_TEXTURE_COPY_LOCATION tl = CD3DX12_TEXTURE_COPY_LOCATION(mTexture.Get(), 0);
+	D3D12_TEXTURE_COPY_LOCATION ubl = CD3DX12_TEXTURE_COPY_LOCATION(mUploadBuffer.Get(), footPrint);
+
+	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+		D3D12_RESOURCE_STATE_COPY_DEST);
+	Game::mCommandList->ResourceBarrier(1, &b);
+
+	Game::mCommandList->CopyTextureRegion(
+		&tl,
+		0, 0, 0,
+		&ubl,
+		nullptr
+	);
+
+	b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	Game::mCommandList->ResourceBarrier(1, &b);
+}
+
+void TextureResource::Readback()
+{
+
 }
 
 void TextureResource::CreateDepth(int width, int height, int depth, int elementByte)

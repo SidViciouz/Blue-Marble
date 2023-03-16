@@ -88,10 +88,10 @@ void RigidBodySystem::Load()
 		am[z] = angularMomentum.z;
 	}
 
-	mRigidBodyPosTexture->Copy(pos, 128,128,2,16,false, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyQuatTexture->Copy(quat, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyLMTexture->Copy(lm, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyAMTexture->Copy(am, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyPosTexture->CopyCreate(pos, 128,128,2,16,false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture->CopyCreate(quat, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture->CopyCreate(lm, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture->CopyCreate(am, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
 	mParticleCOMTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mParticlePosTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mParticleVelTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
@@ -323,6 +323,49 @@ void RigidBodySystem::UploadParticleFromDepth(int index)
 	Game::mCommandList->Dispatch(1,1,1);
 }
 
+void RigidBodySystem::UploadRigidBody()
+{
+
+	float pos[1000] = { 0, };
+	float quat[1000] = { 0, };
+	float lm[1000] = { 0, };
+	float am[1000] = { 0, };
+
+	for (int i = 0; i < mRigidBodies.size(); ++i)
+	{
+		int offset = i * 4;
+
+		int x = offset;
+		int y = offset + 1;
+		int z = offset + 2;
+		int w = offset + 3;
+
+		XMFLOAT3 position = mRigidBodies[i]->mModel->GetPosition();
+		XMFLOAT4 quaternion = mRigidBodies[i]->mModel->GetQuaternion();
+		XMFLOAT3 linearMomentum = mRigidBodies[i]->GetLinearMomentum();
+		XMFLOAT3 angularMomentum = mRigidBodies[i]->GetAngularMomentum();
+
+		pos[x] = position.x;
+		pos[y] = position.y;
+		pos[z] = position.z;
+		quat[x] = quaternion.x;
+		quat[y] = quaternion.y;
+		quat[z] = quaternion.z;
+		quat[w] = quaternion.w;
+		lm[x] = linearMomentum.x;
+		lm[y] = linearMomentum.y;
+		lm[z] = linearMomentum.z;
+		am[x] = angularMomentum.x;
+		am[y] = angularMomentum.y;
+		am[z] = angularMomentum.z;
+	}
+
+	mRigidBodyPosTexture->Copy(pos, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture->Copy(quat, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture->Copy(lm, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture->Copy(am, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+}
+
 void RigidBodySystem::CalculateRigidInertia(int objNum)
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
@@ -446,4 +489,9 @@ void RigidBodySystem::NextRigidPosQuat(int objNum, float deltaTime)
 	Game::mCommandList->SetComputeRoot32BitConstant(1, reinterpret_cast<UINT&>(deltaTime), 1);
 	Game::mCommandList->ResourceBarrier(8, barrier);
 	Game::mCommandList->Dispatch(1, 1, 1);
+}
+
+void RigidBodySystem::UpdateRigidBody()
+{
+
 }

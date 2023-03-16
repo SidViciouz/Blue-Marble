@@ -606,7 +606,17 @@ void Game::Draw()
 		L"frame command allocator reset error!");
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
-
+	//
+	mRigidBodySystem->UploadRigidBody();
+	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
+	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
+	mRigidBodySystem->CalculateParticleVelocity(RigidBodySystem::mRigidBodies.size());
+	mRigidBodySystem->PutParticleOnGrid(RigidBodySystem::mRigidBodies.size());
+	mRigidBodySystem->ParticleCollision();
+	mRigidBodySystem->NextRigidMomentum(0.1f);
+	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), 0.1f);
+	mRigidBodySystem->UpdateRigidBody();
+	//
 	mScenes[mCurrentScene]->Spawn();
 
 	if (!mScenes[mCurrentScene]->IsDestroyQueueEmpty())

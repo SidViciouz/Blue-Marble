@@ -21,6 +21,52 @@ public:
 
 
 	static vector<RigidBody*>					mRigidBodies;
+	/*
+	* 입력된 rigidBody에 대한 depth peeling을 통해 4개의 depth buffer에 깊이 값들을 만든다.
+	*/
+	void										DepthPass(RigidBody* rigidBody);
+	/*
+	* depth buffer들에서 particle의 개수와 위치를 파악해서 mParticleCOMTexture에 업로드한다.
+	*/
+	void										UploadParticleFromDepth(int index);
+	/*
+	* rigid body의 위치와 쿼터니언, 선운동량과 각운동량을 업로드한다.
+	*/
+	void										UploadRigidBody();
+	/*
+	* mRigidBodyPosTexture와 mRigidBodyQuatTexture, mParticleCOMTexture를 이용해서 particle들의 position을
+	* 계산하여, mParticlePosTexture에 저장한다.
+	*/
+	void										CalculateParticlePosition(int objNum);
+	/*
+	* mRigidBodyLMTexture와 mRigidBodyAMTexture, mParticleCOMTexture를 이용해서 particle들의 velocity를
+	* 계산하여, mParticleVelTexture에 저장한다.
+	*/
+	void										CalculateParticleVelocity(int objNum);
+	/*
+	* rigidbody의 inertia를 계산해서 mRigidInfos에 저장한다.
+	*/
+	void										CalculateRigidInertia(int objNum);
+	/*
+	* particle들을 grid에 올린다.
+	*/
+	void										PutParticleOnGrid(int objNum);
+	/*
+	* collision을 적용한다.
+	*/
+	void										ParticleCollision();
+	/*
+	* particle마다 작용하는 force를 이용해서 rigidBody의 next linear, angular momentum을 계산한다.
+	*/
+	void										NextRigidMomentum(float deltaTime);
+	/*
+	* rigid body의 linear, angular momentum을 이용해서 rigid body의 position과 quaternion을 계산한다.
+	*/
+	void										NextRigidPosQuat(int objNum,float deltaTime);
+	/*
+	* 계산된 rigidbody의 위치,쿼터니언,선운동량과 각운동량을 cpu의 rigidbody에 업데이트한다.
+	*/
+	void										UpdateRigidBody();
 
 protected:
 	unique_ptr<TextureResource>					mRigidBodyPosTexture; //texture 2d array로 uav를 생성한다. (write용, read용이 필요하기 때문이다.)
@@ -57,44 +103,6 @@ protected:
 
 	int											mCurrentTexture = 0;
 
-	/*
-	* 입력된 rigidBody에 대한 depth peeling을 통해 4개의 depth buffer에 깊이 값들을 만든다.
-	*/
-	void										DepthPass(RigidBody* rigidBody);
-	/*
-	* depth buffer들에서 particle의 개수와 위치를 파악해서 mParticleCOMTexture에 업로드한다.
-	*/
-	void										UploadParticleFromDepth(int index);
-	/*
-	* mRigidBodyPosTexture와 mRigidBodyQuatTexture, mParticleCOMTexture를 이용해서 particle들의 position을
-	* 계산하여, mParticlePosTexture에 저장한다.
-	*/
-	void										CalculateParticlePosition(int objNum);
-	/*
-	* mRigidBodyLMTexture와 mRigidBodyAMTexture, mParticleCOMTexture를 이용해서 particle들의 velocity를
-	* 계산하여, mParticleVelTexture에 저장한다.
-	*/
-	void										CalculateParticleVelocity(int objNum);
-	/*
-	* rigidbody의 inertia를 계산해서 mRigidInfos에 저장한다.
-	*/
-	void										CalculateRigidInertia(int objNum);
-	/*
-	* particle들을 grid에 올린다.
-	*/
-	void										PutParticleOnGrid(int objNum);
-	/*
-	* collision을 적용한다.
-	*/
-	void										ParticleCollision();
-	/*
-	* particle마다 작용하는 force를 이용해서 rigidBody의 next linear, angular momentum을 계산한다.
-	*/
-	void										NextRigidMomentum(float deltaTime);
-	/*
-	* rigid body의 linear, angular momentum을 이용해서 rigid body의 position과 quaternion을 계산한다.
-	*/
-	void										NextRigidPosQuat(int objNum,float deltaTime);
 };
 
 
