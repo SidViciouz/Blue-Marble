@@ -3,10 +3,19 @@
 #include "IfError.h"
 #include "Game.h"
 
+
 int CalculateAlignment(int value, int alignment)
 {
 	//alignment가 2의 거듭제곱이여야한다.
 	return (value + alignment - 1) & ~(alignment - 1);
+}
+
+TextureResource::~TextureResource()
+{
+	if(mUploadBuffer != nullptr)
+		mUploadBuffer->Unmap(0, nullptr);
+	if(mReadbackBuffer != nullptr)
+		mReadbackBuffer->Unmap(0, nullptr);
 }
 
 //한번만 호출해야한다.
@@ -30,12 +39,23 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 
 	UINT8* pBegin;
 
-	mUploadBuffer->Map(0, &range, &pDataBegin);
+	IfError::Throw(mUploadBuffer->Map(0, &range, &pDataBegin),
+		L"map to upload buffer error!");
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	memcpy(pBegin, pData, sizeof(int) * 11);
+	memcpy(pBegin, pData, sizeof(int) * 1000);
 
+	//readback buffer 생성하는 부분
+	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
+	rd = CD3DX12_RESOURCE_DESC::Buffer((UINT64)bufferSizeInBytes);
+	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+		&hp, D3D12_HEAP_FLAG_NONE,
+		&rd, D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr, IID_PPV_ARGS(mReadbackBuffer.GetAddressOf())
+	),
+		L"create readback buffer for texture resource error!"
+	);
 
 	//texture 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -95,7 +115,8 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 
 	UINT8* pBegin;
 
-	mUploadBuffer->Map(0, &range, &pDataBegin);
+	IfError::Throw(mUploadBuffer->Map(0, &range, &pDataBegin),
+		L"map to upload buffer error!");
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
@@ -103,6 +124,25 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 		memcpy(pBegin, pData, sizeof(float) * 1000);
 	else
 		memcpy(pBegin, pData, sizeof(int) * 1000);
+
+	//readback buffer 생성하는 부분
+
+	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
+	rd = CD3DX12_RESOURCE_DESC::Buffer((UINT64)bufferSizeInBytes);
+	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+		&hp,D3D12_HEAP_FLAG_NONE,
+		&rd,D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr, IID_PPV_ARGS(mReadbackBuffer.GetAddressOf())
+		),
+		L"create readback buffer for texture resource error!"
+	);
+
+	D3D12_RANGE readbackRange = {};
+	readbackRange.Begin = 0;
+	readbackRange.End = bufferSizeInBytes;
+
+	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, reinterpret_cast<void**>(pReadbackDataBegin)),
+		L"map to read back buffer error!");
 
 	//texture 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -192,9 +232,33 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	Game::mCommandList->ResourceBarrier(1, &b);
 }
 
-void TextureResource::Readback()
+void TextureResource::Readback(void* pData, int width, int height, int depth, int elementByte, DXGI_FORMAT format)
 {
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint = {};
+	footPrint.Offset = 0;
+	footPrint.Footprint.Depth = depth;
+	footPrint.Footprint.Format = format;
+	footPrint.Footprint.Height = height;
+	footPrint.Footprint.Width = width;
+	footPrint.Footprint.RowPitch = CalculateAlignment(width * elementByte, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
+	D3D12_TEXTURE_COPY_LOCATION tl = CD3DX12_TEXTURE_COPY_LOCATION(mTexture.Get(), 0);
+	D3D12_TEXTURE_COPY_LOCATION rbbl = CD3DX12_TEXTURE_COPY_LOCATION(mReadbackBuffer.Get(), footPrint);
+
+	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,D3D12_RESOURCE_STATE_COPY_SOURCE);
+	Game::mCommandList->ResourceBarrier(1, &b);
+
+	Game::mCommandList->CopyTextureRegion(
+		&rbbl,
+		0, 0, 0,
+		&tl,
+		nullptr
+	);
+
+	b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	Game::mCommandList->ResourceBarrier(1, &b);
+	
+	//Game::mCommandList->CopyResource(mReadbackBuffer.Get(), mTexture.Get());
 }
 
 void TextureResource::CreateDepth(int width, int height, int depth, int elementByte)

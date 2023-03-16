@@ -6,6 +6,7 @@ class TextureResource
 {
 public:
 												TextureResource() = default;
+												~TextureResource();
 												TextureResource(const TextureResource& t) = delete;
 												TextureResource(TextureResource&& t) = delete;
 	TextureResource&							operator=(const TextureResource& t) = delete;
@@ -26,7 +27,7 @@ public:
 	/*
 	* 텍스처의 데이터를 Readback buffer로 카피한다.
 	*/
-	void										Readback();
+	void										Readback(void* pData, int width, int height, int depth, int elementByte, DXGI_FORMAT format = DXGI_FORMAT_R32_FLOAT);
 	void										CreateDepth(int width, int height, int depth, int elementByte);
 	void										Create(int width, int height, int depth, int elementByte, bool isArray = false, DXGI_FORMAT format = DXGI_FORMAT_R32_FLOAT);
 
@@ -36,4 +37,5 @@ public:
 	
 protected:
 	void*										pDataBegin;
+	float*										pReadbackDataBegin;
 };

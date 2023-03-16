@@ -493,5 +493,8 @@ void RigidBodySystem::NextRigidPosQuat(int objNum, float deltaTime)
 
 void RigidBodySystem::UpdateRigidBody()
 {
-
+	mRigidBodyPosTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
 }
