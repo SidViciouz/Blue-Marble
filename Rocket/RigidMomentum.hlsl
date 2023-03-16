@@ -10,6 +10,10 @@ RWTexture2D<int> mRigidInfos : register(u7);
 
 RWTexture2D<float4> ForceMap : register(u10);
 
+RWTexture3D<float4> rigidLMWriteMap : register(u13);
+
+RWTexture3D<float4> rigidAMWriteMap : register(u14);
+
 cbuffer constant : register(b0)
 {
 	float deltaTime;
@@ -64,9 +68,9 @@ void CS( uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 			* force에 deltaTime을 곱해서 운동량을 얻는다.
 			*/
 			//linearForce += force;
-			rigidLMMap[int3(groupId.x % 128, groupId.x / 128, 1)] += float4(force, 0.0f) * deltaTime;
+			rigidLMWriteMap[int3(groupId.x % 128, groupId.x / 128, 0)] += float4(force, 0.0f) * deltaTime;
 			//angularForce += angularForce;
-			rigidAMMap[int3(groupId.x % 128, groupId.x / 128, 1)] += float4(angularForce, 0.0f) * deltaTime;
+			rigidAMWriteMap[int3(groupId.x % 128, groupId.x / 128, 0)] += float4(angularForce, 0.0f) * deltaTime;
 			locked = false;
 			InterlockedCompareExchange(mutex, 1, 0, original);
 		}

@@ -385,7 +385,7 @@ void Pipeline::CreateShaderAndRootSignature()
 	rangeCompute[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangeCompute[0].RegisterSpace = 0;
 	rangeCompute[1].BaseShaderRegister = 0;
-	rangeCompute[1].NumDescriptors = 11;
+	rangeCompute[1].NumDescriptors = 15;
 	rangeCompute[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeCompute[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	rangeCompute[1].RegisterSpace = 0;

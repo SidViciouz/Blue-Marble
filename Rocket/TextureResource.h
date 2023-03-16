@@ -36,6 +36,6 @@ public:
 	ComPtr<ID3D12Resource>						mReadbackBuffer;
 	
 protected:
+	void*										pReadbackDataBegin;
 	void*										pDataBegin;
-	float*										pReadbackDataBegin;
 };

@@ -9,7 +9,7 @@ RWTexture2D<float4> ForceMap : register(u10);
 float3 Repulsive(in int particleIdx,in int nParticleIdx)
 {
 	float3 force = 0.0f;
-	float springC = 300.0f;
+	float springC = 3.0f;
 	float diameter = 1.0f;
 	float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
 	float3 nParticlePos = particlePosMap.Load(int4(nParticleIdx % 128, nParticleIdx / 128, 0, 0)).xyz;

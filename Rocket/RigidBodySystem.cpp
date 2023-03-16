@@ -26,12 +26,11 @@ RigidBodySystem::RigidBodySystem()
 	mGrid = make_unique<TextureResource>();
 	mRigidInertia = make_unique<TextureResource>();
 	mParticleForce = make_unique<TextureResource>();
-	/*
 	mRigidBodyPosTexture2 = make_unique<TextureResource>();
 	mRigidBodyQuatTexture2 = make_unique<TextureResource>();
 	mRigidBodyLMTexture2 = make_unique<TextureResource>();
 	mRigidBodyAMTexture2 = make_unique<TextureResource>();
-	*/
+	
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -42,7 +41,7 @@ RigidBodySystem::RigidBodySystem()
 		L"create dsv descriptor heap in rigid body system error!");
 
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	heapDesc.NumDescriptors = 12;
+	heapDesc.NumDescriptors = 16;
 	heapDesc.NodeMask = 0;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvUavHeap.GetAddressOf())),
@@ -109,12 +108,12 @@ void RigidBodySystem::Load()
 	mGrid->Create(32, 32, 32, 8, false, DXGI_FORMAT_R16G16B16A16_UINT);
 	mRigidInertia->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mParticleForce->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
-	/*
+	
 	mRigidBodyPosTexture2->CopyCreate(pos, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
 	mRigidBodyQuatTexture2->CopyCreate(quat, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
 	mRigidBodyLMTexture2->CopyCreate(lm, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
 	mRigidBodyAMTexture2->CopyCreate(am, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	*/
+	
 }
 
 void RigidBodySystem::GenerateParticle()
@@ -252,7 +251,7 @@ void RigidBodySystem::GenerateParticle()
 	particleForceUavDesc.Texture2D.MipSlice = 0;
 	particleForceUavDesc.Texture2D.PlaneSlice = 0;
 	Pipeline::mDevice->CreateUnorderedAccessView(mParticleForce->mTexture.Get(), nullptr, &particleForceUavDesc, srvHandle);
-	/*
+	
 	srvHandle.ptr += mSrvUavIncrementSize;
 	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyPosUavDesc2 = {};
 	rigidBodyPosUavDesc2.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -288,7 +287,7 @@ void RigidBodySystem::GenerateParticle()
 	rigidBodyAMUavDesc2.Texture3D.MipSlice = 0;
 	rigidBodyAMUavDesc2.Texture3D.WSize = 2;
 	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyAMTexture2->mTexture.Get(), nullptr, &rigidBodyAMUavDesc2, srvHandle);
-	*/
+	
 	int i = -1;
 	for (auto rigidBody : mRigidBodies)
 	{
@@ -502,25 +501,27 @@ void RigidBodySystem::ParticleCollision()
 void RigidBodySystem::NextRigidMomentum(float deltaTime)
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
-	D3D12_RESOURCE_BARRIER barrier[5];
+	D3D12_RESOURCE_BARRIER barrier[7];
 	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mParticlePosTexture->mTexture.Get());
 	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyLMTexture->mTexture.Get());
 	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyAMTexture->mTexture.Get());
 	barrier[3] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());
 	barrier[4] = CD3DX12_RESOURCE_BARRIER::UAV(mParticleForce->mTexture.Get());
+	barrier[5] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyLMTexture2->mTexture.Get());
+	barrier[6] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyAMTexture2->mTexture.Get());
 	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["RigidMomentum"].Get());
 	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
 	Game::mCommandList->SetDescriptorHeaps(1, mSrvUavHeap.GetAddressOf());
 	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
 	Game::mCommandList->SetComputeRoot32BitConstant(1,reinterpret_cast<UINT&>(deltaTime), 0);
-	Game::mCommandList->ResourceBarrier(5, barrier);
+	Game::mCommandList->ResourceBarrier(7, barrier);
 	Game::mCommandList->Dispatch(mRigidBodies.size(), 1, 1);
 }
 
 void RigidBodySystem::NextRigidPosQuat(int objNum, float deltaTime)
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
-	D3D12_RESOURCE_BARRIER barrier[8];
+	D3D12_RESOURCE_BARRIER barrier[10];
 	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mParticlePosTexture->mTexture.Get());
 	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyLMTexture->mTexture.Get());
 	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyAMTexture->mTexture.Get());
@@ -529,13 +530,15 @@ void RigidBodySystem::NextRigidPosQuat(int objNum, float deltaTime)
 	barrier[5] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInertia->mTexture.Get());
 	barrier[6] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyPosTexture->mTexture.Get());
 	barrier[7] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyQuatTexture->mTexture.Get());
+	barrier[8] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyPosTexture2->mTexture.Get());
+	barrier[9] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyQuatTexture2->mTexture.Get());
 	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["RigidPosQuat"].Get());
 	Game::mCommandList->SetComputeRootSignature(Pipeline::mRootSignatures["CreateParticles"].Get());
 	Game::mCommandList->SetDescriptorHeaps(1, mSrvUavHeap.GetAddressOf());
 	Game::mCommandList->SetComputeRootDescriptorTable(0, handle);
 	Game::mCommandList->SetComputeRoot32BitConstant(1, objNum, 0);
 	Game::mCommandList->SetComputeRoot32BitConstant(1, reinterpret_cast<UINT&>(deltaTime), 1);
-	Game::mCommandList->ResourceBarrier(8, barrier);
+	Game::mCommandList->ResourceBarrier(10, barrier);
 	Game::mCommandList->Dispatch(1, 1, 1);
 }
 
@@ -546,10 +549,10 @@ void RigidBodySystem::UpdateRigidBody()
 	float lm[1000] = { 0, };
 	float am[1000] = { 0, };
 
-	mRigidBodyPosTexture->Readback(pos, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyQuatTexture->Readback(quat, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyLMTexture->Readback(lm, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyAMTexture->Readback(am, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyPosTexture2->Readback(pos, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture2->Readback(quat, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture2->Readback(lm, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture2->Readback(am, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
 
 	for (int i = 0; i < mRigidBodies.size(); ++i)
 	{
@@ -560,9 +563,17 @@ void RigidBodySystem::UpdateRigidBody()
 		int z = offset + 2;
 		int w = offset + 3;
 
+		
 		mRigidBodies[i]->mModel->SetPosition(pos[x], pos[y], pos[z]);
 		mRigidBodies[i]->mModel->SetQuaternion(quat[x], quat[y], quat[z], quat[w]);
 		mRigidBodies[i]->SetLinearMomentum(lm[x],lm[y],lm[z]);
-		mRigidBodies[i]->SetAngularMomentum(am[x],am[y],am[z]);
+		mRigidBodies[i]->SetAngularMomentum(am[x], am[y], am[z]);
+		
+		/*
+		mRigidBodies[i]->mModel->SetPosition(0.0f, 0.0f, 0.0f);
+		mRigidBodies[i]->mModel->SetQuaternion(0.0f, sinf(10), 0.0f, cosf(10));
+		mRigidBodies[i]->SetLinearMomentum(0.0f, -10.0f, 0.0f);
+		mRigidBodies[i]->SetAngularMomentum(0.0f, 3.0f, 0.0f);
+		*/
 	}
 }

@@ -607,6 +607,7 @@ void Game::Draw()
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
 	//
+	
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -616,8 +617,10 @@ void Game::Draw()
 	mRigidBodySystem->NextRigidMomentum(0.1f);
 	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), 0.1f);
 	//위까지 실행 완료후에 fence를 통해서 값이 계산된 것을 확인 후에 update해야함.
+	//WaitUntilPrevFrameComplete();
 	mRigidBodySystem->UpdateRigidBody();
 	//
+
 	mScenes[mCurrentScene]->Spawn();
 
 	if (!mScenes[mCurrentScene]->IsDestroyQueueEmpty())
