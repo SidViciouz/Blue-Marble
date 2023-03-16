@@ -57,6 +57,13 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 		L"create readback buffer for texture resource error!"
 	);
 
+	D3D12_RANGE readbackRange = {};
+	readbackRange.Begin = 0;
+	readbackRange.End = bufferSizeInBytes;
+
+	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, reinterpret_cast<void**>(&pReadbackDataBegin)),
+		L"map to read back buffer error!");
+
 	//texture 积己窍绰 何盒
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	rd = CD3DX12_RESOURCE_DESC::Tex2D(format,width,height);
@@ -136,14 +143,14 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 		),
 		L"create readback buffer for texture resource error!"
 	);
-
+	
 	D3D12_RANGE readbackRange = {};
 	readbackRange.Begin = 0;
 	readbackRange.End = bufferSizeInBytes;
 
-	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, reinterpret_cast<void**>(pReadbackDataBegin)),
+	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, reinterpret_cast<void**>(&pReadbackDataBegin)),
 		L"map to read back buffer error!");
-
+	
 	//texture 积己窍绰 何盒
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	if(isArray == false)
@@ -258,7 +265,13 @@ void TextureResource::Readback(void* pData, int width, int height, int depth, in
 	b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	Game::mCommandList->ResourceBarrier(1, &b);
 	
-	//Game::mCommandList->CopyResource(mReadbackBuffer.Get(), mTexture.Get());
+	if (pData == nullptr)
+		return;
+
+	if (format == DXGI_FORMAT_R32G32B32A32_FLOAT)
+		memcpy(pData, pReadbackDataBegin, sizeof(float) * 1000);
+	else
+		memcpy(pData, pReadbackDataBegin, sizeof(int) * 1000);
 }
 
 void TextureResource::CreateDepth(int width, int height, int depth, int elementByte)

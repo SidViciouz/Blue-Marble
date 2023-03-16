@@ -69,7 +69,7 @@ public:
 	void										UpdateRigidBody();
 
 protected:
-	unique_ptr<TextureResource>					mRigidBodyPosTexture; //texture 2d array로 uav를 생성한다. (write용, read용이 필요하기 때문이다.)
+	unique_ptr<TextureResource>					mRigidBodyPosTexture; //(write용)
 	unique_ptr<TextureResource>					mRigidBodyQuatTexture; //quaternion
 	unique_ptr<TextureResource>					mRigidBodyLMTexture; //linear momentum
 	unique_ptr<TextureResource>					mRigidBodyAMTexture; //angular momentum
@@ -89,6 +89,12 @@ protected:
 	* 각 particle에 작용하는 force를 저장하는 텍스처이다.
 	*/
 	unique_ptr<TextureResource>					mParticleForce;
+
+	unique_ptr<TextureResource>					mRigidBodyPosTexture2; //(read용)
+	unique_ptr<TextureResource>					mRigidBodyQuatTexture2; //quaternion
+	unique_ptr<TextureResource>					mRigidBodyLMTexture2; //linear momentum
+	unique_ptr<TextureResource>					mRigidBodyAMTexture2; //angular momentum
+
 
 	unique_ptr<TextureResource>					mDepthTexture;
 

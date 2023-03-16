@@ -26,6 +26,12 @@ RigidBodySystem::RigidBodySystem()
 	mGrid = make_unique<TextureResource>();
 	mRigidInertia = make_unique<TextureResource>();
 	mParticleForce = make_unique<TextureResource>();
+	/*
+	mRigidBodyPosTexture2 = make_unique<TextureResource>();
+	mRigidBodyQuatTexture2 = make_unique<TextureResource>();
+	mRigidBodyLMTexture2 = make_unique<TextureResource>();
+	mRigidBodyAMTexture2 = make_unique<TextureResource>();
+	*/
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -103,6 +109,12 @@ void RigidBodySystem::Load()
 	mGrid->Create(32, 32, 32, 8, false, DXGI_FORMAT_R16G16B16A16_UINT);
 	mRigidInertia->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mParticleForce->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
+	/*
+	mRigidBodyPosTexture2->CopyCreate(pos, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture2->CopyCreate(quat, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture2->CopyCreate(lm, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture2->CopyCreate(am, 128, 128, 2, 16, false, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	*/
 }
 
 void RigidBodySystem::GenerateParticle()
@@ -240,7 +252,43 @@ void RigidBodySystem::GenerateParticle()
 	particleForceUavDesc.Texture2D.MipSlice = 0;
 	particleForceUavDesc.Texture2D.PlaneSlice = 0;
 	Pipeline::mDevice->CreateUnorderedAccessView(mParticleForce->mTexture.Get(), nullptr, &particleForceUavDesc, srvHandle);
-	
+	/*
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyPosUavDesc2 = {};
+	rigidBodyPosUavDesc2.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyPosUavDesc2.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyPosUavDesc2.Texture3D.FirstWSlice = 0;
+	rigidBodyPosUavDesc2.Texture3D.MipSlice = 0;
+	rigidBodyPosUavDesc2.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyPosTexture2->mTexture.Get(), nullptr, &rigidBodyPosUavDesc2, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyQuatUavDesc2 = {};
+	rigidBodyQuatUavDesc2.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyQuatUavDesc2.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyQuatUavDesc2.Texture3D.FirstWSlice = 0;
+	rigidBodyQuatUavDesc2.Texture3D.MipSlice = 0;
+	rigidBodyQuatUavDesc2.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyQuatTexture2->mTexture.Get(), nullptr, &rigidBodyQuatUavDesc2, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyLMUavDesc2 = {};
+	rigidBodyLMUavDesc2.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyLMUavDesc2.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyLMUavDesc2.Texture3D.FirstWSlice = 0;
+	rigidBodyLMUavDesc2.Texture3D.MipSlice = 0;
+	rigidBodyLMUavDesc2.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyLMTexture2->mTexture.Get(), nullptr, &rigidBodyLMUavDesc2, srvHandle);
+
+	srvHandle.ptr += mSrvUavIncrementSize;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC rigidBodyAMUavDesc2 = {};
+	rigidBodyAMUavDesc2.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rigidBodyAMUavDesc2.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
+	rigidBodyAMUavDesc2.Texture3D.FirstWSlice = 0;
+	rigidBodyAMUavDesc2.Texture3D.MipSlice = 0;
+	rigidBodyAMUavDesc2.Texture3D.WSize = 2;
+	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyAMTexture2->mTexture.Get(), nullptr, &rigidBodyAMUavDesc2, srvHandle);
+	*/
 	int i = -1;
 	for (auto rigidBody : mRigidBodies)
 	{
@@ -493,8 +541,28 @@ void RigidBodySystem::NextRigidPosQuat(int objNum, float deltaTime)
 
 void RigidBodySystem::UpdateRigidBody()
 {
-	mRigidBodyPosTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyQuatTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyLMTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyAMTexture->Readback(nullptr, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	float pos[1000] = { 0, };
+	float quat[1000] = { 0, };
+	float lm[1000] = { 0, };
+	float am[1000] = { 0, };
+
+	mRigidBodyPosTexture->Readback(pos, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture->Readback(quat, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture->Readback(lm, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture->Readback(am, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+	for (int i = 0; i < mRigidBodies.size(); ++i)
+	{
+		int offset = i * 4;
+
+		int x = offset;
+		int y = offset + 1;
+		int z = offset + 2;
+		int w = offset + 3;
+
+		mRigidBodies[i]->mModel->SetPosition(pos[x], pos[y], pos[z]);
+		mRigidBodies[i]->mModel->SetQuaternion(quat[x], quat[y], quat[z], quat[w]);
+		mRigidBodies[i]->SetLinearMomentum(lm[x],lm[y],lm[z]);
+		mRigidBodies[i]->SetAngularMomentum(am[x],am[y],am[z]);
+	}
 }

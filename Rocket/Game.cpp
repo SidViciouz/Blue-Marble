@@ -615,6 +615,7 @@ void Game::Draw()
 	mRigidBodySystem->ParticleCollision();
 	mRigidBodySystem->NextRigidMomentum(0.1f);
 	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), 0.1f);
+	//위까지 실행 완료후에 fence를 통해서 값이 계산된 것을 확인 후에 update해야함.
 	mRigidBodySystem->UpdateRigidBody();
 	//
 	mScenes[mCurrentScene]->Spawn();
