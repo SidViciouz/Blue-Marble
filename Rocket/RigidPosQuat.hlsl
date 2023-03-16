@@ -14,6 +14,10 @@ RWTexture2D<float4> rigidInertia : register(u9);
 
 RWTexture2D<float4> ForceMap : register(u10);
 
+RWTexture3D<float4> rigidPosWriteMap : register(u11);
+
+RWTexture3D<float4> rigidQuatWrtieMap : register(u12);
+
 cbuffer constant : register(b0)
 {
 	int objNum;
@@ -56,7 +60,7 @@ void CS(uint id : SV_GroupIndex)
 
 	float3 deltaPos = velocity* deltaTime;
 
-	rigidPosMap[int3(id % 128, id / 128, 1)] = rigidPosMap[int3(id % 128, id / 128, 0)] + float4(deltaPos,0.0f);
+	rigidPosWriteMap[int3(id % 128, id / 128, 0)] = rigidPosMap[int3(id % 128, id / 128, 0)] + float4(deltaPos,0.0f);
 
 	/*
 	* quaternion을 계산하는 부분
@@ -81,5 +85,5 @@ void CS(uint id : SV_GroupIndex)
 
 	float4 deltaQuat = float4(normalize(angularVelocity) * sin(angle), cos(angle));
 
-	rigidQuatMap[int3(id % 128, id / 128, 1)] = QuatMul(deltaQuat, rigidQuatMap[int3(id % 128, id / 128, 0)]);
+	rigidQuatWrtieMap[int3(id % 128, id / 128, 0)] = QuatMul(deltaQuat, rigidQuatMap[int3(id % 128, id / 128, 0)]);
 }

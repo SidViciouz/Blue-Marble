@@ -61,7 +61,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 	readbackRange.Begin = 0;
 	readbackRange.End = bufferSizeInBytes;
 
-	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, reinterpret_cast<void**>(&pReadbackDataBegin)),
+	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, &pReadbackDataBegin),
 		L"map to read back buffer error!");
 
 	//texture 积己窍绰 何盒
@@ -148,7 +148,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 	readbackRange.Begin = 0;
 	readbackRange.End = bufferSizeInBytes;
 
-	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, reinterpret_cast<void**>(&pReadbackDataBegin)),
+	IfError::Throw(mReadbackBuffer->Map(0, &readbackRange, &pReadbackDataBegin),
 		L"map to read back buffer error!");
 	
 	//texture 积己窍绰 何盒
@@ -267,11 +267,11 @@ void TextureResource::Readback(void* pData, int width, int height, int depth, in
 	
 	if (pData == nullptr)
 		return;
-
+	
 	if (format == DXGI_FORMAT_R32G32B32A32_FLOAT)
-		memcpy(pData, pReadbackDataBegin, sizeof(float) * 1000);
+		memcpy(pData, (void*)pReadbackDataBegin, sizeof(float) * 1000);
 	else
-		memcpy(pData, pReadbackDataBegin, sizeof(int) * 1000);
+		memcpy(pData, (void*)pReadbackDataBegin, sizeof(int) * 1000);
 }
 
 void TextureResource::CreateDepth(int width, int height, int depth, int elementByte)

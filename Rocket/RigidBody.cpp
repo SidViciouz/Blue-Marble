@@ -7,7 +7,7 @@ RigidBody::RigidBody(Model* model):
 	mModel(model)
 {
 	SetLinearMomentum(0.0f, -10.0f, 0.0f);
-	SetAngularMomentum(0.0f, 3.0f, 0.0f);
+	SetAngularMomentum(5.0f, 5.0f, 0.0f);
 
 	RigidBodySystem::mRigidBodies.push_back(this);
 

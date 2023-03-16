@@ -409,14 +409,14 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks1.dds");
-		m->SetPosition(5.0f, 3.0f, 3.0f);
-		(*model)["table"] = move(m);
+		//m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks1.dds");
+		//m->SetPosition(15.0f, 3.0f, 3.0f);
+		//(*model)["table"] = move(m);
 
-		m = make_shared<Clickable>("../Model/sword.obj", L"../Model/textures/bricks2.dds");
-		m->SetPosition(2.0f, 0.0f, 0.0f);
-		m->mScale = { 0.1f,0.1f,0.1f };
-		(*model)["sword"] = move(m);
+		//m = make_shared<Clickable>("../Model/sword.obj", L"../Model/textures/bricks2.dds");
+		//m->SetPosition(2.0f, 0.0f, 0.0f);
+		//m->mScale = { 0.1f,0.1f,0.1f };
+		//(*model)["sword"] = move(m);
 
 		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/checkboard.dds");
 		(*model)["my"] = move(m);
@@ -430,19 +430,19 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Clickable>("../Model/KSR-29 sniper rifle new_obj.obj", L"../Model/textures/bricks3.dds");
+		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(0.0f, 0.2f, 0.0f);
-		m->mScale = { 0.5f,0.5f,0.5f };
+		//m->mScale = { 0.5f,0.5f,0.5f };
 		(*model)["rifle"] = move(m);
 
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
 		m->mScale = { 1.0f,1.0f,1.0f };
 		(*model)["earth"] = move(m);
 
-		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
-		m->SetPosition(0.0f, -5.0f, 0.0f);
-		m->mScale = { 15.0f,0.5f,15.0f };
-		(*model)["lamp"] = move(m);
+		//m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
+		//m->SetPosition(0.0f, -5.0f, 0.0f);
+		//m->mScale = { 15.0f,0.5f,15.0f };
+		//(*model)["lamp"] = move(m);
 
 		m = make_shared<Inventory>("../Model/inventory.obj", L"../Model/textures/inventory.dds");
 		m->SetPosition(0.0f, -1.5f, 5.0f);
@@ -607,6 +607,7 @@ void Game::Draw()
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
 	//
+	
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -616,8 +617,10 @@ void Game::Draw()
 	mRigidBodySystem->NextRigidMomentum(0.1f);
 	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), 0.1f);
 	//위까지 실행 완료후에 fence를 통해서 값이 계산된 것을 확인 후에 update해야함.
-	mRigidBodySystem->UpdateRigidBody();
 	//
+	//WaitUntilPrevFrameComplete();
+	if(mCurrentFrame != 1)
+		mRigidBodySystem->UpdateRigidBody();
 	mScenes[mCurrentScene]->Spawn();
 
 	if (!mScenes[mCurrentScene]->IsDestroyQueueEmpty())
