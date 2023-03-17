@@ -41,7 +41,7 @@ float3 Damping(in int particleIdx, in int nParticleIdx)
 float3 Shear(in int particleIdx, in int nParticleIdx)
 {
 	float3 force = 0.0f;
-	float shearC = 0.1f;
+	float shearC = 15.0f;
 	float3 particleVel = particleVelMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
 	float3 nParticleVel = particleVelMap.Load(int4(nParticleIdx % 128, nParticleIdx / 128, 0, 0)).xyz;
 	float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
