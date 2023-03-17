@@ -112,7 +112,7 @@ void RigidBodySystem::Load()
 	/*
 	* x*y*z = 32*32*32에 하나당 64비트이므로 16비트씩 총 4개까지의 particle을 저장할 수 있다.
 	*/
-	mGrid->Create(32, 32, 32, 8, false, DXGI_FORMAT_R16G16B16A16_UINT);
+	mGrid->Create(32, 32, 32, 8, false, DXGI_FORMAT_R16G16B16A16_SINT);
 	mRigidInertia->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mParticleForce->Create(128, 32, 1, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	
@@ -236,7 +236,7 @@ void RigidBodySystem::GenerateParticle()
 
 	srvHandle.ptr += mSrvUavIncrementSize;
 	D3D12_UNORDERED_ACCESS_VIEW_DESC gridUavDesc = {};
-	gridUavDesc.Format = DXGI_FORMAT_R16G16B16A16_UINT;
+	gridUavDesc.Format = DXGI_FORMAT_R16G16B16A16_SINT;
 	gridUavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 	gridUavDesc.Texture3D.FirstWSlice = 0;
 	gridUavDesc.Texture3D.MipSlice = 0;
@@ -297,7 +297,7 @@ void RigidBodySystem::GenerateParticle()
 
 	//non-shader visible desciptor for mGrid
 	D3D12_UNORDERED_ACCESS_VIEW_DESC nonGridDesc = {};
-	nonGridDesc.Format = DXGI_FORMAT_R16G16B16A16_UINT;
+	nonGridDesc.Format = DXGI_FORMAT_R16G16B16A16_SINT;
 	nonGridDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
 	nonGridDesc.Texture3D.FirstWSlice = 0;
 	nonGridDesc.Texture3D.MipSlice = 0;
@@ -493,7 +493,7 @@ void RigidBodySystem::PutParticleOnGrid(int objNum)
 	D3D12_GPU_DESCRIPTOR_HANDLE gpuViewHandle = handle;
 	gpuViewHandle.ptr += mSrvUavIncrementSize*9;
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuViewHandle = mNonVisibleSrvUavHeap->GetCPUDescriptorHandleForHeapStart();
-	UINT clearColor[4] = { 0,0,0,0 };
+	UINT clearColor[4] = {-1,-1,-1,-1 };
 
 	D3D12_RESOURCE_BARRIER barrier[4];
 	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());

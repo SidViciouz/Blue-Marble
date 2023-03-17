@@ -16,7 +16,7 @@ cbuffer constant : register(b0)
 float3 Repulsive(in int particleIdx,in int nParticleIdx)
 {
 	float3 force = 0.0f;
-	float springC = 300.0f;
+	float springC = 500.0f;
 	float diameter = 1.0f;
 	float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
 	float3 nParticlePos = particlePosMap.Load(int4(nParticleIdx % 128, nParticleIdx / 128, 0, 0)).xyz;
@@ -30,7 +30,7 @@ float3 Repulsive(in int particleIdx,in int nParticleIdx)
 float3 Damping(in int particleIdx, in int nParticleIdx)
 {
 	float3 force = 0.0f;
-	float dampingC = 0.5;
+	float dampingC = 0.25f;
 	float3 particleVel = particleVelMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
 	float3 nParticleVel = particleVelMap.Load(int4(nParticleIdx % 128, nParticleIdx / 128, 0, 0)).xyz;
 	float3 relativeVel = nParticleVel - particleVel;
@@ -40,7 +40,20 @@ float3 Damping(in int particleIdx, in int nParticleIdx)
 }
 float3 Shear(in int particleIdx, in int nParticleIdx)
 {
-	return float3(0.0f, 0.0f, 0.0f);
+	float3 force = 0.0f;
+	float shearC = 0.1f;
+	float3 particleVel = particleVelMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
+	float3 nParticleVel = particleVelMap.Load(int4(nParticleIdx % 128, nParticleIdx / 128, 0, 0)).xyz;
+	float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
+	float3 nParticlePos = particlePosMap.Load(int4(nParticleIdx % 128, nParticleIdx / 128, 0, 0)).xyz;
+	float3 relativePos = normalize(nParticlePos - particlePos);
+	float3 relativeVel = nParticleVel - particleVel;
+
+	float3 shearVel = relativeVel - dot(relativeVel, relativePos) * relativePos;
+
+	force = shearC * shearVel;
+
+	return force;
 }
 
 int getRigidIdx(int pIdx)
@@ -80,7 +93,7 @@ float3 CalculateForce(in int particleIdx,in int3 position)
 
 				int4 neighborIndices = Grid.Load(neighbor);
 
-				if (neighborIndices.x == 0)
+				if (neighborIndices.x == -1)
 					continue;
 
 				int nParticleIdx[4] = {
@@ -91,12 +104,12 @@ float3 CalculateForce(in int particleIdx,in int3 position)
 				};
 
 				/*
-				* particle index를 0번부터 시작하도록 수정해야한다.
+				* particle index를 1번부터 시작하도록 수정해야한다.
 				* 그러지않으면, 0번 particle과 particle이 없는 것을 구분할 수 없다.
 				*/
 				for (int l = 0; l < 4; ++l)
 				{
-					if (nParticleIdx[l] == 0)
+					if (nParticleIdx[l] == -1)
 						break;
 					if (particleIdx == nParticleIdx[l])
 						continue;

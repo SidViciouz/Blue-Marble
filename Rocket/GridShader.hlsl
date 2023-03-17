@@ -58,14 +58,14 @@ void CS( int id : SV_GroupIndex)
 		if (original == 0)
 		{
 			int4 gridValue = Grid.Load(integerPosition);
-			if (gridValue.x == 0)
-				Grid[integerPosition] += int4(id, 0, 0, 0);
-			else if (gridValue.y == 0)
-				Grid[integerPosition] += int4(0, id, 0, 0);
-			else if (gridValue.z == 0)
-				Grid[integerPosition] += int4(0, 0, id, 0);
-			else if (gridValue.w == 0)
-				Grid[integerPosition] += int4(0, 0, 0, id);
+			if (gridValue.x == -1)
+				Grid[integerPosition] += int4(id, -1, -1, -1);
+			else if (gridValue.y == -1)
+				Grid[integerPosition] += int4(-1, id, -1, -1);
+			else if (gridValue.z == -1)
+				Grid[integerPosition] += int4(-1, -1, id, -1);
+			else if (gridValue.w == -1)
+				Grid[integerPosition] += int4(-1, -1, -1, id);
 			InterlockedCompareExchange(mutex[integerPosition.x/2][integerPosition.y/2][integerPosition.z/2], 1, 0, original);
 			locked = false;
 		}

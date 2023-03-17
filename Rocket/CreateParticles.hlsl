@@ -49,17 +49,17 @@ void CS( uint3 id : SV_DispatchThreadID )
 		if (abs(exit - enter) < 0.00001f)
 			continue;
 		/*
-		* depth는 0.0f ~ 1.0f까지 이다. 따라서 5등분하면 0.2f이다.
+		* depth는 0.0f ~ 1.0f까지 이다.
 		*/
-		int enterGrid = (int)enter/0.1f;
-		int exitGrid = (int)exit/0.1f;
+		int enterGrid = (int)enter*10.0f;
+		int exitGrid = (int)exit*10.0f;
 		/*
 		* j <= exitGrid가 아니라 j < exitGrid인 경우에는 해상도가 작으면 partcicle을 생성하지 않고 패스해버린다.
 		*/
 		for (int j = enterGrid; j <= exitGrid; j++)
 		{
 			/*
-			* [0,5]*[0,5]*[0,1] -> [-3,3]*[-3,3]*[-3,3]
+			* [0,10]*[0,10]*[0,1] -> [-3,3]*[-3,3]*[-3,3]
 			*/
 			float4 coord = float4((float)id.x/10.0f*6.0f-3.0f, (float)id.y / 10.0f * 6.0f - 3.0f, (float)j/10.0f*6.0f-3.0f, 0.0f);
 
