@@ -2,14 +2,21 @@ RWTexture2DArray<float4> particlePosMap : register(u1);
 
 RWTexture2DArray<float4> particleVelMap : register(u2);
 
+RWTexture2D<int> mRigidInfos : register(u7);
+
 RWTexture3D<int4> Grid : register(u8);
 
 RWTexture2D<float4> ForceMap : register(u10);
 
+cbuffer constant : register(b0)
+{
+	int objNum;
+}
+
 float3 Repulsive(in int particleIdx,in int nParticleIdx)
 {
 	float3 force = 0.0f;
-	float springC = 15.0f;
+	float springC = 300.0f;
 	float diameter = 1.0f;
 	float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
 	float3 nParticlePos = particlePosMap.Load(int4(nParticleIdx % 128, nParticleIdx / 128, 0, 0)).xyz;
@@ -34,6 +41,26 @@ float3 Damping(in int particleIdx, in int nParticleIdx)
 float3 Shear(in int particleIdx, in int nParticleIdx)
 {
 	return float3(0.0f, 0.0f, 0.0f);
+}
+
+int getRigidIdx(int pIdx)
+{
+	int particleNum;
+	int offset;
+	int rigidIdx;
+	for (int i = 0; i < objNum; ++i)
+	{
+		rigidIdx = i * 2;
+		particleNum = mRigidInfos.Load(int3(rigidIdx % 128, rigidIdx / 128, 0));
+		rigidIdx += 1;
+		offset = mRigidInfos.Load(int3(rigidIdx % 128, rigidIdx / 128, 0));
+		if (pIdx >= offset && pIdx < offset + particleNum)
+		{
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 float3 CalculateForce(in int particleIdx,in int3 position)
@@ -73,7 +100,9 @@ float3 CalculateForce(in int particleIdx,in int3 position)
 						break;
 					if (particleIdx == nParticleIdx[l])
 						continue;
-					
+					if (getRigidIdx(particleIdx) == getRigidIdx(nParticleIdx[l]))
+						continue;
+
 					float diameter = 1.0f;
 					float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
 					float3 nParticlePos = particlePosMap.Load(int4(nParticleIdx[l] % 128, nParticleIdx[l] / 128, 0, 0)).xyz;

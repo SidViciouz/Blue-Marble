@@ -7,8 +7,24 @@ cbuffer constant : register(b0)
 
 float4 VS(float3 pos : POSITION) : SV_POSITION
 {
-	//z방향을 [-1,1]->[0,1]공간으로 변환
-	return float4(pos.x,pos.y, (pos.z + 1.0f) * 0.5f,1.0f);
+	/*
+	* right,left, top, bottom, near, far로 정의되는 육면체를 [-1,1]*[-1,1]*[-1,1]의 크기의 육면체로 변환한다.
+	*/
+	float right = 3.0f;
+	float left = -3.0f;
+	float top = 3.0f;
+	float bottom = -3.0f;
+	float near = -3.0f;
+	float far = 3.0f;
+
+	float4x4 orthoM = {
+		2.0f/(right-left), 0.0f ,0.0f, 0.0f,
+		0.0f, 2.0f/(top-bottom),0.0f,0.0f,
+		0.0f,0.0f,-2.0f/(far-near),0.0f,
+		-(right+left)/(right-left),-(top+bottom)/(top-bottom),-(far+near)/(far-near),1.0f
+	};
+
+	return mul(float4(pos, 1.0f), orthoM);
 }
 
 void PS( float4 pos : SV_POSITION)

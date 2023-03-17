@@ -366,8 +366,12 @@ void Pipeline::CreateShaderAndRootSignature()
 	rootParameter[1].Constants.Num32BitValues = 1;
 	rootParameter[1].Constants.RegisterSpace = 0;
 	rootParameter[1].Constants.ShaderRegister = 0;
+	rootParameter[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[2].Descriptor.RegisterSpace = 0;
+	rootParameter[2].Descriptor.ShaderRegister = 1;
 
-	rsDesc.NumParameters = 2;
+	rsDesc.NumParameters = 3;
 	rsDesc.pParameters = rootParameter;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -435,7 +439,7 @@ void Pipeline::CreatePso()
 	psoDesc.PS.BytecodeLength = mShaders["DefaultPS"]->GetBufferSize();
 	
 	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
 	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 	psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;

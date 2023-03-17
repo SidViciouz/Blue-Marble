@@ -54,7 +54,7 @@ public:
 	/*
 	* collision을 적용한다.
 	*/
-	void										ParticleCollision();
+	void										ParticleCollision(int objNum);
 	/*
 	* particle마다 작용하는 force를 이용해서 rigidBody의 next linear, angular momentum을 계산한다.
 	*/
@@ -107,7 +107,8 @@ protected:
 	UINT										mDsvIncrementSize;
 	UINT										mSrvUavIncrementSize;
 
-	int											mCurrentTexture = 0;
+	int											mDepthWidth = 10;
+	int											mDepthHeight = 10;
 
 };
 

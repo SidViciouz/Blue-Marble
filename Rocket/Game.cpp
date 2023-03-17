@@ -418,20 +418,20 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		//m->mScale = { 0.1f,0.1f,0.1f };
 		//(*model)["sword"] = move(m);
 
-		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/checkboard.dds");
-		(*model)["my"] = move(m);
+		//m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/checkboard.dds");
+		//(*model)["my"] = move(m);
 
-		shared_ptr<Button> b = make_shared<Button>("../Model/inventory.obj", L"../Model/textures/earth.dds");
-		b->SetPosition(0.0f, -3.0f, 5.0f);
-		b->Set([&]() {
-			ChangeScene(1);
-		});
-		(*model)["button"] = move(b);
+		//shared_ptr<Button> b = make_shared<Button>("../Model/inventory.obj", L"../Model/textures/earth.dds");
+		//b->SetPosition(0.0f, -3.0f, 5.0f);
+		//b->Set([&]() {
+		//	ChangeScene(1);
+		//});
+		//(*model)["button"] = move(b);
 	}
 	else if (sceneIndex == 1)
 	{
-		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks3.dds");
-		m->SetPosition(0.0f, 0.2f, 0.0f);
+		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
+		m->SetPosition(0.0f, 3.0f, 0.0f);
 		//m->mScale = { 0.5f,0.5f,0.5f };
 		(*model)["rifle"] = move(m);
 
@@ -607,20 +607,22 @@ void Game::Draw()
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
 	//
-	
+	/*
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticleVelocity(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->PutParticleOnGrid(RigidBodySystem::mRigidBodies.size());
-	mRigidBodySystem->ParticleCollision();
-	mRigidBodySystem->NextRigidMomentum(0.1f);
-	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), 0.1f);
+	mRigidBodySystem->ParticleCollision(RigidBodySystem::mRigidBodies.size());
+	mRigidBodySystem->NextRigidMomentum(mTimer.GetDeltaTime());
+	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), mTimer.GetDeltaTime());
 	//위까지 실행 완료후에 fence를 통해서 값이 계산된 것을 확인 후에 update해야함.
-	//
 	//WaitUntilPrevFrameComplete();
 	if(mCurrentFrame != 1)
 		mRigidBodySystem->UpdateRigidBody();
+	*/
+	//
+
 	mScenes[mCurrentScene]->Spawn();
 
 	if (!mScenes[mCurrentScene]->IsDestroyQueueEmpty())
