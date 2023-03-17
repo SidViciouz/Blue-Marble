@@ -431,12 +431,11 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 	else if (sceneIndex == 1)
 	{
 		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
-		m->SetPosition(0.0f, 3.0f, 0.0f);
-		//m->mScale = { 0.5f,0.5f,0.5f };
+		m->SetPosition(5.0f, 5.0f, 3.0f);
 		(*model)["rifle"] = move(m);
 
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
-		m->mScale = { 1.0f,1.0f,1.0f };
+		m->SetPosition(5.0f,5.0f,5.0f);
 		(*model)["earth"] = move(m);
 
 		//m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
@@ -607,7 +606,7 @@ void Game::Draw()
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
 	//
-	/*
+	
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -620,7 +619,7 @@ void Game::Draw()
 	//WaitUntilPrevFrameComplete();
 	if(mCurrentFrame != 1)
 		mRigidBodySystem->UpdateRigidBody();
-	*/
+	
 	//
 
 	mScenes[mCurrentScene]->Spawn();

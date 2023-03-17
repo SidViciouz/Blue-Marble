@@ -288,7 +288,7 @@ void RigidBodySystem::GenerateParticle()
 	rigidBodyAMUavDesc2.Texture3D.WSize = 2;
 	Pipeline::mDevice->CreateUnorderedAccessView(mRigidBodyAMTexture2->mTexture.Get(), nullptr, &rigidBodyAMUavDesc2, srvHandle);
 
-	/*
+	
 	int i = -1;
 	for (auto rigidBody : mRigidBodies)
 	{
@@ -296,17 +296,19 @@ void RigidBodySystem::GenerateParticle()
 		DepthPass(rigidBody);
 		UploadParticleFromDepth(i);
 	}
-	*/
+	
 
-	DepthPass(mRigidBodies[0]);
-	UploadParticleFromDepth(0);
-	//CalculateRigidInertia(mRigidBodies.size());
-	//CalculateParticlePosition(mRigidBodies.size());
-	//CalculateParticleVelocity(mRigidBodies.size());
-	//PutParticleOnGrid(mRigidBodies.size());
-	//ParticleCollision(mRigidBodies.size());
-	//NextRigidMomentum(0.1f);
-	//NextRigidPosQuat(mRigidBodies.size(), 0.1f);
+	//DepthPass(mRigidBodies[0]);
+	//UploadParticleFromDepth(0);
+	/*
+	CalculateRigidInertia(mRigidBodies.size());
+	CalculateParticlePosition(mRigidBodies.size());
+	CalculateParticleVelocity(mRigidBodies.size());
+	PutParticleOnGrid(mRigidBodies.size());
+	ParticleCollision(mRigidBodies.size());
+	NextRigidMomentum(0.1f);
+	NextRigidPosQuat(mRigidBodies.size(), 0.1f);
+	*/
 }
 
 void RigidBodySystem::DepthPass(RigidBody* rigidBody)
