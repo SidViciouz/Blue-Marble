@@ -143,6 +143,6 @@ void CS( uint3 groupId : SV_GroupID, uint3 id : SV_GroupThreadID)
 	{
 		int3 position = int3(id.xz, groupId.x);
 		float3 force = CalculateForce(particle[i],position);
-		ForceMap[int2(particle[i] % 128, particle[i] / 128)] = float4(force,0.0f);
+		ForceMap[int2(particle[i] % 128, particle[i] / 128)] = float4(force, 0.0f);
 	}
 }

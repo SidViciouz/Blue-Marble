@@ -13,12 +13,14 @@ cbuffer constant : register(b0)
 
 groupshared int mutex[16][16][16];
 
+/*
+* id´Â particle IndexÀÌ´Ù.
+*/
 [numthreads(1024, 1, 1)]
 void CS( int id : SV_GroupIndex)
 {
 	for(int k=0; k<16; ++k)
 		mutex[id % 16][id / 16][k] = 0;
-
 	GroupMemoryBarrierWithGroupSync();
 
 	int rigidBodyIndex = -1;
@@ -46,11 +48,6 @@ void CS( int id : SV_GroupIndex)
 		return;
 
 	float4 position = particlePosMap.Load(int4(particleIdxX, particleIdxY, 0, 0));
-	//
-	//position.x += 5.0f;
-	//position.y += 5.0f;
-	//position.z += 5.0f;
-	//
 	int3 integerPosition = int3((int)position.x, (int)position.y, (int)position.z);
 
 	bool locked = true;
@@ -64,7 +61,7 @@ void CS( int id : SV_GroupIndex)
 			if (gridValue.x == 0)
 				Grid[integerPosition] += int4(id, 0, 0, 0);
 			else if (gridValue.y == 0)
-				Grid[integerPosition] += int4(0, id,0,0);
+				Grid[integerPosition] += int4(0, id, 0, 0);
 			else if (gridValue.z == 0)
 				Grid[integerPosition] += int4(0, 0, id, 0);
 			else if (gridValue.w == 0)

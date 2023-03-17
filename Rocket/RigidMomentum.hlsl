@@ -34,8 +34,8 @@ void CS( uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 	InterlockedCompareExchange(mutexI, 0, 1, ori);
 	if (ori == 0)
 	{
-		rigidLMMap[int3(groupId.x % 128, groupId.x / 128, 1)] = rigidLMMap[int3(groupId.x % 128, groupId.x / 128, 0)];
-		rigidAMMap[int3(groupId.x % 128, groupId.x / 128, 1)] = rigidAMMap[int3(groupId.x % 128, groupId.x / 128, 0)];
+		rigidLMWriteMap[int3(groupId.x % 128, groupId.x / 128, 0)] = rigidLMMap[int3(groupId.x % 128, groupId.x / 128, 0)];
+		rigidAMWriteMap[int3(groupId.x % 128, groupId.x / 128, 0)] = rigidAMMap[int3(groupId.x % 128, groupId.x / 128, 0)];
 	}
 	GroupMemoryBarrierWithGroupSync();
 

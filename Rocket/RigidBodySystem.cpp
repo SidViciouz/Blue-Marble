@@ -531,8 +531,8 @@ void RigidBodySystem::NextRigidPosQuat(int objNum, float deltaTime)
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 	D3D12_RESOURCE_BARRIER barrier[10];
 	barrier[0] = CD3DX12_RESOURCE_BARRIER::UAV(mParticlePosTexture->mTexture.Get());
-	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyLMTexture->mTexture.Get());
-	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyAMTexture->mTexture.Get());
+	barrier[1] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyLMTexture2->mTexture.Get());
+	barrier[2] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidBodyAMTexture2->mTexture.Get());
 	barrier[3] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInfos->mTexture.Get());
 	barrier[4] = CD3DX12_RESOURCE_BARRIER::UAV(mParticleForce->mTexture.Get());
 	barrier[5] = CD3DX12_RESOURCE_BARRIER::UAV(mRigidInertia->mTexture.Get());

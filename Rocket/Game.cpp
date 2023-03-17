@@ -431,6 +431,10 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 	else if (sceneIndex == 1)
 	{
 		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
+		m->SetPosition(2.0f, 2.0f, 2.0f);
+		(*model)["rifie0"] = move(m);
+
+		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
 		m->SetPosition(5.0f, 5.0f, 3.0f);
 		(*model)["rifle"] = move(m);
 
@@ -607,6 +611,7 @@ void Game::Draw()
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mDirectX.mPSOs["default"].Get());
 	//
 	
+	//texture 초기화 해야함.
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -619,7 +624,6 @@ void Game::Draw()
 	//WaitUntilPrevFrameComplete();
 	if(mCurrentFrame != 1)
 		mRigidBodySystem->UpdateRigidBody();
-	
 	//
 
 	mScenes[mCurrentScene]->Spawn();

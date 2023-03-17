@@ -4,10 +4,6 @@ RWTexture3D<float4> rigidPosMap : register(u3);
 
 RWTexture3D<float4> rigidQuatMap : register(u4);
 
-RWTexture3D<float4> rigidLMMap : register(u5);
-
-RWTexture3D<float4> rigidAMMap : register(u6);
-
 RWTexture2D<int> mRigidInfos : register(u7);
 
 RWTexture2D<float4> rigidInertia : register(u9);
@@ -17,6 +13,10 @@ RWTexture2D<float4> ForceMap : register(u10);
 RWTexture3D<float4> rigidPosWriteMap : register(u11);
 
 RWTexture3D<float4> rigidQuatWrtieMap : register(u12);
+
+RWTexture3D<float4> rigidLMWriteMap : register(u13);
+
+RWTexture3D<float4> rigidAMWriteMap : register(u14);
 
 cbuffer constant : register(b0)
 {
@@ -54,7 +54,7 @@ void CS(uint id : SV_GroupIndex)
 	*/
 	int particleNum = mRigidInfos.Load(int2(rigidIdx % 128, rigidIdx / 128));
 
-	float3 linearMomentum = rigidLMMap.Load(int3(id % 128, id / 128, 1)).xyz;
+	float3 linearMomentum = rigidLMWriteMap.Load(int3(id % 128, id / 128, 0)).xyz;
 
 	float3 velocity = linearMomentum / (float)particleNum;
 
@@ -77,7 +77,7 @@ void CS(uint id : SV_GroupIndex)
 		inertia2.x, inertia2.y, inertia2.z
 		);
 
-	float3 angularMomentum = rigidAMMap.Load(int3(id % 128, id / 128, 1)).xyz;
+	float3 angularMomentum = rigidAMWriteMap.Load(int3(id % 128, id / 128, 0)).xyz;
 
 	float3 angularVelocity = mul(inverseInertiaMatrix, angularMomentum);
 
