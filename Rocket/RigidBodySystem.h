@@ -67,6 +67,10 @@ public:
 	* 계산된 rigidbody의 위치,쿼터니언,선운동량과 각운동량을 cpu의 rigidbody에 업데이트한다.
 	*/
 	void										UpdateRigidBody();
+	/*
+	* gpu의 texture에서 readback heap의 buffer로 데이터를 copy한다.
+	*/
+	void										CopyRigidBody();
 
 protected:
 	unique_ptr<TextureResource>					mRigidBodyPosTexture; //(write용)

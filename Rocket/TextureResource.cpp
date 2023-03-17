@@ -239,7 +239,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 	Game::mCommandList->ResourceBarrier(1, &b);
 }
 
-void TextureResource::Readback(void* pData, int width, int height, int depth, int elementByte, DXGI_FORMAT format)
+void TextureResource::Readback(int width, int height, int depth, int elementByte, DXGI_FORMAT format)
 {
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint = {};
 	footPrint.Offset = 0;
@@ -264,14 +264,6 @@ void TextureResource::Readback(void* pData, int width, int height, int depth, in
 
 	b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 	Game::mCommandList->ResourceBarrier(1, &b);
-	
-	if (pData == nullptr)
-		return;
-	
-	if (format == DXGI_FORMAT_R32G32B32A32_FLOAT)
-		memcpy(pData, (void*)pReadbackDataBegin, sizeof(float) * 1000);
-	else
-		memcpy(pData, (void*)pReadbackDataBegin, sizeof(int) * 1000);
 }
 
 void TextureResource::CreateDepth(int width, int height, int depth, int elementByte)
@@ -312,4 +304,12 @@ void TextureResource::Create(int width, int height, int depth, int elementByte, 
 		&rd, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 		nullptr, IID_PPV_ARGS(mTexture.GetAddressOf())
 	), L"create texture for texture resource error!");
+}
+
+void TextureResource::ReadbackBufferCopy(void* pData)
+{
+	if (pData == nullptr)
+		return;
+
+	memcpy(pData, (void*)pReadbackDataBegin, sizeof(float) * 1000);
 }

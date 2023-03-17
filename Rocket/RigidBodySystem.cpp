@@ -557,10 +557,10 @@ void RigidBodySystem::UpdateRigidBody()
 	float lm[1000] = { 0, };
 	float am[1000] = { 0, };
 
-	mRigidBodyPosTexture2->Readback(pos, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyQuatTexture2->Readback(quat, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyLMTexture2->Readback(lm, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mRigidBodyAMTexture2->Readback(am, 128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyPosTexture2->ReadbackBufferCopy(pos);
+	mRigidBodyQuatTexture2->ReadbackBufferCopy(quat);
+	mRigidBodyLMTexture2->ReadbackBufferCopy(lm);
+	mRigidBodyAMTexture2->ReadbackBufferCopy(am);
 
 	for (int i = 0; i < mRigidBodies.size(); ++i)
 	{
@@ -576,12 +576,14 @@ void RigidBodySystem::UpdateRigidBody()
 		mRigidBodies[i]->mModel->SetQuaternion(quat[x], quat[y], quat[z], quat[w]);
 		mRigidBodies[i]->SetLinearMomentum(lm[x],lm[y],lm[z]);
 		mRigidBodies[i]->SetAngularMomentum(am[x], am[y], am[z]);
-		
-		/*
-		mRigidBodies[i]->mModel->SetPosition(0.0f, 0.0f, 0.0f);
-		mRigidBodies[i]->mModel->SetQuaternion(0.0f, sinf(10), 0.0f, cosf(10));
-		mRigidBodies[i]->SetLinearMomentum(0.0f, -10.0f, 0.0f);
-		mRigidBodies[i]->SetAngularMomentum(0.0f, 3.0f, 0.0f);
-		*/	
 	}
+}
+
+void RigidBodySystem::CopyRigidBody()
+{
+
+	mRigidBodyPosTexture2->Readback(128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyQuatTexture2->Readback(128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyLMTexture2->Readback(128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mRigidBodyAMTexture2->Readback(128, 128, 2, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
 }

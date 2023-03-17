@@ -27,9 +27,10 @@ public:
 	/*
 	* 텍스처의 데이터를 Readback buffer로 카피한다.
 	*/
-	void										Readback(void* pData, int width, int height, int depth, int elementByte, DXGI_FORMAT format = DXGI_FORMAT_R32_FLOAT);
+	void										Readback(int width, int height, int depth, int elementByte, DXGI_FORMAT format = DXGI_FORMAT_R32_FLOAT);
 	void										CreateDepth(int width, int height, int depth, int elementByte);
 	void										Create(int width, int height, int depth, int elementByte, bool isArray = false, DXGI_FORMAT format = DXGI_FORMAT_R32_FLOAT);
+	void										ReadbackBufferCopy(void* pData);
 
 	ComPtr<ID3D12Resource>						mUploadBuffer;
 	ComPtr<ID3D12Resource>						mTexture;

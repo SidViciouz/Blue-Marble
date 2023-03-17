@@ -565,6 +565,7 @@ void Game::Update()
 		CloseHandle(event);
 	}
 
+
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
 	//mScenes[mCurrentScene]->mModels->at("earth")->MulQuaternion(0.0f, sinf(mTimer.GetDeltaTime()), 0.0f,cosf(mTimer.GetDeltaTime()));
@@ -612,6 +613,8 @@ void Game::Draw()
 	//
 	
 	//texture 초기화 해야함.
+	//첫번째 draw인 경우에는 제외해야함.
+
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -620,10 +623,14 @@ void Game::Draw()
 	mRigidBodySystem->ParticleCollision(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->NextRigidMomentum(mTimer.GetDeltaTime());
 	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), mTimer.GetDeltaTime());
-	//위까지 실행 완료후에 fence를 통해서 값이 계산된 것을 확인 후에 update해야함.
-	//WaitUntilPrevFrameComplete();
-	if(mCurrentFrame != 1)
+
+	mRigidBodySystem->CopyRigidBody();
+
+	if (mDirectX.mFenceValue > 0)
+	{
+		WaitUntilPrevFrameComplete();
 		mRigidBodySystem->UpdateRigidBody();
+	}
 	//
 
 	mScenes[mCurrentScene]->Spawn();
