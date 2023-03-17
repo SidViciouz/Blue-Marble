@@ -298,8 +298,8 @@ void RigidBodySystem::GenerateParticle()
 	}
 	*/
 
-	DepthPass(mRigidBodies[2]);
-	UploadParticleFromDepth(2);
+	DepthPass(mRigidBodies[0]);
+	UploadParticleFromDepth(0);
 	//CalculateRigidInertia(mRigidBodies.size());
 	//CalculateParticlePosition(mRigidBodies.size());
 	//CalculateParticleVelocity(mRigidBodies.size());
