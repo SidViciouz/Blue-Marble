@@ -440,6 +440,7 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
 		m->SetPosition(5.0f,5.0f,5.0f);
+		m->mRigidBody->SetAngularMomentum(0.0f, 0.01f, 0.0f);
 		(*model)["earth"] = move(m);
 
 		//m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");

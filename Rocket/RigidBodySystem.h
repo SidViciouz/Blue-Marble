@@ -104,6 +104,7 @@ protected:
 
 	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
 	ComPtr<ID3D12DescriptorHeap>				mSrvUavHeap;
+	ComPtr<ID3D12DescriptorHeap>				mNonVisibleSrvUavHeap;
 
 	D3D12_VIEWPORT								mViewport;
 	D3D12_RECT									mScissor;
