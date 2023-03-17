@@ -18,7 +18,7 @@ cbuffer constant : register(b0)
 groupshared int mutex = 0;
 groupshared int index = 0;
 
-[numthreads(5, 5, 1)]
+[numthreads(10, 10, 1)]
 void CS( uint3 id : SV_DispatchThreadID )
 {
 	//같은 rigidbody에 대한 particle들의 offset
@@ -51,17 +51,17 @@ void CS( uint3 id : SV_DispatchThreadID )
 		/*
 		* depth는 0.0f ~ 1.0f까지 이다. 따라서 5등분하면 0.2f이다.
 		*/
-		int enterGrid = (int)enter/0.2f;
-		int exitGrid = (int)exit/0.2f;
+		int enterGrid = (int)enter/0.1f;
+		int exitGrid = (int)exit/0.1f;
 		/*
 		* j <= exitGrid가 아니라 j < exitGrid인 경우에는 해상도가 작으면 partcicle을 생성하지 않고 패스해버린다.
 		*/
-		for (int j = enterGrid; j <= exitGrid; ++j)
+		for (int j = enterGrid; j <= exitGrid; j++)
 		{
 			/*
 			* [0,5]*[0,5]*[0,1] -> [-3,3]*[-3,3]*[-3,3]
 			*/
-			float4 coord = float4((float)id.x/5.0f*6.0f-3.0f, (float)id.y / 5.0f * 6.0f - 3.0f, (float)j/5.0f*6.0f-3.0f, 0.0f);
+			float4 coord = float4((float)id.x/10.0f*6.0f-3.0f, (float)id.y / 10.0f * 6.0f - 3.0f, (float)j/10.0f*6.0f-3.0f, 0.0f);
 
 			bool locked = true;
 			int original = 1;

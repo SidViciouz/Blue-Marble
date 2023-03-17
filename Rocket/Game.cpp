@@ -434,13 +434,9 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		m->SetPosition(2.0f, 2.0f, 2.0f);
 		(*model)["rifie0"] = move(m);
 
-		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
-		m->SetPosition(5.0f, 5.0f, 3.0f);
-		(*model)["rifle"] = move(m);
-
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
 		m->SetPosition(5.0f,5.0f,5.0f);
-		m->mRigidBody->SetAngularMomentum(0.0f, 0.01f, 0.0f);
+		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
 		(*model)["earth"] = move(m);
 
 		//m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
@@ -459,6 +455,9 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 		});
 		(*model)["button"] = move(b);
 
+		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
+		m->SetPosition(5.0f, 5.0f, 3.0f);
+		(*model)["rifle"] = move(m);
 	}
 
 	return move(model);

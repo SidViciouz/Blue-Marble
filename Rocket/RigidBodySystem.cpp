@@ -11,8 +11,8 @@ RigidBodySystem::RigidBodySystem()
 	/*
 	* rigid body system에 필요한 자원을 생성한다.
 	*/
-	mViewport = { 0.0f, 0.0f, 5.0f, 5.0f, 0.0f, 1.0f };
-	mScissor = { 0, 0, 5, 5 };
+	mViewport = { 0.0f, 0.0f, 10.0f, 10.0f, 0.0f, 1.0f };
+	mScissor = { 0, 0, 10, 10 };
 
 	mDepthTexture = make_unique<TextureResource>();
 	mParticleCOMTexture = make_unique<TextureResource>();
@@ -107,7 +107,7 @@ void RigidBodySystem::Load()
 	mParticleCOMTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mParticlePosTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
 	mParticleVelTexture->Create(128, 128, 2, 8, true, DXGI_FORMAT_R16G16B16A16_FLOAT);
-	mDepthTexture->CreateDepth(5, 5, 4, 4);
+	mDepthTexture->CreateDepth(10, 10, 4, 4);
 	mRigidInfos->Create(128, 3, 1, 4, true, DXGI_FORMAT_R32_UINT); //2d이기 때문에 isarray를 true로 설정한다.
 	/*
 	* x*y*z = 32*32*32에 하나당 64비트이므로 16비트씩 총 4개까지의 particle을 저장할 수 있다.
