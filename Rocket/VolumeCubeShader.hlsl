@@ -116,6 +116,25 @@ VertexOut VS( uint vertexId : SV_VertexID)
 	return vout;
 }
 
+float blurDensity(int3 position)
+{
+	int cnt = 0;
+	float density = 0.0f;
+
+	for(int i=-1; i<2; ++i)
+		for(int j=-1; j<2; ++j)
+			for (int k = -1; k < 2; ++k)
+			{
+				float3 pos = position + float3(i, j, k);
+				density += textureMap.Load(int4(pos, 0));
+				++cnt;
+			}
+
+	density = density / (float)cnt;
+
+	return density;
+}
+
 bool planeIntersect(in int planeNumber,in float3 CubePosition,in float3 CubeScale,in float3 intersect)
 {
 	if (planeNumber == 0 || planeNumber == 1) // +X, -X
@@ -226,7 +245,8 @@ float3 pf(float3 x)
 		{
 			int3 coord = 10.0f*( x + posToLight * (tMin + stepSize * j));
 			coord -= int3(40, -50, -50);
-			density = float(textureMap.Load(int4(coord, 0)));
+			//density = float(textureMap.Load(int4(coord, 0)));
+			density = blurDensity(coord);
 			att *= exp(-stepSize * sigmaT * density);
 		}
 
@@ -262,7 +282,8 @@ float4 PS(VertexOut pin) : SV_Target
 	{
 		int3 coord =10.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
 		coord -= int3(40, -40, -50);
-		density = float(textureMap.Load(int4(coord, 0)));
+		//density = float(textureMap.Load(int4(coord, 0)));
+		density = blurDensity(coord);
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}

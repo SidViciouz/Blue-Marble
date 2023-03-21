@@ -50,11 +50,38 @@ void CS( uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 
 	int particleIdx = rigidOffset + id;
 
-	float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz
+	float3 particleRelativePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz
 		- rigidPosMap.Load(int4(groupId.x % 128, groupId.x / 128, 0, 0)).xyz;
 
 	float3 force = ForceMap.Load(int2(particleIdx % 128, particleIdx / 128)).xyz;
-	float3 angularForce = cross(particlePos,force);
+	float3 angularForce = cross(particleRelativePos,force);
+
+	
+	float3 particlePos = particlePosMap.Load(int4(particleIdx % 128, particleIdx / 128, 0, 0)).xyz;
+	if (particlePos.x < 0)
+	{
+		force.x = 10.0f;
+	}
+	else if (particlePos.x > 31)
+	{
+		force.x = -10.0f;
+	}
+	if (particlePos.y < 0)
+	{
+		force.y = 13.0f;
+	}
+	else if (particlePos.y > 31)
+	{
+		force.y = -10.0f;
+	}
+	if (particlePos.z < 0)
+	{
+		force.z = 10.0f;
+	}
+	else if (particlePos.z > 31)
+	{
+		force.z = -10.0f;
+	}
 
 	bool locked = true;
 
@@ -68,7 +95,7 @@ void CS( uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 			* force에 deltaTime을 곱해서 운동량을 얻는다.
 			*/
 			//linearForce += force;
-			rigidLMWriteMap[int3(groupId.x % 128, groupId.x / 128, 0)] += float4(force, 0.0f) * deltaTime;
+			rigidLMWriteMap[int3(groupId.x % 128, groupId.x / 128, 0)] += float4(force, 0.0f) * deltaTime + float4(0.0f,-9.8f,0.0f,0.0f)*deltaTime;
 			//angularForce += angularForce;
 			rigidAMWriteMap[int3(groupId.x % 128, groupId.x / 128, 0)] += float4(angularForce, 0.0f) * deltaTime;
 			locked = false;
