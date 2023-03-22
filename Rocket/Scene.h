@@ -2,7 +2,6 @@
 #include "Util.h"
 #include "Model.h"
 #include "Camera.h"
-#include "Pipeline.h"
 #include "Clickable.h"
 #include "Unclickable.h"
 #include "Volume.h"

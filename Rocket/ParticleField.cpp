@@ -1,5 +1,5 @@
 #include "ParticleField.h"
-#include "Pipeline.h"
+#include "Engine.h"
 
 ParticleField::ParticleField()
 {
@@ -19,7 +19,7 @@ ParticleField::ParticleField()
 	mParticles.push_back({ {50.0f,0.0f,50.0f} ,{16.0f,10.0f,-5.0f} });
 
 	//constant buffer size로 만들지 않으면 copy할때 index 0보다 크면 문제가 생길 것 같다. 일단은 임시로 이렇게 해놓음.
-	mBuffer = make_unique<UploadBuffer>(Pipeline::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(Particle)*mParticles.size()));
+	mBuffer = make_unique<UploadBuffer>(Engine::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(Particle)*mParticles.size()));
 }
 
 void ParticleField::Update(const Timer& timer)

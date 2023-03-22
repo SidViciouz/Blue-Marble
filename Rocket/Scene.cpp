@@ -49,11 +49,11 @@ void Scene::CreateModelSrv(int size)
 	heapDesc.NumDescriptors = size;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
+	IfError::Throw(Engine::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
 		L"create srv heap error!");
 
 
-	auto incrementSize = Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	auto incrementSize = Engine::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
 	viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
@@ -67,7 +67,7 @@ void Scene::CreateModelSrv(int size)
 		viewDesc.Format = model->second->mTexture.mResource->GetDesc().Format;
 		auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
 		handle.ptr += incrementSize * model->second->mObjIndex;
-		Pipeline::mDevice->CreateShaderResourceView(model->second->mTexture.mResource.Get(), &viewDesc, handle);
+		Engine::mDevice->CreateShaderResourceView(model->second->mTexture.mResource.Get(), &viewDesc, handle);
 	}
 
 	viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
@@ -79,7 +79,7 @@ void Scene::CreateModelSrv(int size)
 		viewDesc.Format = world->second->mTexture.mResource->GetDesc().Format;
 		auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
 		handle.ptr += incrementSize * world->second->mObjIndex;
-		Pipeline::mDevice->CreateShaderResourceView(world->second->mTexture.mResource.Get(), &viewDesc, handle);
+		Engine::mDevice->CreateShaderResourceView(world->second->mTexture.mResource.Get(), &viewDesc, handle);
 	}
 }
 
@@ -91,16 +91,16 @@ void Scene::CreateVolumeUav(int size)
 	heapDesc.NumDescriptors = size;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeap.GetAddressOf())),
+	IfError::Throw(Engine::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeap.GetAddressOf())),
 		L"create srv heap for volume error!");
 
-	auto incrementSize = Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	auto incrementSize = Engine::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
 	{
 		auto handle = mVolumeUavHeap->GetCPUDescriptorHandleForHeapStart();
 		handle.ptr += incrementSize * volume->second->mVolumeIndex;
-		Pipeline::mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
+		Engine::mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
 	}
 	
 
@@ -109,14 +109,14 @@ void Scene::CreateVolumeUav(int size)
 	heapDesc.NumDescriptors = size;
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-	IfError::Throw(Pipeline::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeapInvisible.GetAddressOf())),
+	IfError::Throw(Engine::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeapInvisible.GetAddressOf())),
 		L"create shader invisible srv heap for volume error!");
 
 	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
 	{
 		auto handle = mVolumeUavHeapInvisible->GetCPUDescriptorHandleForHeapStart();
 		handle.ptr += incrementSize * volume->second->mVolumeIndex;
-		Pipeline::mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
+		Engine::mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
 	}
 	
 }

@@ -30,9 +30,6 @@
     <ClInclude Include="Engine.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Pipeline.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Util.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -120,15 +117,15 @@
     <ClInclude Include="RigidBodySystem.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DescriptorManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rocket.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Engine.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Pipeline.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Frame.cpp">
@@ -198,6 +195,9 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="RigidBodySystem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DescriptorManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

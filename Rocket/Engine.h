@@ -1,7 +1,6 @@
 #pragma once
 #include "Defines.h"
 #include "framework.h"
-#include "Pipeline.h"
 #include "Model.h"
 #include <map>
 #include "Camera.h"
@@ -18,6 +17,12 @@
 #include "ParticleField.h"
 #include "RigidBodySystem.h"
 #include <random>
+#include "d3dx12.h"
+#include "Frame.h"
+
+using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
+using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
+using Shaders = unordered_map<string, ComPtr<ID3DBlob>>;
 
 class Engine
 {
@@ -85,9 +90,6 @@ private:
 
 	Timer										mTimer;
 
-	//shared_ptr로 하는게 좋을 것 같다.
-	Pipeline									mDirectX;
-
 	vector<unique_ptr<Frame>>					mFrames;
 	int											mNumberOfFrames = 3;
 	int											mCurrentFrame = 0;
@@ -103,4 +105,49 @@ private:
 	unique_ptr<ParticleField>					mParticleField;
 
 	unique_ptr<RigidBodySystem>					mRigidBodySystem;
+
+
+
+
+
+
+	//--------------------------------pipeline에 있던 멤버들------------------------------
+public:
+
+	static ComPtr<ID3D12Device>					mDevice;
+	ComPtr<ID3D12CommandQueue>					mCommandQueue;
+	ComPtr<ID3D12Fence>							mFence = nullptr;
+	UINT64										mFenceValue = 0;
+	ComPtr<IDXGISwapChain>						mSwapChain;
+	ComPtr<ID3D12Resource>						mBackBuffers[2];
+	int											mCurrentBackBuffer = 0;
+	static PSOs									mPSOs;
+	D3D12_VIEWPORT								mViewport;
+	D3D12_RECT									mScissor;
+	ComPtr<ID3D12DescriptorHeap>				mRtvHeap;
+	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
+	static RootSigs								mRootSignatures;
+
+	void										InitializePipeline();
+	void										CreateObjects(HWND windowHandle);
+
+
+	void										CreateBackBuffersAndDepthBufferAndViews();
+	void										CreateDescriptorHeaps();
+	void										CreateSwapChain(HWND windowHandle);
+	void										CreateShaderAndRootSignature();
+	void										CreatePso();
+	void										SetViewportAndScissor();
+
+	ComPtr<IDXGIFactory4>						mFactory = nullptr;
+
+	DXGI_FORMAT									mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	DXGI_FORMAT									mDepthStencilBufferFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+	bool										mMsaaEnable = false;
+	UINT										mMsaaQuality = 0;
+
+	ComPtr<ID3D12Resource>						mDepthBuffer;
+
+	Shaders										mShaders;
 };

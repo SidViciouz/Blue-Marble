@@ -119,12 +119,12 @@ void Model::Load()
 
 	BoundingOrientedBox::CreateFromPoints(mBound, mVertices.size(), &mVertices[0].position, sizeof(Vertex));
 
-	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Engine::mCommandList.Get(), mName,
+	IfError::Throw(CreateDDSTextureFromFile12(Engine::mDevice.Get(), Engine::mCommandList.Get(), mName,
 		mTexture.mResource, mTexture.mUpload),
 		L"load dds texture error!");
 
-	mVertexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(Vertex) * mVertices.size());
-	mIndexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(uint16_t) * mIndices.size());
+	mVertexBuffer = make_unique<Buffer>(Engine::mDevice.Get(), sizeof(Vertex) * mVertices.size());
+	mIndexBuffer = make_unique<Buffer>(Engine::mDevice.Get(), sizeof(uint16_t) * mIndices.size());
 
 	mVertexBuffer->Copy(mVertices.data(), sizeof(Vertex) * mVertices.size(), Engine::mCommandList.Get());
 	mIndexBuffer->Copy(mIndices.data(), sizeof(uint16_t) * mIndices.size(), Engine::mCommandList.Get());

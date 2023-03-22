@@ -27,7 +27,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Buffer((UINT64)bufferSizeInBytes);
 
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
 		&rd, D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr, IID_PPV_ARGS(mUploadBuffer.GetAddressOf())
@@ -49,7 +49,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 	//readback buffer 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
 	rd = CD3DX12_RESOURCE_DESC::Buffer((UINT64)bufferSizeInBytes);
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
 		&rd, D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr, IID_PPV_ARGS(mReadbackBuffer.GetAddressOf())
@@ -69,7 +69,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 	rd = CD3DX12_RESOURCE_DESC::Tex2D(format,width,height);
 	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
 		&rd, D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr, IID_PPV_ARGS(mTexture.GetAddressOf())
@@ -110,7 +110,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Buffer((UINT64)bufferSizeInBytes);
 
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
 		&rd, D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr, IID_PPV_ARGS(mUploadBuffer.GetAddressOf())
@@ -136,7 +136,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
 	rd = CD3DX12_RESOURCE_DESC::Buffer((UINT64)bufferSizeInBytes);
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp,D3D12_HEAP_FLAG_NONE,
 		&rd,D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr, IID_PPV_ARGS(mReadbackBuffer.GetAddressOf())
@@ -160,7 +160,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 
 	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
 		&rd, D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr, IID_PPV_ARGS(mTexture.GetAddressOf())
@@ -278,7 +278,7 @@ void TextureResource::CreateDepth(int width, int height, int depth, int elementB
 	clearValue.DepthStencil.Depth = 1.0f;
 	clearValue.DepthStencil.Stencil = 0;
 
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
 		&rd, D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&clearValue, IID_PPV_ARGS(mTexture.GetAddressOf())
@@ -299,7 +299,7 @@ void TextureResource::Create(int width, int height, int depth, int elementByte, 
 
 	rd.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
-	IfError::Throw(Pipeline::mDevice->CreateCommittedResource(
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
 		&hp, D3D12_HEAP_FLAG_NONE,
 		&rd, D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 		nullptr, IID_PPV_ARGS(mTexture.GetAddressOf())

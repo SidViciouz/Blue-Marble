@@ -109,12 +109,12 @@ void RigidBody::DrawParticles()
 	//volume인 경우, vertex buffer가 없다. volume을 model을 상속하지 않도록 변경해야한다.
 	if (mModel->mVertexBufferSize == 0)
 		return;
-	Engine::mCommandList->SetPipelineState(Pipeline::mPSOs["RigidParticle"].Get());
-	Engine::mCommandList->SetGraphicsRootSignature(Pipeline::mRootSignatures["RigidParticle"].Get());
+	Engine::mCommandList->SetPipelineState(Engine::mPSOs["RigidParticle"].Get());
+	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["RigidParticle"].Get());
 	Engine::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = Engine::mScenes[Engine::mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-	handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * mModel->mObjIndex;
+	handle.ptr += Engine::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * mModel->mObjIndex;
 	Engine::mCommandList->IASetVertexBuffers(0, 1, mModel->GetVertexBufferView());
 	Engine::mCommandList->IASetIndexBuffer(mModel->GetIndexBufferView());
 	Engine::mCommandList->DrawIndexedInstanced(mModel->mIndexBufferSize, 1, 0, 0, 0);
