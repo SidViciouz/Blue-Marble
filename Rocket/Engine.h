@@ -125,8 +125,6 @@ public:
 	static PSOs									mPSOs;
 	D3D12_VIEWPORT								mViewport;
 	D3D12_RECT									mScissor;
-	//ComPtr<ID3D12DescriptorHeap>				mRtvHeap;
-	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
 	static RootSigs								mRootSignatures;
 
 	void										InitializePipeline();
@@ -134,7 +132,6 @@ public:
 
 
 	void										CreateBackBuffersAndDepthBufferAndViews();
-	void										CreateDescriptorHeaps();
 	void										CreateSwapChain(HWND windowHandle);
 	void										CreateShaderAndRootSignature();
 	void										CreatePso();

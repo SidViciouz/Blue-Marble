@@ -668,7 +668,7 @@ void Engine::Draw()
 
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mDescriptorManager->GetCpuHandle(mCurrentBackBuffer, DescType::RTV);
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDescriptorManager->GetCpuHandle(0, DescType::DSV);
 	float rgba[4] = { 0.0f,0.1f,0.0f,1.0f };
 	mCommandList->ClearRenderTargetView(rtvHandle, rgba, 0, nullptr);
 	mCommandList->ClearDepthStencilView(dsvHandle,
@@ -739,7 +739,7 @@ void Engine::Draw()
 			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-		//handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
+		//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
 		handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 50;
 		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
 		model->second->Draw();
@@ -936,8 +936,6 @@ void Engine::CreateObjects(HWND windowHandle)
 {
 	CreateSwapChain(windowHandle);
 
-	CreateDescriptorHeaps();
-
 	CreateBackBuffersAndDepthBufferAndViews();
 
 	CreateShaderAndRootSignature();
@@ -957,7 +955,6 @@ void Engine::CreateBackBuffersAndDepthBufferAndViews()
 	mSwapChain->ResizeBuffers(2, mWidth, mHeight, mBackBufferFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 	mCurrentBackBuffer = 0;
 
-	//D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapCPUHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
 	for (int i = 0; i < 2; ++i)
 	{
 		mSwapChain->GetBuffer(i, IID_PPV_ARGS(mBackBuffers[i].GetAddressOf()));
@@ -998,29 +995,9 @@ void Engine::CreateBackBuffersAndDepthBufferAndViews()
 		D3D12_RESOURCE_STATE_DEPTH_WRITE, &clearValue, IID_PPV_ARGS(mDepthBuffer.GetAddressOf())),
 		L"create Depth buffer error!");
 
-	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	dsvDesc.Texture2D.MipSlice = 0;
-
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvHeapCPUHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
-
-	mDevice->CreateDepthStencilView(mDepthBuffer.Get(), &dsvDesc, dsvHeapCPUHandle);
+	mDescriptorManager->CreateDsv(mDepthBuffer.Get(), D3D12_DSV_DIMENSION_TEXTURE2D);
 }
 
-void Engine::CreateDescriptorHeaps()
-{
-
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	dsvHeapDesc.NodeMask = 0;
-	dsvHeapDesc.NumDescriptors = 1;
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-
-	IfError::Throw(mDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())),
-		L"create depth stencil descriptor heap error!");
-}
 void Engine::CreateSwapChain(HWND windowHandle)
 {
 	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
