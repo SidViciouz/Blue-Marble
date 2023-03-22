@@ -27,7 +27,7 @@
     <ClInclude Include="Rocket.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Game.h">
+    <ClInclude Include="Engine.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Pipeline.h">
@@ -125,7 +125,7 @@
     <ClCompile Include="Rocket.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp">
+    <ClCompile Include="Engine.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Pipeline.cpp">

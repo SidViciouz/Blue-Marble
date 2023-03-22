@@ -1,7 +1,7 @@
 #include "VolumeSphere.h"
-#include "Game.h"
+#include "Engine.h"
 
 void VolumeSphere::Draw()
 {
-	Game::mCommandList->DrawInstanced(6, 1, 0, 0);
+	Engine::mCommandList->DrawInstanced(6, 1, 0, 0);
 }

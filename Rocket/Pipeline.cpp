@@ -1,7 +1,7 @@
 #include "Pipeline.h"
 #include "Constant.h"
 #include "d3dx12.h"
-#include "Game.h"
+#include "Engine.h"
 #include "DDSTextureLoader.h"
 
 ComPtr<ID3D12Device> Pipeline::mDevice = nullptr;

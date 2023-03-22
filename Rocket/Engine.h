@@ -19,19 +19,19 @@
 #include "RigidBodySystem.h"
 #include <random>
 
-class Game
+class Engine
 {
-	//game 객체 외부에서 사용할 수 있는 인터페이스
+	//Engine 객체 외부에서 사용할 수 있는 인터페이스
 public:
-												Game(const Game& game) = delete;
-												Game(Game&& game) = delete;
-	Game&										operator=(const Game& game) = delete;
-	Game&										operator=(Game&& game) = delete;
+												Engine(const Engine& engine) = delete;
+												Engine(Engine&& engine) = delete;
+	Engine&										operator=(const Engine& engine) = delete;
+	Engine&										operator=(Engine&& engine) = delete;
 
-												Game(HINSTANCE hInstance);
+												Engine(HINSTANCE hInstance);
 
 												//윈도우 관련 메서드
-	static Game*								Get();
+	static Engine*								Get();
 	LRESULT										WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	void										Initialize();
@@ -49,7 +49,7 @@ public:
 	static int									mCurrentScene;
 	static ComPtr<ID3D12GraphicsCommandList>	mCommandList;
 
-	//game 객체 내부적으로 사용되는 메서드와 멤버 변수
+	//Engine 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
 	//윈도우 관련 메서드
 	void										InitializeWindow();
@@ -75,7 +75,7 @@ private:
 	//
 
 	//윈도우 관련 데이터
-	static Game*								mLatestWindow;
+	static Engine*								mLatestWindow;
 	HINSTANCE									mInstance;
 	HWND										mWindowHandle = nullptr;
 	std::wstring								mWindowCaption = L"Rocket Game";

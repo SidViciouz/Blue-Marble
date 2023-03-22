@@ -1,16 +1,16 @@
-#include "Game.h"
+#include "Engine.h"
 
-vector<unique_ptr<Scene>> Game::mScenes;
-ComPtr<ID3D12GraphicsCommandList> Game::mCommandList;
-int Game::mCurrentScene;
+vector<unique_ptr<Scene>> Engine::mScenes;
+ComPtr<ID3D12GraphicsCommandList> Engine::mCommandList;
+int Engine::mCurrentScene;
 
-Game::Game(HINSTANCE hInstance)
+Engine::Engine(HINSTANCE hInstance)
 	: mDirectX(mWidth,mHeight), mInstance(hInstance)
 {
 	mLatestWindow = this;
 }
 
-void Game::Initialize()
+void Engine::Initialize()
 {
 	//윈도우 초기화
 	InitializeWindow();
@@ -59,7 +59,7 @@ void Game::Initialize()
 	mTimer.Reset();
 }
 
-void Game::Run()
+void Engine::Run()
 {
 	MSG msg = { 0 };
 
@@ -80,7 +80,7 @@ void Game::Run()
 	}
 }
 
-void Game::DebugEnable()
+void Engine::DebugEnable()
 {
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 	{
@@ -88,12 +88,12 @@ void Game::DebugEnable()
 	}
 }
 
-void Game::ChangeScene(int dstScene)
+void Engine::ChangeScene(int dstScene)
 {
 	mCurrentScene = dstScene;
 }
 
-void Game::SelectObject(int x, int y)
+void Engine::SelectObject(int x, int y)
 {
 	XMFLOAT3 newPos;
 	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
@@ -139,7 +139,7 @@ void Game::SelectObject(int x, int y)
 	}
 }
 
-void Game::MoveObject(int x, int y)
+void Engine::MoveObject(int x, int y)
 {
 	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
 	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
@@ -164,7 +164,7 @@ void Game::MoveObject(int x, int y)
 	mSelectedModel->SetPosition(newPos);
 }
 
-void Game::SelectInventory(int x, int y)
+void Engine::SelectInventory(int x, int y)
 {
 	XMFLOAT3 newPos;
 	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
@@ -208,7 +208,7 @@ void Game::SelectInventory(int x, int y)
 	}
 }
 
-void Game::WaitUntilPrevFrameComplete()
+void Engine::WaitUntilPrevFrameComplete()
 {
 	auto waitFrame = mFrames[(mCurrentFrame + mNumberOfFrames -1)%mNumberOfFrames].get();
 	if (waitFrame->mFenceValue != 0 && mDirectX.mFence->GetCompletedValue() < waitFrame->mFenceValue)
@@ -225,10 +225,10 @@ void Game::WaitUntilPrevFrameComplete()
 LRESULT CALLBACK
 MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	return Game::Get()->WndProc(hwnd, msg, wParam, lParam);
+	return Engine::Get()->WndProc(hwnd, msg, wParam, lParam);
 }
 
-LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
@@ -297,7 +297,7 @@ LRESULT Game::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
-void Game::InitializeWindow()
+void Engine::InitializeWindow()
 {
 	WNDCLASS wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -332,15 +332,15 @@ void Game::InitializeWindow()
 	UpdateWindow(mWindowHandle);
 }
 
-Game* Game::mLatestWindow = nullptr;
+Engine* Engine::mLatestWindow = nullptr;
 
-Game* Game::Get()
+Engine* Engine::Get()
 {
 	return mLatestWindow;
 }
 
 
-void Game::LoadScene()
+void Engine::LoadScene()
 {
 	//scene 0
 	mScenes.push_back(make_unique<Scene>());
@@ -373,7 +373,7 @@ void Game::LoadScene()
 	mScenes[mCurrentScene]->envFeature = SetLight();
 }
 
-void Game::CreateFrames(int numObjConstant)
+void Engine::CreateFrames(int numObjConstant)
 {
 	//효율성을 위해 cpu에서 미리 프레임을 계산해 놓기위해서 여러개의 프레임 자원을 생성.
 	for (int i = 0; i < mNumberOfFrames; ++i)
@@ -382,7 +382,7 @@ void Game::CreateFrames(int numObjConstant)
 	}
 }
 
-void Game::CreateCommandObjects()
+void Engine::CreateCommandObjects()
 {
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -403,7 +403,7 @@ void Game::CreateCommandObjects()
 /*
 * model의 vertex,index offset이 scene 내에서 존재하기 buffer가 존재하기 때문에 어떤 scene내에 로드할 건지를 명시해준다.
 */
-unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
+unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 {
 	unique_ptr<Clickables> model = make_unique<Clickables>();
 
@@ -477,7 +477,7 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 
 
 
-void Game::LoadCopyModelToBuffer()
+void Engine::LoadCopyModelToBuffer()
 {
 	//모델 데이터, 텍스처 로드, 버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
 	for (int i = 0; i <= mCurrentScene; ++i)
@@ -486,7 +486,7 @@ void Game::LoadCopyModelToBuffer()
 	}
 }
 
-unique_ptr<Unclickables> Game::CreateWorld(int sceneIndex)
+unique_ptr<Unclickables> Engine::CreateWorld(int sceneIndex)
 {
 	unique_ptr<Unclickables> model = make_unique<Unclickables>();
 
@@ -506,7 +506,7 @@ unique_ptr<Unclickables> Game::CreateWorld(int sceneIndex)
 	return move(model);
 }
 
-unique_ptr<Volumes> Game::CreateVolume(int sceneIndex)
+unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 {
 	unique_ptr<Volumes> volumes = make_unique<Volumes>();
 
@@ -535,7 +535,7 @@ unique_ptr<Volumes> Game::CreateVolume(int sceneIndex)
 
 }
 
-trans Game::SetLight()
+trans Engine::SetLight()
 {
 	trans env;
 		
@@ -555,13 +555,13 @@ trans Game::SetLight()
 	return env;
 }
 
-void Game::SetObjConstantIndex(int index)
+void Engine::SetObjConstantIndex(int index)
 {
 	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
 		+ index * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 }
 
-void Game::Update()
+void Engine::Update()
 {
 	//현재 프레임이 gpu에서 전부 draw되지 않았을 시 기다리고, 완료된 경우에는 다음 frame으로 넘어가는 역할.
 	mCurrentFrame = (mCurrentFrame + 1) % mNumberOfFrames;
@@ -608,7 +608,7 @@ void Game::Update()
 	mParticleField->Update(mTimer);
 }
 
-void Game::Draw()
+void Engine::Draw()
 {
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -720,7 +720,7 @@ void Game::Draw()
 	if (mIsModelSelected == true)
 	{
 		mCommandList->SetPipelineState(mDirectX.mPSOs["Selected"].Get());
-		Game::mCommandList->SetGraphicsRootConstantBufferView(0, Game::mFrames[Game::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		Engine::mCommandList->SetGraphicsRootConstantBufferView(0, Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
 			+ mSelectedModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 		mSelectedModel->Draw();
 	}
@@ -730,7 +730,7 @@ void Game::Draw()
 	mCommandList->SetPipelineState(mDirectX.mPSOs["planet"].Get());
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		Game::mCommandList->SetGraphicsRootConstantBufferView(0, Game::mFrames[Game::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		Engine::mCommandList->SetGraphicsRootConstantBufferView(0, Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
 			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
@@ -786,9 +786,9 @@ void Game::Draw()
 
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
-		Game::mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		Engine::mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
 			+ (*rigid)->mModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-		Game::mCommandList->SetGraphicsRootConstantBufferView(1, mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
+		Engine::mCommandList->SetGraphicsRootConstantBufferView(1, mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
 		(*rigid)->DrawParticles();
 	}
 
@@ -815,7 +815,7 @@ void Game::Draw()
 	mDirectX.mCommandQueue->Signal(mDirectX.mFence.Get(), mDirectX.mFenceValue);
 }
 
-void Game::Input()
+void Engine::Input()
 {
 	float deltaTime = mTimer.GetDeltaTime();
 	bool dirty = false;
@@ -850,7 +850,7 @@ void Game::Input()
 	}
 }
 
-void Game::CreateNoiseMap()
+void Engine::CreateNoiseMap()
 {
 	mNoiseMap = make_unique<TextureResource>();
 	

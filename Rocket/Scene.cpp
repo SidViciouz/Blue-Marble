@@ -1,5 +1,5 @@
 #include "Scene.h"
-#include "Game.h"
+#include "Engine.h"
 
 Scene::Scene() :
 	mSpawnSystem(make_unique<SpawnSystem>())

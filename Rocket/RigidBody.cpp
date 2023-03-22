@@ -1,6 +1,6 @@
 #include "RigidBody.h"
 #include "RigidBodySystem.h"
-#include "Game.h"
+#include "Engine.h"
 #include <algorithm>
 
 RigidBody::RigidBody(Model* model):
@@ -109,14 +109,14 @@ void RigidBody::DrawParticles()
 	//volume인 경우, vertex buffer가 없다. volume을 model을 상속하지 않도록 변경해야한다.
 	if (mModel->mVertexBufferSize == 0)
 		return;
-	Game::mCommandList->SetPipelineState(Pipeline::mPSOs["RigidParticle"].Get());
-	Game::mCommandList->SetGraphicsRootSignature(Pipeline::mRootSignatures["RigidParticle"].Get());
-	Game::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	Engine::mCommandList->SetPipelineState(Pipeline::mPSOs["RigidParticle"].Get());
+	Engine::mCommandList->SetGraphicsRootSignature(Pipeline::mRootSignatures["RigidParticle"].Get());
+	Engine::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = Game::mScenes[Game::mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = Engine::mScenes[Engine::mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 	handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * mModel->mObjIndex;
-	Game::mCommandList->IASetVertexBuffers(0, 1, mModel->GetVertexBufferView());
-	Game::mCommandList->IASetIndexBuffer(mModel->GetIndexBufferView());
-	Game::mCommandList->DrawIndexedInstanced(mModel->mIndexBufferSize, 1, 0, 0, 0);
+	Engine::mCommandList->IASetVertexBuffers(0, 1, mModel->GetVertexBufferView());
+	Engine::mCommandList->IASetIndexBuffer(mModel->GetIndexBufferView());
+	Engine::mCommandList->DrawIndexedInstanced(mModel->mIndexBufferSize, 1, 0, 0, 0);
 
 }

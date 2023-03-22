@@ -1,7 +1,7 @@
 #include "TextureResource.h"
 #include "d3dx12.h"
 #include "IfError.h"
-#include "Game.h"
+#include "Engine.h"
 
 
 int CalculateAlignment(int value, int alignment)
@@ -86,7 +86,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 	D3D12_TEXTURE_COPY_LOCATION tl = CD3DX12_TEXTURE_COPY_LOCATION(mTexture.Get(), 0);
 	D3D12_TEXTURE_COPY_LOCATION ubl = CD3DX12_TEXTURE_COPY_LOCATION(mUploadBuffer.Get(),footPrint );
 	
-	Game::mCommandList->CopyTextureRegion(
+	Engine::mCommandList->CopyTextureRegion(
 		&tl,
 		0, 0, 0,
 		&ubl,
@@ -95,7 +95,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 
 	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	Game::mCommandList->ResourceBarrier(1, &b);
+	Engine::mCommandList->ResourceBarrier(1, &b);
 
 	//cpu virtual memory address unmap하는 부분
 	//mUploadBuffer->Unmap(0, nullptr);
@@ -177,7 +177,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 	D3D12_TEXTURE_COPY_LOCATION tl = CD3DX12_TEXTURE_COPY_LOCATION(mTexture.Get(), 0);
 	D3D12_TEXTURE_COPY_LOCATION ubl = CD3DX12_TEXTURE_COPY_LOCATION(mUploadBuffer.Get(), footPrint);
 
-	Game::mCommandList->CopyTextureRegion(
+	Engine::mCommandList->CopyTextureRegion(
 		&tl,
 		0, 0, 0,
 		&ubl,
@@ -186,7 +186,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int depth, 
 
 	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_COPY_DEST,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	Game::mCommandList->ResourceBarrier(1, &b);
+	Engine::mCommandList->ResourceBarrier(1, &b);
 
 	//cpu virtual memory address unmap하는 부분
 	//mUploadBuffer->Unmap(0, nullptr);
@@ -225,9 +225,9 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 		D3D12_RESOURCE_STATE_COPY_DEST);
-	Game::mCommandList->ResourceBarrier(1, &b);
+	Engine::mCommandList->ResourceBarrier(1, &b);
 
-	Game::mCommandList->CopyTextureRegion(
+	Engine::mCommandList->CopyTextureRegion(
 		&tl,
 		0, 0, 0,
 		&ubl,
@@ -236,7 +236,7 @@ void TextureResource::Copy(void* pData, int width, int height, int depth, int el
 
 	b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	Game::mCommandList->ResourceBarrier(1, &b);
+	Engine::mCommandList->ResourceBarrier(1, &b);
 }
 
 void TextureResource::Readback(int width, int height, int depth, int elementByte, DXGI_FORMAT format)
@@ -253,9 +253,9 @@ void TextureResource::Readback(int width, int height, int depth, int elementByte
 	D3D12_TEXTURE_COPY_LOCATION rbbl = CD3DX12_TEXTURE_COPY_LOCATION(mReadbackBuffer.Get(), footPrint);
 
 	D3D12_RESOURCE_BARRIER b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,D3D12_RESOURCE_STATE_COPY_SOURCE);
-	Game::mCommandList->ResourceBarrier(1, &b);
+	Engine::mCommandList->ResourceBarrier(1, &b);
 
-	Game::mCommandList->CopyTextureRegion(
+	Engine::mCommandList->CopyTextureRegion(
 		&rbbl,
 		0, 0, 0,
 		&tl,
@@ -263,7 +263,7 @@ void TextureResource::Readback(int width, int height, int depth, int elementByte
 	);
 
 	b = CD3DX12_RESOURCE_BARRIER::Transition(mTexture.Get(),D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	Game::mCommandList->ResourceBarrier(1, &b);
+	Engine::mCommandList->ResourceBarrier(1, &b);
 }
 
 void TextureResource::CreateDepth(int width, int height, int depth, int elementByte)

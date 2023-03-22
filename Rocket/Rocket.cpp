@@ -3,7 +3,7 @@
 
 #include "framework.h"
 #include "Rocket.h"
-#include "Game.h"
+#include "Engine.h"
 #include "IfError.h"
 #include <string>
 #include <iostream>
@@ -28,11 +28,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     try
     {
-        Game gameInstance(hInstance);
+        Engine EngineInstance(hInstance);
 
-        gameInstance.Initialize();
+        EngineInstance.Initialize();
 
-        gameInstance.Run();
+        EngineInstance.Run();
 
         return 0;
     }

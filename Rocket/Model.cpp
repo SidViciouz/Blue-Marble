@@ -1,6 +1,6 @@
 #include "Model.h"
 #include "IfError.h"
-#include "Game.h"
+#include "Engine.h"
 #include "DDSTextureLoader.h"
 #include "RigidBody.h"
 
@@ -119,15 +119,15 @@ void Model::Load()
 
 	BoundingOrientedBox::CreateFromPoints(mBound, mVertices.size(), &mVertices[0].position, sizeof(Vertex));
 
-	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Game::mCommandList.Get(), mName,
+	IfError::Throw(CreateDDSTextureFromFile12(Pipeline::mDevice.Get(), Engine::mCommandList.Get(), mName,
 		mTexture.mResource, mTexture.mUpload),
 		L"load dds texture error!");
 
 	mVertexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(Vertex) * mVertices.size());
 	mIndexBuffer = make_unique<Buffer>(Pipeline::mDevice.Get(), sizeof(uint16_t) * mIndices.size());
 
-	mVertexBuffer->Copy(mVertices.data(), sizeof(Vertex) * mVertices.size(), Game::mCommandList.Get());
-	mIndexBuffer->Copy(mIndices.data(), sizeof(uint16_t) * mIndices.size(), Game::mCommandList.Get());
+	mVertexBuffer->Copy(mVertices.data(), sizeof(Vertex) * mVertices.size(), Engine::mCommandList.Get());
+	mIndexBuffer->Copy(mIndices.data(), sizeof(uint16_t) * mIndices.size(), Engine::mCommandList.Get());
 }
 
 // string에서 공백전까지의 token을 반환, 문자열의 끝이라면 " "를 반환
@@ -208,9 +208,9 @@ D3D12_INDEX_BUFFER_VIEW* Model::GetIndexBufferView()
 
 void Model::Draw()
 {
-	Game::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
-	Game::mCommandList->IASetIndexBuffer(GetIndexBufferView());
-	Game::mCommandList->DrawIndexedInstanced(mIndexBufferSize, 1, 0, 0, 0);
+	Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
+	Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());
+	Engine::mCommandList->DrawIndexedInstanced(mIndexBufferSize, 1, 0, 0, 0);
 }
 
 int Model::mNextObjConstantIndex = 0;
