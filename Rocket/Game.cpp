@@ -48,6 +48,8 @@ void Game::Initialize()
 	mRigidBodySystem->Load();
 	mRigidBodySystem->GenerateParticle();
 
+	CreateNoiseMap();
+
 	IfError::Throw(mCommandList->Close(),
 		L"command list close error!");
 
@@ -436,8 +438,9 @@ unique_ptr<Clickables> Game::CreateModel(int sceneIndex)
 
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
 		m->SetPosition(10.0f,3.0f,10.0f);
+		m->mScale = { 10.0f,10.0f,10.0f };
 		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
-		m->mRigidBody->SetAngularMomentum(10.0f, 10.0f, 10.0f);
+		m->mRigidBody->SetAngularMomentum(1.0f, 10.0f, 1.0f);
 		(*model)["earth"] = move(m);
 
 		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
@@ -623,7 +626,7 @@ void Game::Draw()
 	
 	//texture 초기화 해야함.
 	//첫번째 draw인 경우에는 제외해야함.
-
+	
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -640,6 +643,7 @@ void Game::Draw()
 		WaitUntilPrevFrameComplete();
 		mRigidBodySystem->UpdateRigidBody();
 	}
+	
 	//
 
 	mScenes[mCurrentScene]->Spawn();
@@ -721,17 +725,22 @@ void Game::Draw()
 		mSelectedModel->Draw();
 	}
 	
-	mCommandList->SetPipelineState(mDirectX.mPSOs["Default"].Get());
+	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+	mCommandList->SetGraphicsRootSignature(mDirectX.mRootSignatures["planet"].Get());
+	mCommandList->SetPipelineState(mDirectX.mPSOs["planet"].Get());
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
 		Game::mCommandList->SetGraphicsRootConstantBufferView(0, Game::mFrames[Game::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
 			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
+		//handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
+		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 50;
 		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
 		model->second->Draw();
 	}
+	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
 
 	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
 	{
@@ -838,5 +847,55 @@ void Game::Input()
 	if (dirty) {
 		mScenes[mCurrentScene]->mCamera->UpdateView();
 		mScenes[mCurrentScene]->mCamera->UpdateInvViewProjection();
+	}
+}
+
+void Game::CreateNoiseMap()
+{
+	mNoiseMap = make_unique<TextureResource>();
+	
+	const double pi = 3.14159265358979;
+
+	float perlinArray[128][512];
+	unsigned int tableMask = 127;
+
+	mt19937 generator(2020);
+	uniform_real_distribution<float> dist;
+	
+	for (int i = 0; i < 128; ++i)
+	{
+		for (int j = 0; j < 128; ++j)
+		{
+			//float theta = acos(2.0f * dist(generator) - 1.0f);
+			float phi = 2.0f * dist(generator) * pi;
+
+			float x = cos(phi);
+			float y = sin(phi);
+			//float z = cos(theta);
+
+			perlinArray[j][4 * i]= x;
+			perlinArray[j][4 * i + 1] = y;
+			perlinArray[j][4 * i + 2] = 0;
+			perlinArray[j][4 * i + 3] = 0;
+		}
+	}
+
+	mNoiseMap->CopyCreate(perlinArray, 128, 128, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
+
+	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE handle = scene->get()->mSrvHeap->GetCPUDescriptorHandleForHeapStart();
+		handle.ptr += Pipeline::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 50;
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
+		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		desc.Texture2D.MipLevels = -1;
+		desc.Texture2D.MostDetailedMip = 0;
+		desc.Texture2D.PlaneSlice = 0;
+		desc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+		Pipeline::mDevice->CreateShaderResourceView(mNoiseMap->mTexture.Get(), &desc, handle);
 	}
 }

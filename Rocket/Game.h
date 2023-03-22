@@ -17,6 +17,7 @@
 #include "VolumeSphere.h"
 #include "ParticleField.h"
 #include "RigidBodySystem.h"
+#include <random>
 
 class Game
 {
@@ -68,6 +69,10 @@ private:
 	void										Update();
 	void										Draw();
 	void										Input();
+	//
+	void										CreateNoiseMap();
+	unique_ptr<TextureResource>					mNoiseMap;
+	//
 
 	//윈도우 관련 데이터
 	static Game*								mLatestWindow;

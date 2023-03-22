@@ -231,5 +231,6 @@
     <FxCompile Include="Collision.hlsl" />
     <FxCompile Include="RigidMomentum.hlsl" />
     <FxCompile Include="RigidPosQuat.hlsl" />
+    <FxCompile Include="planet.hlsl" />
   </ItemGroup>
 </Project>

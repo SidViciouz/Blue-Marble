@@ -262,6 +262,26 @@ void Pipeline::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["RigidPosQuatCS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["planetVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "HS", "hs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["planetHS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "DS", "ds_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["planetDS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "GS", "gs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["planetGS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error4!");
+	mShaders["planetPS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 	
@@ -413,6 +433,37 @@ void Pipeline::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 	mRootSignatures["CreateParticles"] = move(rs);
+
+
+	D3D12_DESCRIPTOR_RANGE rangePlanet[1];
+	rangePlanet[0].BaseShaderRegister = 0;
+	rangePlanet[0].NumDescriptors = 1;
+	rangePlanet[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangePlanet[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangePlanet[0].RegisterSpace = 0;
+
+	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameter[0].Descriptor.RegisterSpace = 0;
+	rootParameter[0].Descriptor.ShaderRegister = 0;
+	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameter[1].Descriptor.RegisterSpace = 0;
+	rootParameter[1].Descriptor.ShaderRegister = 1;
+	rootParameter[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[2].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[2].DescriptorTable.pDescriptorRanges = rangePlanet;
+
+	rsDesc.NumParameters = 3;
+	rsDesc.pParameters = rootParameter;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["planet"] = move(rs);
 
 }
 
@@ -694,6 +745,36 @@ void Pipeline::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&rigidPosQuatPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["RigidPosQuat"] = move(pso);
+
+	
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 3;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+	psoDesc.pRootSignature = mRootSignatures["planet"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["planetVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["planetVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["planetPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["planetPS"]->GetBufferSize();
+	psoDesc.HS.pShaderBytecode = mShaders["planetHS"]->GetBufferPointer();
+	psoDesc.HS.BytecodeLength = mShaders["planetHS"]->GetBufferSize();
+	psoDesc.DS.pShaderBytecode = mShaders["planetDS"]->GetBufferPointer();
+	psoDesc.DS.BytecodeLength = mShaders["planetDS"]->GetBufferSize();
+	psoDesc.GS.pShaderBytecode = mShaders["planetGS"]->GetBufferPointer();
+	psoDesc.GS.BytecodeLength = mShaders["planetGS"]->GetBufferSize();
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.DepthClipEnable = true;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["planet"] = move(pso);
+	
 }
 
 void Pipeline::SetViewportAndScissor()

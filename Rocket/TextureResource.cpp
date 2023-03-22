@@ -44,7 +44,7 @@ void TextureResource::CopyCreate(void* pData, int width, int height, int element
 
 	pBegin = reinterpret_cast<UINT8*>(pDataBegin);
 
-	memcpy(pBegin, pData, sizeof(int) * 1000);
+	memcpy(pBegin, pData, sizeof(float) * 4*128*128);
 
 	//readback buffer 생성하는 부분
 	hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK);
