@@ -30,6 +30,8 @@ void Engine::Initialize()
 
 	CreateCommandObjects();
 
+	mDescriptorManager = make_unique<DescriptorManager>();
+
 	//DirectX 객체들 생성 (swapchain, depth buffer, root signature, shader 등)
 	CreateObjects(mWindowHandle);
 
@@ -664,11 +666,9 @@ void Engine::Draw()
 
 	mCommandList->ResourceBarrier(1, &barrier);
 
-	//mRigidBodySystem->DepthPass(RigidBodySystem::mRigidBodies[8]);
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mDescriptorManager->GetCpuHandle(mCurrentBackBuffer, DescType::RTV);
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
-	rtvHandle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV) * mCurrentBackBuffer;
 	float rgba[4] = { 0.0f,0.1f,0.0f,1.0f };
 	mCommandList->ClearRenderTargetView(rtvHandle, rgba, 0, nullptr);
 	mCommandList->ClearDepthStencilView(dsvHandle,
@@ -957,12 +957,11 @@ void Engine::CreateBackBuffersAndDepthBufferAndViews()
 	mSwapChain->ResizeBuffers(2, mWidth, mHeight, mBackBufferFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
 	mCurrentBackBuffer = 0;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapCPUHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
+	//D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapCPUHandle = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
 	for (int i = 0; i < 2; ++i)
 	{
 		mSwapChain->GetBuffer(i, IID_PPV_ARGS(mBackBuffers[i].GetAddressOf()));
-		mDevice->CreateRenderTargetView(mBackBuffers[i].Get(), nullptr, rtvHeapCPUHandle);
-		rtvHeapCPUHandle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		mDescriptorManager->CreateRtv(mBackBuffers[i].Get());
 	}
 
 
@@ -1012,14 +1011,6 @@ void Engine::CreateBackBuffersAndDepthBufferAndViews()
 
 void Engine::CreateDescriptorHeaps()
 {
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	rtvHeapDesc.NodeMask = 0;
-	rtvHeapDesc.NumDescriptors = 2;
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-
-	IfError::Throw(mDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())),
-		L"create renter target descriptor heap error!");
 
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;

@@ -1,4 +1,5 @@
 #include "DescriptorManager.h"
+#include "Engine.h"
 
 DescriptorManager::DescriptorManager()
 {

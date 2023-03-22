@@ -19,6 +19,7 @@
 #include <random>
 #include "d3dx12.h"
 #include "Frame.h"
+#include "DescriptorManager.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -124,7 +125,7 @@ public:
 	static PSOs									mPSOs;
 	D3D12_VIEWPORT								mViewport;
 	D3D12_RECT									mScissor;
-	ComPtr<ID3D12DescriptorHeap>				mRtvHeap;
+	//ComPtr<ID3D12DescriptorHeap>				mRtvHeap;
 	ComPtr<ID3D12DescriptorHeap>				mDsvHeap;
 	static RootSigs								mRootSignatures;
 
@@ -150,4 +151,7 @@ public:
 	ComPtr<ID3D12Resource>						mDepthBuffer;
 
 	Shaders										mShaders;
+//-----------------------------pipeline ³¡----------------------
+
+	unique_ptr<DescriptorManager>				mDescriptorManager;
 };

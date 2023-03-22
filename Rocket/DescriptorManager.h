@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Util.h"
-#include "Engine.h"
 
 /*
 * descriptor heap들의 최대 크기를 나타낸다.
