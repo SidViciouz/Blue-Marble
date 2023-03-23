@@ -160,6 +160,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="RigidBody.h" />
     <ClInclude Include="RigidBodySystem.h" />
     <ClInclude Include="Rocket.h" />
@@ -191,6 +192,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ParticleField.cpp" />
     <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="RigidBodySystem.cpp" />
     <ClCompile Include="Rocket.cpp" />

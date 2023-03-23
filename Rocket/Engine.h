@@ -20,6 +20,7 @@
 #include "d3dx12.h"
 #include "Frame.h"
 #include "DescriptorManager.h"
+#include "ResourceManager.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -151,4 +152,5 @@ public:
 //-----------------------------pipeline ³¡----------------------
 
 	unique_ptr<DescriptorManager>				mDescriptorManager;
+	unique_ptr<ResourceManager>					mResourceManager;
 };

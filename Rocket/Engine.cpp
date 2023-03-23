@@ -30,6 +30,7 @@ void Engine::Initialize()
 
 	CreateCommandObjects();
 
+	mResourceManager = make_unique<ResourceManager>();
 	mDescriptorManager = make_unique<DescriptorManager>();
 
 	//DirectX 객체들 생성 (swapchain, depth buffer, root signature, shader 등)
