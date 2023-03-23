@@ -63,6 +63,8 @@ public:
 	*/
 	D3D12_GPU_DESCRIPTOR_HANDLE					GetGpuHandle(int index, DescType descType);
 
+	ID3D12DescriptorHeap**						GetHeapAddress(DescType descType);
+
 private:
 	ComPtr<ID3D12DescriptorHeap>				mCbvSrvUavHeap;
 	ComPtr<ID3D12DescriptorHeap>				mNonVisibleCbvSrvUavHeap;

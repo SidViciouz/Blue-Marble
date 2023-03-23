@@ -3,7 +3,6 @@
 #include "Constant.h"
 #include "Engine.h"
 
-#define MAX_OBJECT_NUM 1000
 
 Frame::Frame()
 {

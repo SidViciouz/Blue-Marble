@@ -726,15 +726,16 @@ void Engine::Draw()
 
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	heaps[0] = { mScenes[mCurrentScene]->mSrvHeap.Get() };
-	mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	//heaps[0] = { mScenes[mCurrentScene]->mSrvHeap.Get() };
+	//mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	mCommandList->SetDescriptorHeaps(1, mDescriptorManager->GetHeapAddress(DescType::SRV));
 
 	mCommandList->SetPipelineState(mPSOs["World"].Get());
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-		handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * world->second->mObjIndex;
-		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+		//D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+		//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * world->second->mObjIndex;
+		mCommandList->SetGraphicsRootDescriptorTable(2,mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[world->first],DescType::SRV));
 		world->second->Draw();
 	}
 
@@ -757,10 +758,10 @@ void Engine::Draw()
 		mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
-		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+		//D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 		//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
-		handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 50;
-		mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+		//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 50;
+		mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mNoiseMapDescriptorIdx,DescType::SRV));
 		model->second->Draw();
 	}
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -774,9 +775,9 @@ void Engine::Draw()
 			mCommandList->SetGraphicsRootConstantBufferView(0,
 				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 				+ mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-			handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * inventory->second->mObjIndex;
-			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+			//D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
+			//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * inventory->second->mObjIndex;
+			mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[inventory->first], DescType::SRV));
 			inventory->second->Draw();
 		}
 	}
@@ -915,22 +916,9 @@ void Engine::CreateNoiseMap()
 
 	mNoiseMap->CopyCreate(perlinArray, 128, 128, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
 
-	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
-	{
-		D3D12_CPU_DESCRIPTOR_HANDLE handle = scene->get()->mSrvHeap->GetCPUDescriptorHandleForHeapStart();
-		handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 50;
 
-		D3D12_SHADER_RESOURCE_VIEW_DESC desc = {};
-		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		desc.Texture2D.MipLevels = -1;
-		desc.Texture2D.MostDetailedMip = 0;
-		desc.Texture2D.PlaneSlice = 0;
-		desc.Texture2D.ResourceMinLODClamp = 0.0f;
-
-		mDevice->CreateShaderResourceView(mNoiseMap->mTexture.Get(), &desc, handle);
-	}
+	mNoiseMapDescriptorIdx =  mDescriptorManager->CreateSrv(mNoiseMap->mTexture.Get(),
+		DXGI_FORMAT_R32G32B32A32_FLOAT, D3D12_SRV_DIMENSION_TEXTURE2D);
 }
 
 

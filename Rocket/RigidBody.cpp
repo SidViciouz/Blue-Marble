@@ -113,10 +113,7 @@ void RigidBody::DrawParticles()
 	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["RigidParticle"].Get());
 	Engine::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = Engine::mScenes[Engine::mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-	handle.ptr += Engine::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * mModel->mObjIndex;
 	Engine::mCommandList->IASetVertexBuffers(0, 1, mModel->GetVertexBufferView());
 	Engine::mCommandList->IASetIndexBuffer(mModel->GetIndexBufferView());
 	Engine::mCommandList->DrawIndexedInstanced(mModel->mIndexBufferSize, 1, 0, 0, 0);
-
 }

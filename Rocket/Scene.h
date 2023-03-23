@@ -38,9 +38,10 @@ public:
 
 	env											envFeature;
 
-	ComPtr<ID3D12DescriptorHeap>				mSrvHeap = nullptr;
 	ComPtr<ID3D12DescriptorHeap>				mVolumeUavHeap = nullptr;
 	ComPtr<ID3D12DescriptorHeap>				mVolumeUavHeapInvisible = nullptr;
 
 	unique_ptr<SpawnSystem>						mSpawnSystem;
+
+	unordered_map<string,int>					mSrvIndices;
 };

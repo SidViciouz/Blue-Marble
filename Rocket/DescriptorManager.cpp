@@ -257,6 +257,24 @@ D3D12_GPU_DESCRIPTOR_HANDLE	DescriptorManager::GetGpuHandle(int index, DescType 
 	}
 }
 
+ID3D12DescriptorHeap** DescriptorManager::GetHeapAddress(DescType descType)
+{
+	if (descType == DescType::CBV || descType == DescType::SRV || descType == DescType::UAV)
+	{
+		return mCbvSrvUavHeap.GetAddressOf();
+	}
+	else if (descType == DescType::RTV)
+	{
+		return mRtvHeap.GetAddressOf();
+	}
+	else if (descType == DescType::DSV)
+	{
+		return mDsvHeap.GetAddressOf();
+	}
+
+	return nullptr;
+}
+
 int DescriptorManager::GetAvailableTableIndex(DescType descType)
 {
 	if (descType == DescType::CBV || descType == DescType::SRV || descType == DescType::UAV)

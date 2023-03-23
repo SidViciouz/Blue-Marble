@@ -2,6 +2,8 @@
 #include "Util.h"
 #include "Light.h"
 
+#define MAX_OBJECT_NUM 1000
+
 using namespace DirectX;
 
 struct obj

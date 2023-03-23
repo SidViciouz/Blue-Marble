@@ -152,4 +152,6 @@ public:
 	
 	int											mDepthBufferIndex;
 	int											mBackBufferOffset;
+
+	int											mNoiseMapDescriptorIdx;
 };

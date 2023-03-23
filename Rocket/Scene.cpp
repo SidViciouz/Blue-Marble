@@ -44,42 +44,20 @@ void Scene::Update()
 
 void Scene::CreateModelSrv(int size)
 {
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	heapDesc.NumDescriptors = size;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-	IfError::Throw(Engine::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mSrvHeap.GetAddressOf())),
-		L"create srv heap error!");
-
-
-	auto incrementSize = Engine::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
-	viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	viewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	viewDesc.Texture2D.MipLevels = -1;
-	viewDesc.Texture2D.MostDetailedMip = 0;
-	viewDesc.Texture2D.PlaneSlice = 0;
-
 	for (auto model = mModels->begin(); model != mModels->end(); model++)
 	{
-		viewDesc.Format = model->second->mTexture.mResource->GetDesc().Format;
-		auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
-		handle.ptr += incrementSize * model->second->mObjIndex;
-		Engine::mDevice->CreateShaderResourceView(model->second->mTexture.mResource.Get(), &viewDesc, handle);
+		int index = Engine::mDescriptorManager->CreateSrv(model->second->mTexture.mResource.Get(),
+			model->second->mTexture.mResource->GetDesc().Format, D3D12_SRV_DIMENSION_TEXTURE2D);
+		
+		mSrvIndices[model->first] = index;
 	}
 
-	viewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
-	viewDesc.TextureCube.MostDetailedMip = 0;
-	viewDesc.TextureCube.ResourceMinLODClamp = 0.0f;
+
 	for (auto world = mWorld->begin(); world != mWorld->end(); world++)
 	{
-		viewDesc.TextureCube.MipLevels = world->second->mTexture.mResource->GetDesc().MipLevels;
-		viewDesc.Format = world->second->mTexture.mResource->GetDesc().Format;
-		auto handle = mSrvHeap->GetCPUDescriptorHandleForHeapStart();
-		handle.ptr += incrementSize * world->second->mObjIndex;
-		Engine::mDevice->CreateShaderResourceView(world->second->mTexture.mResource.Get(), &viewDesc, handle);
+		int index = Engine::mDescriptorManager->CreateSrv(world->second->mTexture.mResource.Get(),
+			world->second->mTexture.mResource->GetDesc().Format, D3D12_SRV_DIMENSION_TEXTURECUBE);
+		mSrvIndices[world->first] = index;
 	}
 }
 
