@@ -3,26 +3,18 @@
 #include "Constant.h"
 #include "Engine.h"
 
-Frame::Frame(int numModels)
+#define MAX_OBJECT_NUM 1000
+
+Frame::Frame()
 {
 	IfError::Throw(Engine::mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,IID_PPV_ARGS(mCommandAllocator.GetAddressOf())),
 		L"create command allocator error!");
-	
-	mObjConstantBuffer = make_unique<UploadBuffer>(Engine::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(obj))* numModels);
-	mTransConstantBuffer = make_unique<UploadBuffer>(Engine::mDevice.Get(), BufferInterface::ConstantBufferByteSize(sizeof(trans)));
+
+	mObjConstantBufferIdx = Engine::mResourceManager->CreateUploadBuffer(constantBufferAlignment(sizeof(obj)*MAX_OBJECT_NUM));
+	mEnvConstantBufferIdx = Engine::mResourceManager->CreateUploadBuffer(constantBufferAlignment(sizeof(env)));
 }
 
 ID3D12CommandAllocator* Frame::Get()
 {
 	return mCommandAllocator.Get();
-}
-
-void Frame::CopyObjConstantBuffer(int index, const void* data, int byteSize)
-{
-	mObjConstantBuffer->Copy(index, data, byteSize);
-}
-
-void Frame::CopyTransConstantBuffer(int index, const void* data, int byteSize)
-{
-	mTransConstantBuffer->Copy(index, data, byteSize);
 }

@@ -36,7 +36,7 @@ public:
 
 	unique_ptr<Camera>							mCamera = nullptr;
 
-	trans										envFeature;
+	env											envFeature;
 
 	ComPtr<ID3D12DescriptorHeap>				mSrvHeap = nullptr;
 	ComPtr<ID3D12DescriptorHeap>				mVolumeUavHeap = nullptr;

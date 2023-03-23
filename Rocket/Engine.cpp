@@ -11,6 +11,9 @@ RootSigs Engine::mRootSignatures;
 ComPtr<IDXGIFactory4> Engine::mFactory = nullptr;
 ComPtr<ID3D12CommandQueue> Engine::mCommandQueue;
 
+unique_ptr<DescriptorManager> Engine::mDescriptorManager;
+unique_ptr<ResourceManager>	Engine::mResourceManager;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -27,16 +30,15 @@ void Engine::Initialize()
 	//device, fence 등 생성
 	InitializePipeline();
 	
-
-	CreateFrames(MAX_OBJECT);
-
 	CreateCommandObjects();
 
 	mResourceManager = make_unique<ResourceManager>();
 	mDescriptorManager = make_unique<DescriptorManager>();
 
+	CreateFrames();
+
 	//DirectX 객체들 생성 (swapchain, depth buffer, root signature, shader 등)
-	CreateObjects(mWindowHandle);
+	CreateObjects();
 
 	//각 Scene들에 모델, 카메라, 조명 생성
 	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
@@ -383,12 +385,12 @@ void Engine::LoadScene()
 	mScenes[mCurrentScene]->envFeature = SetLight();
 }
 
-void Engine::CreateFrames(int numObjConstant)
+void Engine::CreateFrames()
 {
 	//효율성을 위해 cpu에서 미리 프레임을 계산해 놓기위해서 여러개의 프레임 자원을 생성.
 	for (int i = 0; i < mNumberOfFrames; ++i)
 	{
-		mFrames.push_back(make_unique<Frame>(numObjConstant));
+		mFrames.push_back(make_unique<Frame>());
 	}
 }
 
@@ -400,11 +402,14 @@ void Engine::CreateCommandObjects()
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 	queueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 
+	IfError::Throw(Engine::mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(mCommandAllocator.GetAddressOf())),
+		L"create command allocator error!");
+
 	IfError::Throw(mDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(mCommandQueue.GetAddressOf())),
 		L"create command queue error!");
 
 	IfError::Throw(mDevice->CreateCommandList(
-		0, D3D12_COMMAND_LIST_TYPE_DIRECT, mFrames[mCurrentFrame]->Get(),
+		0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(),
 		nullptr, IID_PPV_ARGS(mCommandList.GetAddressOf())),
 		L"create command list error!");
 }
@@ -545,31 +550,33 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 
 }
 
-trans Engine::SetLight()
+env Engine::SetLight()
 {
-	trans env;
+	env envs;
 		
-	env.lights[0].mPosition = { 10.0f,0.0f,0.0f };
-	env.lights[0].mDirection = { -1.0f,0.0f,0.0f };
-	env.lights[0].mColor = {1.0f,1.0f,1.0f };
-	env.lights[0].mType = Point;
-	env.lights[1].mPosition = { 9.0f,3.0f,0.0f };
-	env.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
-	env.lights[1].mColor = { 1.0f,1.0f,0.0f };
-	env.lights[1].mType = Spot;
-	env.lights[2].mPosition = { 0.0f, 3.0f,0.0f };
-	env.lights[2].mDirection = { 0.0f,-1.0f,0.0f };
-	env.lights[2].mColor = { 1.0f,1.0f,0.0f };
-	env.lights[2].mType = Spot;
+	envs.lights[0].mPosition = { 10.0f,0.0f,0.0f };
+	envs.lights[0].mDirection = { -1.0f,0.0f,0.0f };
+	envs.lights[0].mColor = {1.0f,1.0f,1.0f };
+	envs.lights[0].mType = Point;
+	envs.lights[1].mPosition = { 9.0f,3.0f,0.0f };
+	envs.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
+	envs.lights[1].mColor = { 1.0f,1.0f,0.0f };
+	envs.lights[1].mType = Spot;
+	envs.lights[2].mPosition = { 0.0f, 3.0f,0.0f };
+	envs.lights[2].mDirection = { 0.0f,-1.0f,0.0f };
+	envs.lights[2].mColor = { 1.0f,1.0f,0.0f };
+	envs.lights[2].mType = Spot;
 
-	return env;
+	return envs;
 }
 
+/*
 void Engine::SetObjConstantIndex(int index)
 {
 	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
 		+ index * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 }
+*/
 
 void Engine::Update()
 {
@@ -597,22 +604,29 @@ void Engine::Update()
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
 	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
 	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
-	mFrames[mCurrentFrame]->CopyTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(trans));
+	//mFrames[mCurrentFrame]->CopyTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(env));
+	mResourceManager->Upload(mFrames[mCurrentFrame]->mEnvConstantBufferIdx, &mScenes[mCurrentScene]->envFeature, sizeof(env), 0);
 
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		mFrames[mCurrentFrame]->CopyObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
+		//mFrames[mCurrentFrame]->CopyObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
+		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &model->second->mObjFeature, sizeof(obj),
+			model->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
-		mFrames[mCurrentFrame]->CopyObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
+		//mFrames[mCurrentFrame]->CopyObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
+		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &world->second->mObjFeature, sizeof(obj),
+			world->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-		mFrames[mCurrentFrame]->CopyObjConstantBuffer(volume->second->mObjIndex, &volume->second->mObjFeature, sizeof(obj));
+		//mFrames[mCurrentFrame]->CopyObjConstantBuffer(volume->second->mObjIndex, &volume->second->mObjFeature, sizeof(obj));
+		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &volume->second->mObjFeature, sizeof(obj),
+			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 	
 	mParticleField->Update(mTimer);
@@ -681,8 +695,8 @@ void Engine::Draw()
 
 	mCommandList->SetGraphicsRootSignature(mRootSignatures["Default"].Get());
 
-	mCommandList->SetGraphicsRootConstantBufferView(1, mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
-
+	mCommandList->SetGraphicsRootConstantBufferView(1,
+		mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
 
 	//particle density update
 	ID3D12DescriptorHeap* heaps[] = { mScenes[mCurrentScene]->mVolumeUavHeap.Get() };
@@ -728,7 +742,8 @@ void Engine::Draw()
 	if (mIsModelSelected == true)
 	{
 		mCommandList->SetPipelineState(mPSOs["Selected"].Get());
-		Engine::mCommandList->SetGraphicsRootConstantBufferView(0, Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		mCommandList->SetGraphicsRootConstantBufferView(0,
+			mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 			+ mSelectedModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 		mSelectedModel->Draw();
 	}
@@ -738,7 +753,8 @@ void Engine::Draw()
 	mCommandList->SetPipelineState(mPSOs["planet"].Get());
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		Engine::mCommandList->SetGraphicsRootConstantBufferView(0, Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		mCommandList->SetGraphicsRootConstantBufferView(0,
+		mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
@@ -755,7 +771,9 @@ void Engine::Draw()
 		Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
 		for (auto inventory = invtry->mInventory.begin(); inventory != invtry->mInventory.end(); inventory++)
 		{
-			SetObjConstantIndex(mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex);
+			mCommandList->SetGraphicsRootConstantBufferView(0,
+				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
+				+ mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
 			handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * inventory->second->mObjIndex;
 			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
@@ -777,7 +795,10 @@ void Engine::Draw()
 			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
 			handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
 			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-			SetObjConstantIndex(volume->second->mObjIndex);
+			mCommandList->SetGraphicsRootConstantBufferView(0,
+				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
+				+ volume->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+
 			volume->second->Draw();
 		}
 		else
@@ -786,7 +807,10 @@ void Engine::Draw()
 			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
 			handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
 			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
-			SetObjConstantIndex(volume->second->mObjIndex);
+			mCommandList->SetGraphicsRootConstantBufferView(0,
+				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
+				+ volume->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+
 			volume->second->Draw();
 		}
 		++i;
@@ -794,10 +818,12 @@ void Engine::Draw()
 
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
-		Engine::mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
+		mCommandList->SetGraphicsRootConstantBufferView(0,
+			mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 			+ (*rigid)->mModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-		Engine::mCommandList->SetGraphicsRootConstantBufferView(1, mFrames[mCurrentFrame]->mTransConstantBuffer->GetGpuAddress());
-		(*rigid)->DrawParticles();
+
+		mCommandList->SetGraphicsRootConstantBufferView(1,
+			mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
 	}
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -934,9 +960,9 @@ void Engine::InitializePipeline()
 
 }
 
-void Engine::CreateObjects(HWND windowHandle)
+void Engine::CreateObjects()
 {
-	mBackBufferOffset = mResourceManager->CreateSwapChain(mWidth, mHeight, mBackBufferFormat, windowHandle);
+	mBackBufferOffset = mResourceManager->CreateSwapChain(mWidth, mHeight, mBackBufferFormat, mWindowHandle);
 
 	mCurrentBackBuffer = 0;
 

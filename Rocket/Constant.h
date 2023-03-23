@@ -13,7 +13,7 @@ struct obj
 	int											pad1;
 };
 
-struct trans
+struct env
 {
 	XMFLOAT4X4									view;
 	XMFLOAT4X4									projection;

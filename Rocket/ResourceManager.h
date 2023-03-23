@@ -15,14 +15,24 @@ public:
 	int											CreateTexture2D(int width,int height,DXGI_FORMAT format,D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 	int											CreateTexture2DArray(int width, int height, int arraySize, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
 	int											CreateTexture3D(int width, int height, int depth, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE);
-	//int											CreateTextureCube();
+	/*
+	* 한 resource에서 다른 resource로 data를 copy한다. (GPU->GPU)
+	*/
 	void										Copy(int src,int dst);
 	int											CalculateAlignment(int value, int alignment);
 	ID3D12Resource*								GetResource(int index);
 	void										SwapChainPresent();
+	void										Upload(int index, const void* data, int byteSize,int offset);
 
 private:
 	ResourceTable								mResourceTable;
 	int											mNextResourceIdx = 0;
 	ComPtr<IDXGISwapChain>						mSwapChain;
 };
+
+
+static UINT constantBufferAlignment(UINT byteSize)
+{
+	return (byteSize + 255) & ~255;
+}
+

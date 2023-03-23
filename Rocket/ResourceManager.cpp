@@ -155,13 +155,6 @@ int	ResourceManager::CreateTexture3D(int width, int height, int depth, DXGI_FORM
 	return mNextResourceIdx - 1;
 }
 
-/*
-int	ResourceManager::CreateTextureCube()
-{
-
-}
-*/
-
 void ResourceManager::Copy(int src, int dst)
 {
 
@@ -185,4 +178,14 @@ void ResourceManager::SwapChainPresent()
 {
 	IfError::Throw(mSwapChain->Present(0, 0),
 		L"swap chain present fails!");
+}
+
+void ResourceManager::Upload(int index, const void* data, int byteSize,int offset)
+{
+	BYTE* memory;
+	mResourceTable[index]->Map(0, nullptr, reinterpret_cast<void**>(&memory));
+
+	memcpy(&memory[offset], data, byteSize);
+
+	mResourceTable[index]->Unmap(0, nullptr);
 }

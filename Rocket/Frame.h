@@ -9,13 +9,12 @@ using namespace std;
 class Frame
 {
 public:
-												Frame(int numModels);
+												Frame();
 	ID3D12CommandAllocator*						Get();
 	UINT64										mFenceValue = 0;
-	unique_ptr<UploadBuffer>					mObjConstantBuffer = nullptr;
-	unique_ptr<UploadBuffer>					mTransConstantBuffer = nullptr;
-	void										CopyObjConstantBuffer(int index, const void* data, int byteSize);
-	void										CopyTransConstantBuffer(int index, const void* data, int byteSize);
+	
+	int											mObjConstantBufferIdx;
+	int											mEnvConstantBufferIdx;
 
 private:
 	ComPtr<ID3D12CommandAllocator>				mCommandAllocator = nullptr;

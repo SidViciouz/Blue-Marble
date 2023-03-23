@@ -55,6 +55,7 @@ public:
 	static vector<unique_ptr<Scene>>			mScenes;
 	static int									mCurrentScene;
 	static ComPtr<ID3D12GraphicsCommandList>	mCommandList;
+	ComPtr<ID3D12CommandAllocator>				mCommandAllocator;
 
 	//Engine 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
@@ -65,14 +66,13 @@ private:
 	/*
 	* numObjConstant의 수만큼 obj constant buffer의 크기를 만든다.
 	*/
-	void										CreateFrames(int numObjConstant);
+	void										CreateFrames();
 	void										CreateCommandObjects();
 	unique_ptr<Clickables>						CreateModel(int sceneIndex);
 	void										LoadCopyModelToBuffer();
 	unique_ptr<Unclickables>					CreateWorld(int sceneIndex);
 	unique_ptr<Volumes>							CreateVolume(int sceneIndex);
-	trans										SetLight();
-	void										SetObjConstantIndex(int index);
+	env											SetLight();
 	void										Update();
 	void										Draw();
 	void										Input();
@@ -129,7 +129,7 @@ public:
 	static RootSigs								mRootSignatures;
 
 	void										InitializePipeline();
-	void										CreateObjects(HWND windowHandle);
+	void										CreateObjects();
 
 
 	void										CreateShaderAndRootSignature();
@@ -147,8 +147,8 @@ public:
 	Shaders										mShaders;
 //-----------------------------pipeline 끝----------------------
 
-	unique_ptr<DescriptorManager>				mDescriptorManager;
-	unique_ptr<ResourceManager>					mResourceManager;
+	static unique_ptr<DescriptorManager>		mDescriptorManager;
+	static unique_ptr<ResourceManager>			mResourceManager;
 	
 	int											mDepthBufferIndex;
 	int											mBackBufferOffset;
