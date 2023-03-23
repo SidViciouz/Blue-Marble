@@ -117,11 +117,11 @@ private:
 public:
 
 	static ComPtr<ID3D12Device>					mDevice;
-	ComPtr<ID3D12CommandQueue>					mCommandQueue;
+	static ComPtr<ID3D12CommandQueue>			mCommandQueue;
 	ComPtr<ID3D12Fence>							mFence = nullptr;
 	UINT64										mFenceValue = 0;
 	ComPtr<IDXGISwapChain>						mSwapChain;
-	ComPtr<ID3D12Resource>						mBackBuffers[2];
+	//ComPtr<ID3D12Resource>						mBackBuffers[2];
 	int											mCurrentBackBuffer = 0;
 	static PSOs									mPSOs;
 	D3D12_VIEWPORT								mViewport;
@@ -132,13 +132,11 @@ public:
 	void										CreateObjects(HWND windowHandle);
 
 
-	void										CreateBackBuffersAndDepthBufferAndViews();
-	void										CreateSwapChain(HWND windowHandle);
 	void										CreateShaderAndRootSignature();
 	void										CreatePso();
 	void										SetViewportAndScissor();
 
-	ComPtr<IDXGIFactory4>						mFactory = nullptr;
+	static ComPtr<IDXGIFactory4>				mFactory;
 
 	DXGI_FORMAT									mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_FORMAT									mDepthStencilBufferFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -146,11 +144,12 @@ public:
 	bool										mMsaaEnable = false;
 	UINT										mMsaaQuality = 0;
 
-	ComPtr<ID3D12Resource>						mDepthBuffer;
-
 	Shaders										mShaders;
 //-----------------------------pipeline ³¡----------------------
 
 	unique_ptr<DescriptorManager>				mDescriptorManager;
 	unique_ptr<ResourceManager>					mResourceManager;
+	
+	int											mDepthBufferIndex;
+	int											mBackBufferOffset;
 };
