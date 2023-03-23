@@ -63,40 +63,16 @@ void Scene::CreateModelSrv(int size)
 
 void Scene::CreateVolumeUav(int size)
 {
-	//create shader visible heap
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	heapDesc.NumDescriptors = size;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-	IfError::Throw(Engine::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeap.GetAddressOf())),
-		L"create srv heap for volume error!");
-
-	auto incrementSize = Engine::mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
 	{
-		auto handle = mVolumeUavHeap->GetCPUDescriptorHandleForHeapStart();
-		handle.ptr += incrementSize * volume->second->mVolumeIndex;
-		Engine::mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
+		int index = Engine::mDescriptorManager->CreateUav(volume->second->mTextureResource->mTexture.Get(),
+			DXGI_FORMAT_R32_FLOAT, D3D12_UAV_DIMENSION_TEXTURE3D);
+		mSrvIndices[volume->first] = index;
+
+		index = Engine::mDescriptorManager->CreateInvisibleUav(volume->second->mTextureResource->mTexture.Get(),
+			DXGI_FORMAT_R32_FLOAT, D3D12_UAV_DIMENSION_TEXTURE3D);
+		mInvisibleUavIndices[volume->first] = index;
 	}
-	
-
-	//create shader invisible heap
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	heapDesc.NumDescriptors = size;
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-	IfError::Throw(Engine::mDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mVolumeUavHeapInvisible.GetAddressOf())),
-		L"create shader invisible srv heap for volume error!");
-
-	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
-	{
-		auto handle = mVolumeUavHeapInvisible->GetCPUDescriptorHandleForHeapStart();
-		handle.ptr += incrementSize * volume->second->mVolumeIndex;
-		Engine::mDevice->CreateUnorderedAccessView(volume->second->mTextureResource->mTexture.Get(), nullptr, nullptr, handle);
-	}
-	
 }
 
 void Scene::Spawn()

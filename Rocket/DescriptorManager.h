@@ -18,7 +18,8 @@ enum class DescType
 	SRV,
 	UAV,
 	RTV,
-	DSV
+	DSV,
+	iUAV
 };
 
 class DescriptorManager
@@ -45,6 +46,10 @@ public:
 	* uav를 생성하고, descriptor heap내에서의 위치를 나타내는 인덱스를 반환한다.
 	*/
 	int											CreateUav(ID3D12Resource* resource, DXGI_FORMAT format, D3D12_UAV_DIMENSION dimension, int ArraySize = 1);
+	/*
+	* non-visible heap에 uav를 생성하고, descriptor heap내에서의 위치를 나타내는 인덱스를 반환한다.
+	*/
+	int											CreateInvisibleUav(ID3D12Resource* resource, DXGI_FORMAT format, D3D12_UAV_DIMENSION dimension, int ArraySize = 1);
 	/*
 	* rtv를 생성하고, descriptor heap내에서의 위치를 나타내는 인덱스를 반환한다.
 	*/
@@ -75,6 +80,8 @@ private:
 	UINT										mDsvIncrementSize;
 	D3D12_CPU_DESCRIPTOR_HANDLE					mCbvSrvUavCpuHandleStart;
 	D3D12_GPU_DESCRIPTOR_HANDLE					mCbvSrvUavGpuHandleStart;
+	D3D12_CPU_DESCRIPTOR_HANDLE					mNonVisibleCbvSrvUavCpuHandleStart;
+	D3D12_GPU_DESCRIPTOR_HANDLE					mNonVisibleCbvSrvUavGpuHandleStart;
 	D3D12_CPU_DESCRIPTOR_HANDLE					mRtvCpuHandleStart;
 	D3D12_GPU_DESCRIPTOR_HANDLE					mRtvGpuHandleStart;
 	D3D12_CPU_DESCRIPTOR_HANDLE					mDsvCpuHandleStart;
@@ -91,6 +98,7 @@ private:
 	void										ResetTableIndex(int index, DescType descType);
 
 	bool										mCbvSrvUavTable[CBV_SRV_UAV_DESCRIPTOR_HEAP_SIZE] = { false, };
+	bool										mNonVisibleCbvSrvUavTable[CBV_SRV_UAV_DESCRIPTOR_HEAP_SIZE] = { false, };
 	bool										mRtvTable[RTV_DESCRIPTOR_HEAP_SIZE] = { false, };
 	bool										mDsvTable[DSV_DESCRIPTOR_HEAP_SIZE] = { false, };
 };

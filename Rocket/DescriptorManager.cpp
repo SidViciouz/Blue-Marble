@@ -47,6 +47,8 @@ DescriptorManager::DescriptorManager()
 
 	mCbvSrvUavCpuHandleStart = mCbvSrvUavHeap->GetCPUDescriptorHandleForHeapStart();
 	mCbvSrvUavGpuHandleStart = mCbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
+	mNonVisibleCbvSrvUavCpuHandleStart = mNonVisibleCbvSrvUavHeap->GetCPUDescriptorHandleForHeapStart();
+	mNonVisibleCbvSrvUavGpuHandleStart = mNonVisibleCbvSrvUavHeap->GetGPUDescriptorHandleForHeapStart();
 	mRtvCpuHandleStart = mRtvHeap->GetCPUDescriptorHandleForHeapStart();
 	mRtvGpuHandleStart = mRtvHeap->GetGPUDescriptorHandleForHeapStart();
 	mDsvCpuHandleStart = mDsvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -161,6 +163,47 @@ int	DescriptorManager::CreateUav(ID3D12Resource* resource, DXGI_FORMAT format, D
 	return index;
 }
 
+int DescriptorManager::CreateInvisibleUav(ID3D12Resource* resource, DXGI_FORMAT format, D3D12_UAV_DIMENSION dimension, int ArraySize)
+{
+	int index = GetAvailableTableIndex(DescType::iUAV);
+	if (index == -1)
+		return -1;
+	D3D12_CPU_DESCRIPTOR_HANDLE uavHandle = GetCpuHandle(index, DescType::iUAV);
+
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = format;
+	uavDesc.ViewDimension = dimension;
+
+	if (dimension == D3D12_UAV_DIMENSION_TEXTURE2D)
+	{
+		uavDesc.Texture2D.MipSlice = 0;
+		uavDesc.Texture2D.PlaneSlice = 0;
+
+	}
+	else if (dimension == D3D12_UAV_DIMENSION_TEXTURE2DARRAY)
+	{
+		uavDesc.Texture2DArray.ArraySize = ArraySize;
+		uavDesc.Texture2DArray.FirstArraySlice = 0;
+		uavDesc.Texture2DArray.MipSlice = 0;
+		uavDesc.Texture2DArray.PlaneSlice = 0;
+	}
+	else if (dimension == D3D12_UAV_DIMENSION_TEXTURE3D)
+	{
+		uavDesc.Texture3D.FirstWSlice = 0;
+		uavDesc.Texture3D.MipSlice = 0;
+		uavDesc.Texture3D.WSize = -1;
+	}
+	else
+	{
+		ResetTableIndex(index, DescType::iUAV);
+		return -1;
+	}
+
+	Engine::mDevice->CreateUnorderedAccessView(resource, nullptr, &uavDesc, uavHandle);
+
+	return index;
+}
+
 int	DescriptorManager::CreateRtv(ID3D12Resource* resource)
 {
 	int index = GetAvailableTableIndex(DescType::RTV);
@@ -230,6 +273,13 @@ D3D12_CPU_DESCRIPTOR_HANDLE	DescriptorManager::GetCpuHandle(int index, DescType 
 
 		return handle;
 	}
+	else if (descType == DescType::iUAV)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE handle = mNonVisibleCbvSrvUavCpuHandleStart;
+		handle.ptr += index * mCbvSrvUavIncrementSize;
+
+		return handle;
+	}
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE	DescriptorManager::GetGpuHandle(int index, DescType descType)
@@ -252,6 +302,13 @@ D3D12_GPU_DESCRIPTOR_HANDLE	DescriptorManager::GetGpuHandle(int index, DescType 
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE handle = mDsvGpuHandleStart;
 		handle.ptr += index * mDsvIncrementSize;
+
+		return handle;
+	}
+	else if (descType == DescType::iUAV)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE handle = mNonVisibleCbvSrvUavGpuHandleStart;
+		handle.ptr += index * mCbvSrvUavIncrementSize;
 
 		return handle;
 	}
@@ -310,6 +367,17 @@ int DescriptorManager::GetAvailableTableIndex(DescType descType)
 			}
 		}
 	}
+	else if (descType == DescType::iUAV)
+	{
+		for (int i = 0; i < CBV_SRV_UAV_DESCRIPTOR_HEAP_SIZE; ++i)
+		{
+			if (mNonVisibleCbvSrvUavTable[i] == false)
+			{
+				mNonVisibleCbvSrvUavTable[i] = true;
+				return i;
+			}
+		}
+	}
 	
 	return -1;
 }
@@ -335,6 +403,13 @@ void DescriptorManager::ResetTableIndex(int index, DescType descType)
 		if (index < DSV_DESCRIPTOR_HEAP_SIZE)
 		{
 			mDsvTable[index] = false;
+		}
+	}
+	else if (descType == DescType::iUAV)
+	{
+		if (index < CBV_SRV_UAV_DESCRIPTOR_HEAP_SIZE)
+		{
+			mNonVisibleCbvSrvUavTable[index] = false;
 		}
 	}
 }

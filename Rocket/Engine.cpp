@@ -491,7 +491,6 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 }
 
 
-
 void Engine::LoadCopyModelToBuffer()
 {
 	//모델 데이터, 텍스처 로드, 버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
@@ -570,13 +569,6 @@ env Engine::SetLight()
 	return envs;
 }
 
-/*
-void Engine::SetObjConstantIndex(int index)
-{
-	mCommandList->SetGraphicsRootConstantBufferView(0, mFrames[mCurrentFrame]->mObjConstantBuffer->GetGpuAddress()
-		+ index * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-}
-*/
 
 void Engine::Update()
 {
@@ -597,34 +589,29 @@ void Engine::Update()
 
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
-	//mScenes[mCurrentScene]->mModels->at("earth")->MulQuaternion(0.0f, sinf(mTimer.GetDeltaTime()), 0.0f,cosf(mTimer.GetDeltaTime()));
 	mScenes[mCurrentScene]->Update();
 	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
 	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
 	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
 	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
-	//mFrames[mCurrentFrame]->CopyTransConstantBuffer(0, &mScenes[mCurrentScene]->envFeature, sizeof(env));
 	mResourceManager->Upload(mFrames[mCurrentFrame]->mEnvConstantBufferIdx, &mScenes[mCurrentScene]->envFeature, sizeof(env), 0);
 
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		//mFrames[mCurrentFrame]->CopyObjConstantBuffer(model->second->mObjIndex, &model->second->mObjFeature, sizeof(obj));
 		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &model->second->mObjFeature, sizeof(obj),
 			model->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
-		//mFrames[mCurrentFrame]->CopyObjConstantBuffer(world->second->mObjIndex, &world->second->mObjFeature, sizeof(obj));
 		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &world->second->mObjFeature, sizeof(obj),
 			world->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-		//mFrames[mCurrentFrame]->CopyObjConstantBuffer(volume->second->mObjIndex, &volume->second->mObjFeature, sizeof(obj));
 		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &volume->second->mObjFeature, sizeof(obj),
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
@@ -699,25 +686,21 @@ void Engine::Draw()
 		mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
 
 	//particle density update
-	ID3D12DescriptorHeap* heaps[] = { mScenes[mCurrentScene]->mVolumeUavHeap.Get() };
-	mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+	mCommandList->SetDescriptorHeaps(1, mDescriptorManager->GetHeapAddress(DescType::UAV));
 	mCommandList->SetPipelineState(mPSOs["Particle"].Get());
 	mCommandList->SetGraphicsRootSignature(mRootSignatures["Particle"].Get());
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 	mCommandList->IASetVertexBuffers(0, 1, mParticleField->GetVertexBufferView());
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
-		gpuHandle.ptr += volume->second->mVolumeIndex * mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first],DescType::UAV);
 
-		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mScenes[mCurrentScene]->mVolumeUavHeapInvisible->GetCPUDescriptorHandleForHeapStart();
-		cpuHandle.ptr += volume->second->mVolumeIndex * mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mDescriptorManager->GetCpuHandle(mScenes[mCurrentScene]->mInvisibleUavIndices[volume->first], DescType::iUAV);
 
 		UINT color[4] = { 0,0,0,0 };
 		mCommandList->ClearUnorderedAccessViewUint(gpuHandle,cpuHandle, volume->second->mTextureResource->mTexture.Get(), color, 0, nullptr);
-		D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
-		handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
-		mCommandList->SetGraphicsRootDescriptorTable(0, handle);
+
+		mCommandList->SetGraphicsRootDescriptorTable(0,gpuHandle);
 		mCommandList->DrawInstanced(mParticleField->NumParticle(),1,0,0);
 	}
 	//
@@ -726,15 +709,11 @@ void Engine::Draw()
 
 	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//heaps[0] = { mScenes[mCurrentScene]->mSrvHeap.Get() };
-	//mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
 	mCommandList->SetDescriptorHeaps(1, mDescriptorManager->GetHeapAddress(DescType::SRV));
 
 	mCommandList->SetPipelineState(mPSOs["World"].Get());
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
-		//D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-		//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * world->second->mObjIndex;
 		mCommandList->SetGraphicsRootDescriptorTable(2,mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[world->first],DescType::SRV));
 		world->second->Draw();
 	}
@@ -775,15 +754,13 @@ void Engine::Draw()
 			mCommandList->SetGraphicsRootConstantBufferView(0,
 				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 				+ mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-			//D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-			//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * inventory->second->mObjIndex;
 			mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[inventory->first], DescType::SRV));
 			inventory->second->Draw();
 		}
 	}
 
-	heaps[0] = { mScenes[mCurrentScene]->mVolumeUavHeap.Get() };
-	mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+	mCommandList->SetDescriptorHeaps(1, mDescriptorManager->GetHeapAddress(DescType::UAV));
 	mCommandList->SetGraphicsRootSignature(mRootSignatures["Volume"].Get());
 	mCommandList->IASetVertexBuffers(0,0,nullptr);
 	mCommandList->IASetIndexBuffer(nullptr);
@@ -793,9 +770,8 @@ void Engine::Draw()
 		if (i == 0)
 		{
 			mCommandList->SetPipelineState(mPSOs["VolumeCube"].Get());
-			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
-			handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
-			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+			mCommandList->SetGraphicsRootDescriptorTable(2,
+				mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first], DescType::UAV));
 			mCommandList->SetGraphicsRootConstantBufferView(0,
 				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 				+ volume->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
@@ -805,9 +781,8 @@ void Engine::Draw()
 		else
 		{
 			mCommandList->SetPipelineState(mPSOs["VolumeSphere"].Get());
-			D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mVolumeUavHeap->GetGPUDescriptorHandleForHeapStart();
-			handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * volume->second->mVolumeIndex;
-			mCommandList->SetGraphicsRootDescriptorTable(2, handle);
+			mCommandList->SetGraphicsRootDescriptorTable(2,
+				mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first], DescType::UAV));
 			mCommandList->SetGraphicsRootConstantBufferView(0,
 				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 				+ volume->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
