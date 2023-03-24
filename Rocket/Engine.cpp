@@ -17,6 +17,8 @@ unique_ptr<ResourceManager>	Engine::mResourceManager;
 vector<unique_ptr<Frame>> Engine::mFrames;
 int	Engine::mCurrentFrame = 0;
 
+int Engine::mNoiseMapDescriptorIdx;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -687,7 +689,7 @@ void Engine::Draw()
 	
 	//texture 초기화 해야함.
 	//첫번째 draw인 경우에는 제외해야함.
-	/*
+	
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -698,13 +700,13 @@ void Engine::Draw()
 	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), mTimer.GetDeltaTime());
 
 	mRigidBodySystem->CopyRigidBody();
-
+	
 	if (mFenceValue > 0)
 	{
 		WaitUntilPrevFrameComplete();
 		mRigidBodySystem->UpdateRigidBody();
 	}
-	*/
+	
 	//
 
 	mScenes[mCurrentScene]->Spawn();
@@ -743,12 +745,9 @@ void Engine::Draw()
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first],DescType::UAV);
-
 		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mDescriptorManager->GetCpuHandle(mScenes[mCurrentScene]->mInvisibleUavIndices[volume->first], DescType::iUAV);
-
 		UINT color[4] = { 0,0,0,0 };
 		mCommandList->ClearUnorderedAccessViewUint(gpuHandle,cpuHandle, volume->second->mTextureResource->mTexture.Get(), color, 0, nullptr);
-
 		mCommandList->SetGraphicsRootDescriptorTable(0,gpuHandle);
 		mCommandList->DrawInstanced(mParticleField->NumParticle(),1,0,0);
 	}
@@ -756,57 +755,34 @@ void Engine::Draw()
 
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
-		mCommandList->IASetPrimitiveTopology(world->second->mTopology);
-		mCommandList->SetGraphicsRootSignature(mRootSignatures[world->second->mRootSignature].Get());
-		mCommandList->SetPipelineState(mPSOs[world->second->mPso].Get());
-		mCommandList->SetGraphicsRootDescriptorTable(2,mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[world->first],DescType::SRV));
 		world->second->Draw();
 	}
 
 	//선택된 물체에 노란색 테두리 렌더링
 	if (mIsModelSelected == true)
 	{
-		mCommandList->IASetPrimitiveTopology(mSelectedModel->mTopology);
-		mCommandList->SetGraphicsRootSignature(mRootSignatures[mSelectedModel->mRootSignature].Get());
+		mCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		mCommandList->SetGraphicsRootSignature(mRootSignatures["Default"].Get());
 		mCommandList->SetPipelineState(mPSOs["Selected"].Get());
 		mCommandList->SetGraphicsRootConstantBufferView(0,
 			mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 			+ mSelectedModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-		mSelectedModel->Draw();
+
+		mSelectedModel->Model::Draw();
 	}
 	
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
-		mCommandList->IASetPrimitiveTopology(model->second->mTopology);
-		mCommandList->SetGraphicsRootSignature(mRootSignatures[model->second->mRootSignature].Get());
-		mCommandList->SetPipelineState(mPSOs[model->second->mPso].Get());
-
-		mCommandList->SetGraphicsRootConstantBufferView(0,
-		mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-
-		//mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[model->first], DescType::SRV));
-		mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mNoiseMapDescriptorIdx,DescType::SRV));
 		model->second->Draw();
 	}
 
 
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-			mCommandList->IASetPrimitiveTopology(volume->second->mTopology);
-			mCommandList->SetGraphicsRootSignature(mRootSignatures[volume->second->mRootSignature].Get());
-			mCommandList->SetPipelineState(mPSOs[volume->second->mPso].Get());
-
-			mCommandList->SetGraphicsRootDescriptorTable(2,
-				mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first], DescType::UAV));
-			mCommandList->SetGraphicsRootConstantBufferView(0,
-				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-				+ volume->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-
-			volume->second->Draw();
+		volume->second->Draw();
 	}
 
-
+	/*
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
 		mCommandList->SetGraphicsRootConstantBufferView(0,
@@ -815,8 +791,10 @@ void Engine::Draw()
 
 		mCommandList->SetGraphicsRootConstantBufferView(1,
 			mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
-	}
 
+		(*rigid)->DrawParticles();
+	}
+	*/
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;

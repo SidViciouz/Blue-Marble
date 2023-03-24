@@ -11,6 +11,8 @@ public:
 												Unclickable(Unclickable&& unclickable) = delete;
 	Unclickable&								operator=(const Unclickable& unclickable) = delete;
 	Unclickable&								operator=(Unclickable&& unclickable) = delete;
+
+	virtual void								Draw() override;
 };
 
 using Unclickables = unordered_map<string, shared_ptr<Unclickable>>;

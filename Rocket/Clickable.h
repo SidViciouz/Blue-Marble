@@ -12,6 +12,7 @@ public:
 	Clickable&									operator=(const Clickable& clickable) = delete;
 	Clickable&									operator=(Clickable&& clickable) = delete;
 
+	virtual void								Draw() override;
 	static unique_ptr<Clickable>				Spawn(const char* fileName, const wchar_t* name, XMFLOAT3 pos);
 };
 
