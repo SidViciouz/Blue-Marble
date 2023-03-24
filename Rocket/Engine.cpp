@@ -21,6 +21,13 @@ int Engine::mNoiseMapDescriptorIdx;
 
 unique_ptr<ParticleField> Engine::mParticleField;
 
+int	Engine::mPermutationIdx;
+int	Engine::mGradientsIdx;
+int	Engine::mPermutationDescriptorIdx;
+int	Engine::mGradientsDescriptorIdx;
+int	Engine::mPermutationUploadIdx;
+int	Engine::mGradientsUploadIdx;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -68,6 +75,7 @@ void Engine::Initialize()
 	mRigidBodySystem->GenerateParticle();
 
 	CreateNoiseMap();
+	CreatePerlinMap();
 
 	IfError::Throw(mCommandList->Close(),
 		L"command list close error!");
@@ -821,7 +829,6 @@ void Engine::CreateNoiseMap()
 	const double pi = 3.14159265358979;
 
 	float perlinArray[128][512];
-	unsigned int tableMask = 127;
 
 	mt19937 generator(2020);
 	uniform_real_distribution<float> dist;
@@ -851,6 +858,77 @@ void Engine::CreateNoiseMap()
 		DXGI_FORMAT_R32G32B32A32_FLOAT, D3D12_SRV_DIMENSION_TEXTURE2D);
 }
 
+
+void Engine::CreatePerlinMap()
+{
+	mGradientsIdx = mResourceManager->CreateTexture1D(128,DXGI_FORMAT_R32G32B32A32_FLOAT);
+	mPermutationIdx = mResourceManager->CreateTexture1D(256,DXGI_FORMAT_R32_SINT);
+
+	mGradientsUploadIdx =  mResourceManager->CreateUploadBuffer(constantBufferAlignment(16 * 128));
+	mPermutationUploadIdx = mResourceManager->CreateUploadBuffer(constantBufferAlignment(4 * 256));
+
+	float gradients[4 * 128] = { 0, };
+	int permutation[256] = { 0, };
+
+	const double pi = 3.14159265358979;
+
+	unsigned int tableMask = 127;
+
+	mt19937 generator(2020);
+	uniform_real_distribution<float> dist;
+
+	for (int i = 0; i < 128; ++i)
+	{
+		float theta = acos(2.0f * dist(generator) - 1.0f);
+		float phi = 2.0f * dist(generator) * pi;
+
+		float x = cos(phi) * sin(theta);
+		float y = sin(phi) * sin(theta);
+		float z = cos(theta);
+
+		gradients[4 * i] = x;
+		gradients[4 * i + 1] = y;
+		gradients[4 * i + 2] = z;
+
+		permutation[i] = i;
+	}
+
+	uniform_int_distribution<unsigned int> intDist;
+	for (int i = 0; i < 128; ++i)
+	{
+		swap(permutation[i], permutation[intDist(generator) & tableMask]);
+	}
+	for (int i = 0; i < 128; ++i)
+	{
+		permutation[128 + i] = permutation[i];
+	}
+
+
+	for (int i = 0; i < 128; ++i)
+	{
+		printf("%f %f %f\n", gradients[4 * i], gradients[4 * i + 1], gradients[4 * i + 2]);
+	}
+	for (int i = 0; i < 128; ++i)
+	{
+		printf("%d\n", permutation[i]);
+	}
+
+	mResourceManager->Upload(mGradientsUploadIdx, gradients, 16 * 128, 0);
+	mResourceManager->Upload(mPermutationUploadIdx, permutation, 4 * 256, 0);
+
+	mResourceManager->Copy(mGradientsUploadIdx, mGradientsIdx,128,1,1, DXGI_FORMAT_R32G32B32A32_FLOAT,16);
+	mResourceManager->Copy(mPermutationUploadIdx, mPermutationIdx,256,1,1, DXGI_FORMAT_R32_SINT,4);
+
+	D3D12_RESOURCE_BARRIER b[2];
+	b[0] = CD3DX12_RESOURCE_BARRIER::Transition(mResourceManager->GetResource(mGradientsIdx), D3D12_RESOURCE_STATE_COPY_DEST,
+		D3D12_RESOURCE_STATE_GENERIC_READ);
+	b[1] = CD3DX12_RESOURCE_BARRIER::Transition(mResourceManager->GetResource(mPermutationIdx), D3D12_RESOURCE_STATE_COPY_DEST,
+		D3D12_RESOURCE_STATE_GENERIC_READ);
+	Engine::mCommandList->ResourceBarrier(2, b);
+
+	mGradientsDescriptorIdx = mDescriptorManager->CreateSrv(mResourceManager->GetResource(mGradientsIdx), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D12_SRV_DIMENSION_TEXTURE1D);
+	mPermutationDescriptorIdx = mDescriptorManager->CreateSrv(mResourceManager->GetResource(mPermutationIdx), DXGI_FORMAT_R32_SINT, D3D12_SRV_DIMENSION_TEXTURE1D);
+}
 
 //-----------------------------pipeline에 있던 코드-----------------------------
 void Engine::InitializePipeline()
@@ -1032,7 +1110,7 @@ void Engine::CreateShaderAndRootSignature()
 	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	range.RegisterSpace = 0;
 
-	D3D12_ROOT_PARAMETER rootParameter[3];
+	D3D12_ROOT_PARAMETER rootParameter[4];
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
 	rootParameter[0].Descriptor.RegisterSpace = 0;
@@ -1066,10 +1144,19 @@ void Engine::CreateShaderAndRootSignature()
 	mRootSignatures["Default"] = move(rs);
 
 
-	rsDesc.NumParameters = 3;
+	D3D12_DESCRIPTOR_RANGE range2 = {};
+	range2.BaseShaderRegister = 1;
+	range2.NumDescriptors = 1;
+	range2.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	range2.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	range2.RegisterSpace = 0;
+	rootParameter[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameter[3].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[3].DescriptorTable.pDescriptorRanges = &range2;
+	rsDesc.NumParameters = 4;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
-	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),

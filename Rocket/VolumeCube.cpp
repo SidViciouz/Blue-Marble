@@ -13,8 +13,13 @@ void VolumeCube::Draw()
 	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures[mRootSignature].Get());
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs[mPso].Get());
 
+	//Engine::mCommandList->SetGraphicsRootConstantBufferView(2, Engine::mResourceManager->GetResource(Engine::mPerlinMapIdx)->GetGPUVirtualAddress());
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
-		Engine::mDescriptorManager->GetGpuHandle(Engine::mScenes[Engine::mCurrentScene]->mSrvIndices[mId], DescType::UAV));
+		Engine::mDescriptorManager->GetGpuHandle(Engine::mGradientsDescriptorIdx, DescType::SRV));
+
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
+		Engine::mDescriptorManager->GetGpuHandle(Engine::mPermutationDescriptorIdx, DescType::SRV));
+
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 		+ mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));

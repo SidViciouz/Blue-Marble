@@ -111,6 +111,13 @@ int	DescriptorManager::CreateSrv(ID3D12Resource* resource, DXGI_FORMAT format, D
 		srvDesc.TextureCube.MostDetailedMip = 0;
 		srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 	}
+	else if (dimension == D3D12_SRV_DIMENSION_TEXTURE1D)
+	{
+		srvDesc.Texture1D.MipLevels = -1;
+		srvDesc.Texture1D.MostDetailedMip = 0;
+		srvDesc.Texture1D.ResourceMinLODClamp = 0.0f;
+	}
+
 	else
 	{
 		ResetTableIndex(index, DescType::SRV);

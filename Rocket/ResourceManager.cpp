@@ -89,6 +89,21 @@ int	ResourceManager::CreateDefaultBuffer(int byteSize)
 	return mNextResourceIdx - 1;
 }
 
+int	ResourceManager::CreateTexture1D(int width, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flags)
+{
+	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Tex1D(format,width);
+	rd.Flags = flags;
+
+	IfError::Throw(Engine::mDevice->CreateCommittedResource(
+		&hp, D3D12_HEAP_FLAG_NONE,
+		&rd, D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr, IID_PPV_ARGS(mResourceTable[mNextResourceIdx++].GetAddressOf())
+	), L"create texture1d fails!");
+
+	return mNextResourceIdx - 1;
+}
+
 int	ResourceManager::CreateTexture2D(int width, int height, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flags)
 {
 	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -155,8 +170,25 @@ int	ResourceManager::CreateTexture3D(int width, int height, int depth, DXGI_FORM
 	return mNextResourceIdx - 1;
 }
 
-void ResourceManager::Copy(int src, int dst)
+void ResourceManager::Copy(int src, int dst, int width, int height, int depth, DXGI_FORMAT format, int elementByte)
 {
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint = {};
+	footPrint.Offset = 0;
+	footPrint.Footprint.Depth = depth;
+	footPrint.Footprint.Format = format;
+	footPrint.Footprint.Height = height;
+	footPrint.Footprint.Width = width;
+	footPrint.Footprint.RowPitch = CalculateAlignment(width * elementByte, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+
+	D3D12_TEXTURE_COPY_LOCATION tl = CD3DX12_TEXTURE_COPY_LOCATION(GetResource(dst), 0);
+	D3D12_TEXTURE_COPY_LOCATION ubl = CD3DX12_TEXTURE_COPY_LOCATION(GetResource(src), footPrint);
+
+	Engine::mCommandList->CopyTextureRegion(
+		&tl,
+		0, 0, 0,
+		&ubl,
+		nullptr
+	);
 
 }
 

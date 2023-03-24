@@ -86,6 +86,7 @@ private:
 	void										CreateNoiseMap();
 	unique_ptr<TextureResource>					mNoiseMap;
 	//
+	void										CreatePerlinMap();
 
 	//윈도우 관련 데이터
 	static Engine*								mLatestWindow;
@@ -97,12 +98,6 @@ private:
 	int											mHeight = 600;
 
 	Timer										mTimer;
-
-	/*
-	bool										mIsModelSelected = false;
-	string										mSelectedModelName;
-	shared_ptr<Model>							mSelectedModel;
-	*/
 
 	bool										mIsInventorySelected = false;
 	
@@ -156,4 +151,11 @@ public:
 	int											mBackBufferOffset;
 
 	static int									mNoiseMapDescriptorIdx;
+
+	static int									mPermutationIdx;
+	static int									mGradientsIdx;
+	static int									mPermutationDescriptorIdx;
+	static int									mGradientsDescriptorIdx;
+	static int									mPermutationUploadIdx;
+	static int									mGradientsUploadIdx;
 };

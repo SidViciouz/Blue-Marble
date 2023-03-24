@@ -41,8 +41,16 @@ cbuffer trans : register(b1)
 	int pad2;
 	float4x4 InvViewProjection;
 }
+/*
+struct Perlin
+{
+	float4 gradients[128];
+	int permutation[256];
+};
+*/
 
-RWTexture3D<int> textureMap : register(u0);
+Texture1D<float4> gradients : register(t0);
+Texture1D<int> permutation : register(t1);
 
 
 static Coord coord[36] = {
@@ -116,23 +124,69 @@ VertexOut VS( uint vertexId : SV_VertexID)
 	return vout;
 }
 
-float blurDensity(int3 position)
+float smoothstep(float t)
 {
-	int cnt = 0;
-	float density = 0.0f;
+	return t * t * (3 - 2 * t);
+}
 
-	for(int i=-1; i<2; ++i)
-		for(int j=-1; j<2; ++j)
-			for (int k = -1; k < 2; ++k)
-			{
-				float3 pos = position + float3(i, j, k);
-				density += textureMap.Load(int4(pos, 0));
-				++cnt;
-			}
+int hash(int x, int y, int z)
+{
+	return permutation[permutation[permutation[x] + y] + z];
+}
 
-	density = density / (float)cnt;
+float evalDensity(float3 position)
+{
+	position *= 0.1f;
+	int x0 = (int)floor(position.x) & 127;
+	int y0 = (int)floor(position.y) & 127;
+	int z0 = (int)floor(position.z) & 127;
 
-	return density;
+	int x1 = (x0 + 1) & 127;
+	int y1 = (y0 + 1) & 127;
+	int z1 = (z0 + 1) & 127;
+
+	float tx = position.x - (int)floor(position.x);
+	float ty = position.y - (int)floor(position.y);
+	float tz = position.z - (int)floor(position.z);
+
+	float u = smoothstep(tx);
+	float v = smoothstep(ty);
+	float w = smoothstep(tz);
+
+	float3 c000 = gradients[hash(x0, y0, z0)].xyz;
+	float3 c100 = gradients[hash(x1, y0, z0)].xyz;
+	float3 c010 = gradients[hash(x0, y1, z0)].xyz;
+	float3 c110 = gradients[hash(x1, y1, z0)].xyz;
+	float3 c001 = gradients[hash(x0, y0, z1)].xyz;
+	float3 c101 = gradients[hash(x1, y0, z1)].xyz;
+	float3 c011 = gradients[hash(x0, y1, z1)].xyz;
+	float3 c111 = gradients[hash(x1, y1, z1)].xyz;
+
+	float u0 = tx;
+	float u1 = tx - 1;
+	float v0 = ty;
+	float v1 = ty - 1;
+	float w0 = tz;
+	float w1 = tz - 1;
+
+	float3 p000 = float3(u0, v0, w0);
+	float3 p100 = float3(u1, v0, w0);
+	float3 p010 = float3(u0, v1, w0);
+	float3 p110 = float3(u1, v1, w0);
+	float3 p001 = float3(u0, v0, w1);
+	float3 p101 = float3(u1, v0, w1);
+	float3 p011 = float3(u0, v1, w1);
+	float3 p111 = float3(u1, v1, w1);
+
+	float a = lerp(dot(c000, p000), dot(c100, p100), u);
+	float b = lerp(dot(c010, p010), dot(c110, p110), u);
+	float c = lerp(dot(c001, p001), dot(c101, p101), u);
+	float d = lerp(dot(c011, p011), dot(c111, p111), u);
+
+	float e = lerp(a, b, v);
+	float f = lerp(c, d, v);
+
+	return lerp(e, f, w)*3.0f;
 }
 
 bool planeIntersect(in int planeNumber,in float3 CubePosition,in float3 CubeScale,in float3 intersect)
@@ -243,10 +297,9 @@ float3 pf(float3 x)
 
 		for (int j = 0; j < steps; ++j)
 		{
-			int3 coord = 10.0f*( x + posToLight * (tMin + stepSize * j));
-			coord -= int3(40, -50, -50);
-			//density = float(textureMap.Load(int4(coord, 0)));
-			density = blurDensity(coord);
+			float3 coord = 10.0f*( x + posToLight * (tMin + stepSize * j));
+			coord -= float3(40, -50, -50);
+			density = evalDensity(coord);
 			att *= exp(-stepSize * sigmaT * density);
 		}
 
@@ -280,10 +333,9 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
-		int3 coord =10.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
-		coord -= int3(40, -40, -50);
-		//density = float(textureMap.Load(int4(coord, 0)));
-		density = blurDensity(coord);
+		float3 coord =10.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
+		coord -= float3(40, -40, -50);
+		density = evalDensity(coord);
 		att *= exp(-sigmaT * stepSize * density);
 		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}
