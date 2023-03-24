@@ -9,5 +9,7 @@ VolumeCube::VolumeCube() :
 
 void VolumeCube::Draw()
 {
+	Engine::mCommandList->IASetVertexBuffers(0, 0, nullptr);
+	Engine::mCommandList->IASetIndexBuffer(nullptr);
 	Engine::mCommandList->DrawInstanced(36, 1, 0, 0);
 }

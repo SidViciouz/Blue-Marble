@@ -19,6 +19,10 @@ Model::Model(const char* fileName, const wchar_t* name,bool hasRigidBody)
 
 	if(mHasRigidBody)
 		mRigidBody = make_shared<RigidBody>(this);
+
+	mTopology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	mRootSignature = "Default";
+	mPso = "Default";
 }
 
 void Model::Update()

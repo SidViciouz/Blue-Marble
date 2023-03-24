@@ -57,6 +57,10 @@ public:
 	static ComPtr<ID3D12GraphicsCommandList>	mCommandList;
 	ComPtr<ID3D12CommandAllocator>				mCommandAllocator;
 
+	static vector<unique_ptr<Frame>>			mFrames;
+	int											mNumberOfFrames = 3;
+	static int									mCurrentFrame;
+
 	//Engine 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
 	//윈도우 관련 메서드
@@ -91,10 +95,6 @@ private:
 	int											mHeight = 600;
 
 	Timer										mTimer;
-
-	vector<unique_ptr<Frame>>					mFrames;
-	int											mNumberOfFrames = 3;
-	int											mCurrentFrame = 0;
 
 
 	bool										mIsModelSelected = false;

@@ -14,6 +14,9 @@ ComPtr<ID3D12CommandQueue> Engine::mCommandQueue;
 unique_ptr<DescriptorManager> Engine::mDescriptorManager;
 unique_ptr<ResourceManager>	Engine::mResourceManager;
 
+vector<unique_ptr<Frame>> Engine::mFrames;
+int	Engine::mCurrentFrame = 0;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -448,43 +451,74 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 	else if (sceneIndex == 1)
 	{
 		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+		m->mRootSignature = "planet";
+		m->mPso = "planet";
 		m->SetPosition(13.0f, 3.0f, 13.0f);
-		(*model)["rifie0"] = move(m);
+		m->mId = "rifie0";
+		(*model)[m->mId] = move(m);
 
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+		m->mRootSignature = "planet";
+		m->mPso = "planet";
 		m->SetPosition(10.0f,3.0f,10.0f);
 		m->mScale = { 10.0f,10.0f,10.0f };
 		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
 		m->mRigidBody->SetAngularMomentum(1.0f, 10.0f, 1.0f);
-		(*model)["earth"] = move(m);
+		m->mId = "earth";
+		(*model)[m->mId] = move(m);
 
 		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+		m->mRootSignature = "planet";
+		m->mPso = "planet";
 		m->SetPosition(11.0f, 2.5f, 13.0f);
 		m->mRigidBody->SetAngularMomentum(1000.0f, 10.0f, 10.0f);
-		(*model)["lamp"] = move(m);
+		m->mId = "lamp";
+		(*model)[m->mId] = move(m);
 
 		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+		m->mRootSignature = "planet";
+		m->mPso = "planet";
 		m->SetPosition(15.0f, 2.5f, 13.0f);
-		(*model)["lamp0"] = move(m);
+		m->mId = "lamp0";
+		(*model)[m->mId] = move(m);
 
 		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+		m->mRootSignature = "planet";
+		m->mPso = "planet";
 		m->SetPosition(19.0f, 2.5f, 13.0f);
-		(*model)["lamp1"] = move(m);
+		m->mId = "lamp1";
+		(*model)[m->mId] = move(m);
 
 		m = make_shared<Inventory>("../Model/inventory.obj", L"../Model/textures/inventory.dds");
+		m->mRootSignature = "planet";
+		m->mPso = "planet";
 		m->SetPosition(0.0f, -1.5f, 5.0f);
-		(*model)["inventory"] = move(m);
+		m->mId = "inventory";
+		(*model)[m->mId] = move(m);
 		
 		shared_ptr<Button> b = make_shared<Button>("../Model/inventory.obj", L"../Model/textures/earth.dds");
+		b->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+		b->mRootSignature = "planet";
+		b->mPso = "planet";
 		b->SetPosition(0.0f, -3.0f, 5.0f);
 		b->Set([&](){
 			ChangeScene(0);
 		});
-		(*model)["button"] = move(b);
+		b->mId = "button";
+		(*model)[b->mId] = move(b);
 
 		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+		m->mRootSignature = "planet";
+		m->mPso = "planet";
 		m->SetPosition(5.0f, 3.0f, 3.0f);
-		(*model)["rifle"] = move(m);
+		m->mId = "rifle";
+		(*model)[m->mId] = move(m);
 	}
 
 	return move(model);
@@ -509,12 +543,16 @@ unique_ptr<Unclickables> Engine::CreateWorld(int sceneIndex)
 	if (sceneIndex == 0)
 	{
 		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
-		(*model)["space"] = move(m);
+		m->mPso = "World";
+		m->mId = "space";
+		(*model)[m->mId] = move(m);
 	}
 	else if (sceneIndex == 1)
 	{
 		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
-		(*model)["space"] = move(m);
+		m->mPso = "World";
+		m->mId = "space";
+		(*model)[m->mId] = move(m);
 	}
 
 	return move(model);
@@ -529,20 +567,32 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 	if (sceneIndex == 0)
 	{
 		v = make_shared<VolumeSphere>();
-		(*volumes)["sphere"] = move(v);
+		v->mRootSignature = "Volume";
+		v->mPso = "VolumeSphere";
+		v->mId = "sphere";
+		(*volumes)[v->mId] = move(v);
 
 		v = make_shared<VolumeCube>();
+		v->mRootSignature = "Volume";
+		v->mPso = "VolumeCube";
+		v->mId = "cube";
 		v->SetPosition(9.0f, 0.0f, 0.0f);
-		(*volumes)["cube"] = move(v);
+		(*volumes)[v->mId] = move(v);
 	}
 	else if (sceneIndex == 1)
 	{
 		v = make_shared<VolumeSphere>();
-		(*volumes)["sphere"] = move(v);
+		v->mRootSignature = "Volume";
+		v->mPso = "VolumeSphere";
+		v->mId = "sphere";
+		(*volumes)[v->mId] = move(v);
 
 		v = make_shared<VolumeCube>();
+		v->mRootSignature = "Volume";
+		v->mPso = "VolumeCube";
+		v->mId = "cube";
 		v->SetPosition(9.0f, 0.0f, 0.0f);
-		(*volumes)["cube"] = move(v);
+		(*volumes)[v->mId] = move(v);
 	}
 
 	return move(volumes);
@@ -637,7 +687,7 @@ void Engine::Draw()
 	
 	//texture 초기화 해야함.
 	//첫번째 draw인 경우에는 제외해야함.
-	
+	/*
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -654,7 +704,7 @@ void Engine::Draw()
 		WaitUntilPrevFrameComplete();
 		mRigidBodySystem->UpdateRigidBody();
 	}
-	
+	*/
 	//
 
 	mScenes[mCurrentScene]->Spawn();
@@ -681,7 +731,6 @@ void Engine::Draw()
 	mCommandList->OMSetRenderTargets(1, &rtvHandle, true, &dsvHandle);
 
 	mCommandList->SetGraphicsRootSignature(mRootSignatures["Default"].Get());
-
 	mCommandList->SetGraphicsRootConstantBufferView(1,
 		mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
 
@@ -705,15 +754,11 @@ void Engine::Draw()
 	}
 	//
 
-	mCommandList->SetGraphicsRootSignature(mRootSignatures["Default"].Get());
-
-	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	mCommandList->SetDescriptorHeaps(1, mDescriptorManager->GetHeapAddress(DescType::SRV));
-
-	mCommandList->SetPipelineState(mPSOs["World"].Get());
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
+		mCommandList->IASetPrimitiveTopology(world->second->mTopology);
+		mCommandList->SetGraphicsRootSignature(mRootSignatures[world->second->mRootSignature].Get());
+		mCommandList->SetPipelineState(mPSOs[world->second->mPso].Get());
 		mCommandList->SetGraphicsRootDescriptorTable(2,mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[world->first],DescType::SRV));
 		world->second->Draw();
 	}
@@ -721,6 +766,8 @@ void Engine::Draw()
 	//선택된 물체에 노란색 테두리 렌더링
 	if (mIsModelSelected == true)
 	{
+		mCommandList->IASetPrimitiveTopology(mSelectedModel->mTopology);
+		mCommandList->SetGraphicsRootSignature(mRootSignatures[mSelectedModel->mRootSignature].Get());
 		mCommandList->SetPipelineState(mPSOs["Selected"].Get());
 		mCommandList->SetGraphicsRootConstantBufferView(0,
 			mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
@@ -728,48 +775,28 @@ void Engine::Draw()
 		mSelectedModel->Draw();
 	}
 	
-	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	mCommandList->SetGraphicsRootSignature(mRootSignatures["planet"].Get());
-	mCommandList->SetPipelineState(mPSOs["planet"].Get());
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
+		mCommandList->IASetPrimitiveTopology(model->second->mTopology);
+		mCommandList->SetGraphicsRootSignature(mRootSignatures[model->second->mRootSignature].Get());
+		mCommandList->SetPipelineState(mPSOs[model->second->mPso].Get());
+
 		mCommandList->SetGraphicsRootConstantBufferView(0,
 		mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
-		//D3D12_GPU_DESCRIPTOR_HANDLE handle = mScenes[mCurrentScene]->mSrvHeap->GetGPUDescriptorHandleForHeapStart();
-		//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * model->second->mObjIndex;
-		//handle.ptr += mDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * 50;
+		//mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[model->first], DescType::SRV));
 		mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mNoiseMapDescriptorIdx,DescType::SRV));
 		model->second->Draw();
 	}
-	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
-	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
-	{
-		Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
-		for (auto inventory = invtry->mInventory.begin(); inventory != invtry->mInventory.end(); inventory++)
-		{
-			mCommandList->SetGraphicsRootConstantBufferView(0,
-				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-				+ mScenes[mCurrentScene]->mModels->at("inventory")->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-			mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[inventory->first], DescType::SRV));
-			inventory->second->Draw();
-		}
-	}
-
-
-	mCommandList->SetDescriptorHeaps(1, mDescriptorManager->GetHeapAddress(DescType::UAV));
-	mCommandList->SetGraphicsRootSignature(mRootSignatures["Volume"].Get());
-	mCommandList->IASetVertexBuffers(0,0,nullptr);
-	mCommandList->IASetIndexBuffer(nullptr);
-	int i = 0;
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
-		if (i == 0)
-		{
-			mCommandList->SetPipelineState(mPSOs["VolumeCube"].Get());
+			mCommandList->IASetPrimitiveTopology(volume->second->mTopology);
+			mCommandList->SetGraphicsRootSignature(mRootSignatures[volume->second->mRootSignature].Get());
+			mCommandList->SetPipelineState(mPSOs[volume->second->mPso].Get());
+
 			mCommandList->SetGraphicsRootDescriptorTable(2,
 				mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first], DescType::UAV));
 			mCommandList->SetGraphicsRootConstantBufferView(0,
@@ -777,20 +804,8 @@ void Engine::Draw()
 				+ volume->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
 			volume->second->Draw();
-		}
-		else
-		{
-			mCommandList->SetPipelineState(mPSOs["VolumeSphere"].Get());
-			mCommandList->SetGraphicsRootDescriptorTable(2,
-				mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first], DescType::UAV));
-			mCommandList->SetGraphicsRootConstantBufferView(0,
-				mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-				+ volume->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-
-			volume->second->Draw();
-		}
-		++i;
 	}
+
 
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
@@ -801,6 +816,7 @@ void Engine::Draw()
 		mCommandList->SetGraphicsRootConstantBufferView(1,
 			mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
 	}
+
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;

@@ -74,6 +74,12 @@ public:
 
 	shared_ptr<RigidBody>						mRigidBody;
 	bool										mHasRigidBody = true;
+
+	//
+	D3D12_PRIMITIVE_TOPOLOGY					mTopology;
+	string										mRootSignature;
+	string										mPso;
+	string										mId;
 };
 
 using Models = unordered_map<string, shared_ptr<Model>>;
