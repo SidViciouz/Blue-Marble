@@ -17,6 +17,8 @@ unique_ptr<ResourceManager>	Engine::mResourceManager;
 vector<unique_ptr<Frame>> Engine::mFrames;
 int	Engine::mCurrentFrame = 0;
 
+int Engine::mNoiseMapDescriptorIdx;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -495,6 +497,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		(*model)[m->mId] = move(m);
 
 		m = make_shared<Inventory>("../Model/inventory.obj", L"../Model/textures/inventory.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		m->mRootSignature = "planet";
 		m->mPso = "planet";
 		m->SetPosition(0.0f, -1.5f, 5.0f);
@@ -511,7 +514,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		});
 		b->mId = "button";
 		(*model)[b->mId] = move(b);
-
+		
 		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
 		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		m->mRootSignature = "planet";
@@ -687,7 +690,7 @@ void Engine::Draw()
 	
 	//texture 초기화 해야함.
 	//첫번째 draw인 경우에는 제외해야함.
-	/*
+	
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -704,7 +707,7 @@ void Engine::Draw()
 		WaitUntilPrevFrameComplete();
 		mRigidBodySystem->UpdateRigidBody();
 	}
-	*/
+
 	//
 
 	mScenes[mCurrentScene]->Spawn();
@@ -753,7 +756,7 @@ void Engine::Draw()
 		mCommandList->DrawInstanced(mParticleField->NumParticle(),1,0,0);
 	}
 	//
-
+	/*
 	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
 	{
 		mCommandList->IASetPrimitiveTopology(world->second->mTopology);
@@ -762,7 +765,7 @@ void Engine::Draw()
 		mCommandList->SetGraphicsRootDescriptorTable(2,mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[world->first],DescType::SRV));
 		world->second->Draw();
 	}
-
+	
 	//선택된 물체에 노란색 테두리 렌더링
 	if (mIsModelSelected == true)
 	{
@@ -774,23 +777,27 @@ void Engine::Draw()
 			+ mSelectedModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 		mSelectedModel->Draw();
 	}
-	
+	*/
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
+		/*
 		mCommandList->IASetPrimitiveTopology(model->second->mTopology);
 		mCommandList->SetGraphicsRootSignature(mRootSignatures[model->second->mRootSignature].Get());
 		mCommandList->SetPipelineState(mPSOs[model->second->mPso].Get());
 
+		
 		mCommandList->SetGraphicsRootConstantBufferView(0,
 		mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 			+ model->second->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 
 		//mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[model->first], DescType::SRV));
+		
 		mCommandList->SetGraphicsRootDescriptorTable(2, mDescriptorManager->GetGpuHandle(mNoiseMapDescriptorIdx,DescType::SRV));
+		*/
 		model->second->Draw();
 	}
 
-
+	/*
 	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
 	{
 			mCommandList->IASetPrimitiveTopology(volume->second->mTopology);
@@ -815,8 +822,10 @@ void Engine::Draw()
 
 		mCommandList->SetGraphicsRootConstantBufferView(1,
 			mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
-	}
 
+		(*rigid)->DrawParticles();
+	}
+	*/
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
