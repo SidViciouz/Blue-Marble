@@ -903,21 +903,11 @@ void Engine::CreatePerlinMap()
 		permutation[128 + i] = permutation[i];
 	}
 
-
-	for (int i = 0; i < 128; ++i)
-	{
-		printf("%f %f %f\n", gradients[4 * i], gradients[4 * i + 1], gradients[4 * i + 2]);
-	}
-	for (int i = 0; i < 128; ++i)
-	{
-		printf("%d\n", permutation[i]);
-	}
-
 	mResourceManager->Upload(mGradientsUploadIdx, gradients, 16 * 128, 0);
 	mResourceManager->Upload(mPermutationUploadIdx, permutation, 4 * 256, 0);
 
-	mResourceManager->Copy(mGradientsUploadIdx, mGradientsIdx,128,1,1, DXGI_FORMAT_R32G32B32A32_FLOAT,16);
-	mResourceManager->Copy(mPermutationUploadIdx, mPermutationIdx,256,1,1, DXGI_FORMAT_R32_SINT,4);
+	mResourceManager->CopyUploadToTexture(mGradientsUploadIdx, mGradientsIdx,128,1,1, DXGI_FORMAT_R32G32B32A32_FLOAT,16);
+	mResourceManager->CopyUploadToTexture(mPermutationUploadIdx, mPermutationIdx,256,1,1, DXGI_FORMAT_R32_SINT,4);
 
 	D3D12_RESOURCE_BARRIER b[2];
 	b[0] = CD3DX12_RESOURCE_BARRIER::Transition(mResourceManager->GetResource(mGradientsIdx), D3D12_RESOURCE_STATE_COPY_DEST,

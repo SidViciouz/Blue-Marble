@@ -170,7 +170,7 @@ int	ResourceManager::CreateTexture3D(int width, int height, int depth, DXGI_FORM
 	return mNextResourceIdx - 1;
 }
 
-void ResourceManager::Copy(int src, int dst, int width, int height, int depth, DXGI_FORMAT format, int elementByte)
+void ResourceManager::CopyUploadToTexture(int src, int dst, int width, int height, int depth, DXGI_FORMAT format, int elementByte)
 {
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint = {};
 	footPrint.Offset = 0;
