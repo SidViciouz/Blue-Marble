@@ -89,3 +89,50 @@ bool Scene::IsDestroyQueueEmpty() const
 {
 	return mSpawnSystem->IsDestroyQueueEmpty();
 }
+
+void Scene::Draw()
+{
+	//particle density update
+	Engine::mCommandList->SetPipelineState(Engine::mPSOs["Particle"].Get());
+	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["Particle"].Get());
+	Engine::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	Engine::mCommandList->IASetVertexBuffers(0, 1, Engine::mParticleField->GetVertexBufferView());
+	for (auto volume = Engine::mScenes[Engine::mCurrentScene]->mVolume->begin(); volume != Engine::mScenes[Engine::mCurrentScene]->mVolume->end(); volume++)
+	{
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = Engine::mDescriptorManager->GetGpuHandle(Engine::mScenes[Engine::mCurrentScene]->mSrvIndices[volume->first], DescType::UAV);
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = Engine::mDescriptorManager->GetCpuHandle(Engine::mScenes[Engine::mCurrentScene]->mInvisibleUavIndices[volume->first], DescType::iUAV);
+		UINT color[4] = { 0,0,0,0 };
+		Engine::mCommandList->ClearUnorderedAccessViewUint(gpuHandle, cpuHandle, volume->second->mTextureResource->mTexture.Get(), color, 0, nullptr);
+		Engine::mCommandList->SetGraphicsRootDescriptorTable(0, gpuHandle);
+		Engine::mCommandList->DrawInstanced(Engine::mParticleField->NumParticle(), 1, 0, 0);
+	}
+	//
+
+	for (auto world = mWorld->begin(); world != mWorld->end(); world++)
+	{
+		world->second->Draw();
+	}
+
+	//선택된 물체에 노란색 테두리 렌더링
+	if (mIsModelSelected == true)
+	{
+		Engine::mCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["Default"].Get());
+		Engine::mCommandList->SetPipelineState(Engine::mPSOs["Selected"].Get());
+		Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
+			Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
+			+ mSelectedModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+
+		mSelectedModel->Model::Draw();
+	}
+
+	for (auto model = mModels->begin(); model != mModels->end(); model++)
+	{
+		model->second->Draw();
+	}
+
+	for (auto volume = mVolume->begin(); volume != mVolume->end(); volume++)
+	{
+		volume->second->Draw();
+	}
+}

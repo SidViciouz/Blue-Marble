@@ -61,6 +61,8 @@ public:
 	int											mNumberOfFrames = 3;
 	static int									mCurrentFrame;
 
+	static unique_ptr<ParticleField>			mParticleField;
+
 	//Engine 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
 	//윈도우 관련 메서드
@@ -96,15 +98,15 @@ private:
 
 	Timer										mTimer;
 
-
+	/*
 	bool										mIsModelSelected = false;
 	string										mSelectedModelName;
 	shared_ptr<Model>							mSelectedModel;
+	*/
 
 	bool										mIsInventorySelected = false;
 	
 	ComPtr<ID3D12Debug>							debugController;
-	unique_ptr<ParticleField>					mParticleField;
 
 	unique_ptr<RigidBodySystem>					mRigidBodySystem;
 

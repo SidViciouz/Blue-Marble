@@ -19,6 +19,8 @@ int	Engine::mCurrentFrame = 0;
 
 int Engine::mNoiseMapDescriptorIdx;
 
+unique_ptr<ParticleField> Engine::mParticleField;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -147,9 +149,9 @@ void Engine::SelectObject(int x, int y)
 		{
 			if (dist < prevDist)
 			{
-				mIsModelSelected = true;
-				mSelectedModel = model->second;
-				mSelectedModelName = model->first;
+				mScenes[mCurrentScene]->mIsModelSelected = true;
+				mScenes[mCurrentScene]->mSelectedModel = model->second;
+				mScenes[mCurrentScene]->mSelectedModelName = model->first;
 				prevDist = dist;
 			}
 		}
@@ -178,7 +180,7 @@ void Engine::MoveObject(int x, int y)
 
 	XMStoreFloat3(&newPos, rayVector);
 
-	mSelectedModel->SetPosition(newPos);
+	mScenes[mCurrentScene]->mSelectedModel->SetPosition(newPos);
 }
 
 void Engine::SelectInventory(int x, int y)
@@ -250,7 +252,7 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_LBUTTONDOWN:
-		if (mIsModelSelected == false)
+		if (mScenes[mCurrentScene]->mIsModelSelected == false)
 		{
 			SelectObject(LOWORD(lParam), HIWORD(lParam));
 		}
@@ -262,27 +264,27 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			mIsInventorySelected = false;
 
 			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
-			invtry->Store(mSelectedModelName, move(mScenes[mCurrentScene]->mModels->at(mSelectedModelName)));
-			mScenes[mCurrentScene]->mModels->at(mSelectedModelName).reset();
-			mScenes[mCurrentScene]->mModels->erase(mSelectedModelName);
+			invtry->Store(mScenes[mCurrentScene]->mSelectedModelName, move(mScenes[mCurrentScene]->mModels->at(mScenes[mCurrentScene]->mSelectedModelName)));
+			mScenes[mCurrentScene]->mModels->at(mScenes[mCurrentScene]->mSelectedModelName).reset();
+			mScenes[mCurrentScene]->mModels->erase(mScenes[mCurrentScene]->mSelectedModelName);
 			// mModels의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
 		}
 		//임시
-		if (mSelectedModelName.compare("button") == 0)
+		if (mScenes[mCurrentScene]->mSelectedModelName.compare("button") == 0)
 		{
-			Button* b = static_cast<Button*>(mSelectedModel.get());
+			Button* b = static_cast<Button*>(mScenes[mCurrentScene]->mSelectedModel.get());
 			b->Click();
 		}
-		mIsModelSelected = false;
-		mSelectedModel = nullptr;
+		mScenes[mCurrentScene]->mIsModelSelected = false;
+		mScenes[mCurrentScene]->mSelectedModel = nullptr;
 
 		return 0;
 
 	case WM_MOUSEMOVE:
-		if (mIsModelSelected == true)
+		if (mScenes[mCurrentScene]->mIsModelSelected == true)
 		{
 			MoveObject(LOWORD(lParam), HIWORD(lParam));
-			if(mSelectedModelName.compare("inventory") != 0)
+			if(mScenes[mCurrentScene]->mSelectedModelName.compare("inventory") != 0)
 				SelectInventory(LOWORD(lParam), HIWORD(lParam));
 		}
 		return 0;
@@ -431,9 +433,9 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 
 	if (sceneIndex == 0)
 	{
-		//m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks1.dds");
-		//m->SetPosition(15.0f, 3.0f, 3.0f);
-		//(*model)["table"] = move(m);
+		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks1.dds");
+		m->SetPosition(15.0f, 3.0f, 3.0f);
+		(*model)["table"] = move(m);
 
 		//m = make_shared<Clickable>("../Model/sword.obj", L"../Model/textures/bricks2.dds");
 		//m->SetPosition(2.0f, 0.0f, 0.0f);
@@ -465,7 +467,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		m->mRootSignature = "planet";
 		m->mPso = "planet";
 		m->SetPosition(10.0f,3.0f,10.0f);
-		m->mScale = { 10.0f,10.0f,10.0f };
+		//m->mScale = { 10.0f,10.0f,10.0f };
 		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
 		m->mRigidBody->SetAngularMomentum(1.0f, 10.0f, 1.0f);
 		m->mId = "earth";
@@ -497,6 +499,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		(*model)[m->mId] = move(m);
 
 		m = make_shared<Inventory>("../Model/inventory.obj", L"../Model/textures/inventory.dds");
+		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		m->mRootSignature = "planet";
 		m->mPso = "planet";
 		m->SetPosition(0.0f, -1.5f, 5.0f);
@@ -735,54 +738,13 @@ void Engine::Draw()
 	mCommandList->SetGraphicsRootSignature(mRootSignatures["Default"].Get());
 	mCommandList->SetGraphicsRootConstantBufferView(1,
 		mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
-
-	//particle density update
 	mCommandList->SetDescriptorHeaps(1, mDescriptorManager->GetHeapAddress(DescType::UAV));
-	mCommandList->SetPipelineState(mPSOs["Particle"].Get());
-	mCommandList->SetGraphicsRootSignature(mRootSignatures["Particle"].Get());
-	mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	mCommandList->IASetVertexBuffers(0, 1, mParticleField->GetVertexBufferView());
-	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
-	{
-		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mDescriptorManager->GetGpuHandle(mScenes[mCurrentScene]->mSrvIndices[volume->first],DescType::UAV);
-		D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mDescriptorManager->GetCpuHandle(mScenes[mCurrentScene]->mInvisibleUavIndices[volume->first], DescType::iUAV);
-		UINT color[4] = { 0,0,0,0 };
-		mCommandList->ClearUnorderedAccessViewUint(gpuHandle,cpuHandle, volume->second->mTextureResource->mTexture.Get(), color, 0, nullptr);
-		mCommandList->SetGraphicsRootDescriptorTable(0,gpuHandle);
-		mCommandList->DrawInstanced(mParticleField->NumParticle(),1,0,0);
-	}
-	//
-
-	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
-	{
-		world->second->Draw();
-	}
-
-	//선택된 물체에 노란색 테두리 렌더링
-	if (mIsModelSelected == true)
-	{
-		mCommandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		mCommandList->SetGraphicsRootSignature(mRootSignatures["Default"].Get());
-		mCommandList->SetPipelineState(mPSOs["Selected"].Get());
-		mCommandList->SetGraphicsRootConstantBufferView(0,
-			mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-			+ mSelectedModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-
-		mSelectedModel->Model::Draw();
-	}
-	
-	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
-	{
-		model->second->Draw();
-	}
-
-
-	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
-	{
-		volume->second->Draw();
-	}
 
 	/*
+	* scene의 object들을 draw한다.
+	*/
+	mScenes[mCurrentScene]->Draw();
+
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
 		mCommandList->SetGraphicsRootConstantBufferView(0,
@@ -794,7 +756,6 @@ void Engine::Draw()
 
 		(*rigid)->DrawParticles();
 	}
-	*/
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;

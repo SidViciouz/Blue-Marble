@@ -29,6 +29,10 @@ public:
 	* destroy Queue가 비어있는지 여부를 반환한다.
 	*/
 	bool										IsDestroyQueueEmpty() const;
+	/*
+	* scene 내의 object들을 모두 draw한다.
+	*/
+	virtual void								Draw();
 
 	shared_ptr<Clickables>						mModels;
 	shared_ptr<Unclickables>					mWorld;
@@ -42,4 +46,8 @@ public:
 
 	unordered_map<string, int>					mSrvIndices;
 	unordered_map<string, int>					mInvisibleUavIndices;
+
+	bool										mIsModelSelected = false;
+	string										mSelectedModelName;
+	shared_ptr<Model>							mSelectedModel;
 };

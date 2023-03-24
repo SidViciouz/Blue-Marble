@@ -347,28 +347,28 @@ void RigidBodySystem::DepthPass(RigidBody* rigidBody)
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	Engine::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(1, 0, 0);
-	rigidBody->mModel->Draw();
+	rigidBody->mModel->Model::Draw();
 	
 	dsvHandle.ptr += mDsvIncrementSize;
 	Engine::mCommandList->ClearDepthStencilView(dsvHandle,
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	Engine::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(1, 1, 0);
-	rigidBody->mModel->Draw();
+	rigidBody->mModel->Model::Draw();
 
 	dsvHandle.ptr += mDsvIncrementSize;
 	Engine::mCommandList->ClearDepthStencilView(dsvHandle,
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	Engine::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(1, 2, 0);
-	rigidBody->mModel->Draw();
+	rigidBody->mModel->Model::Draw();
 
 	dsvHandle.ptr += mDsvIncrementSize;
 	Engine::mCommandList->ClearDepthStencilView(dsvHandle,
 		D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	Engine::mCommandList->OMSetRenderTargets(0, nullptr, false, &dsvHandle);
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(1, 3, 0);
-	rigidBody->mModel->Draw();
+	rigidBody->mModel->Model::Draw();
 }
 
 void RigidBodySystem::UploadParticleFromDepth(int index)
