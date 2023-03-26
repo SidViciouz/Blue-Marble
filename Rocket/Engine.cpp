@@ -562,10 +562,12 @@ unique_ptr<Unclickables> Engine::CreateWorld(int sceneIndex)
 	}
 	else if (sceneIndex == 1)
 	{
+		/*
 		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
 		m->mPso = "World";
 		m->mId = "space";
 		(*model)[m->mId] = move(m);
+		*/
 	}
 
 	return move(model);
@@ -604,7 +606,8 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 		v->mRootSignature = "Volume";
 		v->mPso = "VolumeCube";
 		v->mId = "cube";
-		v->SetPosition(9.0f, 0.0f, 0.0f);
+		v->SetPosition(9.0f, 10.0f, 0.0f);
+		v->mScale = { 20.0f,5.0f,20.0f };
 		(*volumes)[v->mId] = move(v);
 	}
 
@@ -624,10 +627,10 @@ env Engine::SetLight()
 	envs.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
 	envs.lights[1].mColor = { 1.0f,1.0f,0.0f };
 	envs.lights[1].mType = Spot;
-	envs.lights[2].mPosition = { 0.0f, 3.0f,0.0f };
-	envs.lights[2].mDirection = { 0.0f,-1.0f,0.0f };
-	envs.lights[2].mColor = { 1.0f,1.0f,0.0f };
-	envs.lights[2].mType = Spot;
+	envs.lights[2].mPosition = { 9.0f, 9.0f,9.0f };
+	envs.lights[2].mDirection = { -1.0f,0.0f,0.0f };
+	envs.lights[2].mColor = { 1.0f,0.0f,1.0f };
+	envs.lights[2].mType = Point;
 
 	return envs;
 }

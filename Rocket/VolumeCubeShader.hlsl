@@ -136,7 +136,6 @@ int hash(int x, int y, int z)
 
 float evalDensity(float3 position)
 {
-	position *= 0.1f;
 	int x0 = (int)floor(position.x) & 127;
 	int y0 = (int)floor(position.y) & 127;
 	int z0 = (int)floor(position.z) & 127;
@@ -186,8 +185,26 @@ float evalDensity(float3 position)
 	float e = lerp(a, b, v);
 	float f = lerp(c, d, v);
 
-	return lerp(e, f, w)*3.0f;
+	return lerp(e, f, w);
 }
+
+float noise(float3 position)
+{
+	float noiseSum = 0.0f;
+	float amplitude = 1.0f;
+	float frequency = 1.0f;
+	int layers = 7;
+
+	for (int i = 0; i < layers; ++i)
+	{
+		noiseSum += evalDensity(position * frequency) * amplitude;
+		amplitude *= 2.0f;
+		frequency *= 0.5f;
+	}
+
+	return noiseSum/(float)layers;
+}
+
 
 bool planeIntersect(in int planeNumber,in float3 CubePosition,in float3 CubeScale,in float3 intersect)
 {
@@ -299,11 +316,11 @@ float3 pf(float3 x)
 		{
 			float3 coord = 10.0f*( x + posToLight * (tMin + stepSize * j));
 			coord -= float3(40, -50, -50);
-			density = evalDensity(coord);
+			density = noise(coord);
 			att *= exp(-stepSize * sigmaT * density);
 		}
 
-		result += att / (fourPi * pow(1 + g * g - 2 * g * dot(posToCamera, posToLight), 1.5f)) * (1 - g * g);
+		result = att / (fourPi * pow(1 + g * g - 2 * g * dot(posToCamera, posToLight), 1.5f)) * (1 - g * g);
 
 		ret += lights[i].color * result;
 	}
@@ -335,9 +352,10 @@ float4 PS(VertexOut pin) : SV_Target
 	{
 		float3 coord =10.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
 		coord -= float3(40, -40, -50);
-		density = evalDensity(coord);
+		density = noise(coord);
 		att *= exp(-sigmaT * stepSize * density);
-		result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
+		if(density > 1.0f)
+			result += pf(rayOrigin + rayDir*(tMin+ i*stepSize)) * sigmaS * att;
 	}
 
 	return float4(result,att);
