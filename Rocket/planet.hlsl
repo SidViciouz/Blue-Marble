@@ -32,7 +32,6 @@ cbuffer env : register(b1)
 	int pad5;
 }
 
-//Texture2D<float4> noiseMap : register(t0);
 
 Texture1D<float4> gradients : register(t0);
 Texture1D<int> permutation : register(t1);
@@ -160,10 +159,10 @@ PatchTess ConstantHS(InputPatch<VertexOut,3> patch, uint id : SV_PrimitiveID)
 {
 	PatchTess pt;
 
-	pt.edgeTess[0] = 3;
-	pt.edgeTess[1] = 3;
-	pt.edgeTess[2] = 3;
-	pt.insideTess = 3;
+	pt.edgeTess[0] = 15;
+	pt.edgeTess[1] = 15;
+	pt.edgeTess[2] = 15;
+	pt.insideTess = 15;
 
 	return pt;
 }
@@ -233,8 +232,7 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 	GeoOut gout;
 	for (int i = 0; i < 3; ++i)
 	{
-		//float height = layerEval(gin[i].tex*127.0f)/50.0f;
-		float height = max(noise(float3(gin[i].tex*127, 0.0f)),0);
+		float height = max(noise(float3(gin[i].tex*256, 0.0f)),0);
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
 		gout.pos = mul(mul(float4(gout.posW,1.0f), transpose(view)), transpose(projection));

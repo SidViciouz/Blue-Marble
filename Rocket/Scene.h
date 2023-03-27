@@ -6,8 +6,10 @@
 #include "Unclickable.h"
 #include "Volume.h"
 #include "SpawnSystem.h"
+#include "SceneNode.h"
 
 using namespace std;
+
 
 class Scene
 {
@@ -48,4 +50,6 @@ public:
 	bool										mIsModelSelected = false;
 	string										mSelectedModelName;
 	shared_ptr<Model>							mSelectedModel;
+
+	unique_ptr<SceneNode>						mSceneRoot;
 };

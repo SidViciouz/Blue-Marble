@@ -165,6 +165,7 @@
     <ClInclude Include="RigidBodySystem.h" />
     <ClInclude Include="Rocket.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneNode.h" />
     <ClInclude Include="SpawnSystem.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Texture.h" />

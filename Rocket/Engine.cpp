@@ -443,6 +443,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 	}
 	else if (sceneIndex == 1)
 	{
+		/*
 		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
 		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		m->mRootSignature = "planet";
@@ -450,18 +451,18 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		m->SetPosition(13.0f, 3.0f, 13.0f);
 		m->mId = "rifie0";
 		(*model)[m->mId] = move(m);
-
+		*/
 		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
 		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		m->mRootSignature = "planet";
 		m->mPso = "planet";
 		m->SetPosition(10.0f,3.0f,10.0f);
-		m->mScale = { 10.0f,10.0f,10.0f };
+		m->mScale = { 15.0f,15.0f,15.0f };
 		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
 		m->mRigidBody->SetAngularMomentum(1.0f, 10.0f, 1.0f);
 		m->mId = "earth";
 		(*model)[m->mId] = move(m);
-
+		/*
 		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
 		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		m->mRootSignature = "planet";
@@ -513,6 +514,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		m->SetPosition(5.0f, 3.0f, 3.0f);
 		m->mId = "rifle";
 		(*model)[m->mId] = move(m);
+		*/
 	}
 
 	return move(model);
