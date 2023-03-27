@@ -14,13 +14,13 @@
 #include "Button.h"
 #include "VolumeCube.h"
 #include "VolumeSphere.h"
-#include "ParticleField.h"
 #include "RigidBodySystem.h"
 #include <random>
 #include "d3dx12.h"
 #include "Frame.h"
 #include "DescriptorManager.h"
 #include "ResourceManager.h"
+#include "PerlinMap.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -61,7 +61,6 @@ public:
 	int											mNumberOfFrames = 3;
 	static int									mCurrentFrame;
 
-	static unique_ptr<ParticleField>			mParticleField;
 
 	//Engine 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
@@ -75,7 +74,6 @@ private:
 	void										CreateFrames();
 	void										CreateCommandObjects();
 	unique_ptr<Clickables>						CreateModel(int sceneIndex);
-	void										LoadCopyModelToBuffer();
 	unique_ptr<Unclickables>					CreateWorld(int sceneIndex);
 	unique_ptr<Volumes>							CreateVolume(int sceneIndex);
 	env											SetLight();
@@ -86,7 +84,6 @@ private:
 	void										CreateNoiseMap();
 	unique_ptr<TextureResource>					mNoiseMap;
 	//
-	void										CreatePerlinMap();
 
 	//윈도우 관련 데이터
 	static Engine*								mLatestWindow;
@@ -152,10 +149,5 @@ public:
 
 	static int									mNoiseMapDescriptorIdx;
 
-	static int									mPermutationIdx;
-	static int									mGradientsIdx;
-	static int									mPermutationDescriptorIdx;
-	static int									mGradientsDescriptorIdx;
-	static int									mPermutationUploadIdx;
-	static int									mGradientsUploadIdx;
+	static unique_ptr<PerlinMap>				mPerlinMap;
 };

@@ -2,8 +2,14 @@
 
 #include "Util.h"
 #include "Model.h"
-#include "ParticleField.h"
 #include "TextureResource.h"
+
+struct Particle
+{
+	XMFLOAT3									mPosition;
+	XMFLOAT3									mVelocity;
+};
+
 
 class RigidBody
 {

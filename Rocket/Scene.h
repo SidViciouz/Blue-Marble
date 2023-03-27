@@ -13,10 +13,8 @@ class Scene
 {
 public:
 												Scene();
-	void										Load();
 	void										Update();
 	void										CreateModelSrv(int size);
-	void										CreateVolumeUav(int size);
 	/*
 	* Spawn system에 있는 spwan 대기 중인 object들을 모두 spwan한다.
 	*/

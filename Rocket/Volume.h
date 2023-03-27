@@ -11,7 +11,6 @@ public:
 	void										Load() = delete;
 	virtual void								Draw();
 
-	unique_ptr<TextureResource>					mTextureResource;
 	
 	int											mVolumeIndex = volumeIndex++;
 	static int									volumeIndex;

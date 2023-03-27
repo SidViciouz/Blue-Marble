@@ -19,14 +19,7 @@ int	Engine::mCurrentFrame = 0;
 
 int Engine::mNoiseMapDescriptorIdx;
 
-unique_ptr<ParticleField> Engine::mParticleField;
-
-int	Engine::mPermutationIdx;
-int	Engine::mGradientsIdx;
-int	Engine::mPermutationDescriptorIdx;
-int	Engine::mGradientsDescriptorIdx;
-int	Engine::mPermutationUploadIdx;
-int	Engine::mGradientsUploadIdx;
+unique_ptr<PerlinMap> Engine::mPerlinMap;
 
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
@@ -55,27 +48,19 @@ void Engine::Initialize()
 	CreateObjects();
 
 	//각 Scene들에 모델, 카메라, 조명 생성
-	//commandList가 필요하기 때문에 texture load를 여기에서 한다.
-	//commandList가 필요하기 때문에 DirectX objects 생성 후에 model을 buffer에 복사한다.
 	LoadScene();
-	LoadCopyModelToBuffer();
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
-	{
 		scene->get()->CreateModelSrv(MAX_OBJECT);
-		scene->get()->CreateVolumeUav(MAX_OBJECT);
-	}
-
-	mParticleField = make_unique<ParticleField>();
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
-
 	mRigidBodySystem->Load();
 	mRigidBodySystem->GenerateParticle();
 
 	CreateNoiseMap();
-	CreatePerlinMap();
+
+	mPerlinMap = make_unique<PerlinMap>();
 
 	IfError::Throw(mCommandList->Close(),
 		L"command list close error!");
@@ -537,16 +522,6 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 	return move(model);
 }
 
-
-void Engine::LoadCopyModelToBuffer()
-{
-	//모델 데이터, 텍스처 로드, 버퍼 생성, 모델 데이터 카피 (commandlist에 제출)
-	for (int i = 0; i <= mCurrentScene; ++i)
-	{
-		mScenes[i]->Load();
-	}
-}
-
 unique_ptr<Unclickables> Engine::CreateWorld(int sceneIndex)
 {
 	unique_ptr<Unclickables> model = make_unique<Unclickables>();
@@ -596,12 +571,13 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 	}
 	else if (sceneIndex == 1)
 	{
+		/*
 		v = make_shared<VolumeSphere>();
 		v->mRootSignature = "Volume";
 		v->mPso = "VolumeSphere";
 		v->mId = "sphere";
 		(*volumes)[v->mId] = move(v);
-
+		*/
 		v = make_shared<VolumeCube>();
 		v->mRootSignature = "Volume";
 		v->mPso = "VolumeCube";
@@ -682,8 +658,6 @@ void Engine::Update()
 		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &volume->second->mObjFeature, sizeof(obj),
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
-	
-	mParticleField->Update(mTimer);
 }
 
 void Engine::Draw()
@@ -723,7 +697,6 @@ void Engine::Draw()
 	}
 	
 	//
-
 	mScenes[mCurrentScene]->Spawn();
 
 	if (!mScenes[mCurrentScene]->IsDestroyQueueEmpty())
@@ -862,67 +835,6 @@ void Engine::CreateNoiseMap()
 		DXGI_FORMAT_R32G32B32A32_FLOAT, D3D12_SRV_DIMENSION_TEXTURE2D);
 }
 
-
-void Engine::CreatePerlinMap()
-{
-	mGradientsIdx = mResourceManager->CreateTexture1D(128,DXGI_FORMAT_R32G32B32A32_FLOAT);
-	mPermutationIdx = mResourceManager->CreateTexture1D(256,DXGI_FORMAT_R32_SINT);
-
-	mGradientsUploadIdx =  mResourceManager->CreateUploadBuffer(constantBufferAlignment(16 * 128));
-	mPermutationUploadIdx = mResourceManager->CreateUploadBuffer(constantBufferAlignment(4 * 256));
-
-	float gradients[4 * 128] = { 0, };
-	int permutation[256] = { 0, };
-
-	const double pi = 3.14159265358979;
-
-	unsigned int tableMask = 127;
-
-	mt19937 generator(2020);
-	uniform_real_distribution<float> dist;
-
-	for (int i = 0; i < 128; ++i)
-	{
-		float theta = acos(2.0f * dist(generator) - 1.0f);
-		float phi = 2.0f * dist(generator) * pi;
-
-		float x = cos(phi) * sin(theta);
-		float y = sin(phi) * sin(theta);
-		float z = cos(theta);
-
-		gradients[4 * i] = x;
-		gradients[4 * i + 1] = y;
-		gradients[4 * i + 2] = z;
-
-		permutation[i] = i;
-	}
-
-	uniform_int_distribution<unsigned int> intDist;
-	for (int i = 0; i < 128; ++i)
-	{
-		swap(permutation[i], permutation[intDist(generator) & tableMask]);
-	}
-	for (int i = 0; i < 128; ++i)
-	{
-		permutation[128 + i] = permutation[i];
-	}
-
-	mResourceManager->Upload(mGradientsUploadIdx, gradients, 16 * 128, 0);
-	mResourceManager->Upload(mPermutationUploadIdx, permutation, 4 * 256, 0);
-
-	mResourceManager->CopyUploadToTexture(mGradientsUploadIdx, mGradientsIdx,128,1,1, DXGI_FORMAT_R32G32B32A32_FLOAT,16);
-	mResourceManager->CopyUploadToTexture(mPermutationUploadIdx, mPermutationIdx,256,1,1, DXGI_FORMAT_R32_SINT,4);
-
-	D3D12_RESOURCE_BARRIER b[2];
-	b[0] = CD3DX12_RESOURCE_BARRIER::Transition(mResourceManager->GetResource(mGradientsIdx), D3D12_RESOURCE_STATE_COPY_DEST,
-		D3D12_RESOURCE_STATE_GENERIC_READ);
-	b[1] = CD3DX12_RESOURCE_BARRIER::Transition(mResourceManager->GetResource(mPermutationIdx), D3D12_RESOURCE_STATE_COPY_DEST,
-		D3D12_RESOURCE_STATE_GENERIC_READ);
-	Engine::mCommandList->ResourceBarrier(2, b);
-
-	mGradientsDescriptorIdx = mDescriptorManager->CreateSrv(mResourceManager->GetResource(mGradientsIdx), DXGI_FORMAT_R32G32B32A32_FLOAT, D3D12_SRV_DIMENSION_TEXTURE1D);
-	mPermutationDescriptorIdx = mDescriptorManager->CreateSrv(mResourceManager->GetResource(mPermutationIdx), DXGI_FORMAT_R32_SINT, D3D12_SRV_DIMENSION_TEXTURE1D);
-}
 
 //-----------------------------pipeline에 있던 코드-----------------------------
 void Engine::InitializePipeline()
