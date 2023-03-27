@@ -30,7 +30,7 @@ cbuffer obj : register(b0)
 	int pad;
 }
 
-cbuffer trans : register(b1)
+cbuffer env : register(b1)
 {
 	float4x4 view;
 	float4x4 projection;
@@ -40,14 +40,11 @@ cbuffer trans : register(b1)
 	float3 cameraFront;
 	int pad2;
 	float4x4 InvViewProjection;
+	float currentTime;
+	int pad3;
+	int pad4;
+	int pad5;
 }
-/*
-struct Perlin
-{
-	float4 gradients[128];
-	int permutation[256];
-};
-*/
 
 Texture1D<float4> gradients : register(t0);
 Texture1D<int> permutation : register(t1);
@@ -194,6 +191,8 @@ float noise(float3 position)
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
 	int layers = 7;
+
+	position.x += currentTime*10.0f;
 
 	for (int i = 0; i < layers; ++i)
 	{

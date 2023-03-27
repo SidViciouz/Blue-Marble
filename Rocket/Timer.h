@@ -7,6 +7,7 @@ public:
 	void										Reset();
 	void										Tick();
 	float										GetDeltaTime() const;
+	float										GetTime() const;
 
 private:
 	__int64										mBaseTime = 0;

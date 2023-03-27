@@ -25,4 +25,8 @@ struct env
 	XMFLOAT3									cameraFront;
 	int											pad2;
 	XMFLOAT4X4									invViewProjection;
+	float										currentTime;
+	int											pad3;
+	int											pad4;
+	int											pad5;
 };

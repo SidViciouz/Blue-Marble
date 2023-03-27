@@ -34,3 +34,8 @@ float Timer::GetDeltaTime() const
 {
 	return mDeltaTime;
 }
+
+float Timer::GetTime() const
+{
+	return mCurrentTime * mSecondPerCount;
+}

@@ -619,7 +619,7 @@ env Engine::SetLight()
 {
 	env envs;
 		
-	envs.lights[0].mPosition = { 10.0f,0.0f,0.0f };
+	envs.lights[0].mPosition = { 10.0f,10.0f,10.0f };
 	envs.lights[0].mDirection = { -1.0f,0.0f,0.0f };
 	envs.lights[0].mColor = {1.0f,1.0f,1.0f };
 	envs.lights[0].mType = Point;
@@ -627,10 +627,10 @@ env Engine::SetLight()
 	envs.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
 	envs.lights[1].mColor = { 1.0f,1.0f,0.0f };
 	envs.lights[1].mType = Spot;
-	envs.lights[2].mPosition = { 9.0f, 9.0f,9.0f };
+	envs.lights[2].mPosition = { 0.0f, 0.0f,0.0f };
 	envs.lights[2].mDirection = { -1.0f,0.0f,0.0f };
 	envs.lights[2].mColor = { 1.0f,0.0f,1.0f };
-	envs.lights[2].mType = Point;
+	envs.lights[2].mType = Spot;
 
 	return envs;
 }
@@ -661,6 +661,7 @@ void Engine::Update()
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
 	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
 	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
+	mScenes[mCurrentScene]->envFeature.currentTime = mTimer.GetTime();
 	mResourceManager->Upload(mFrames[mCurrentFrame]->mEnvConstantBufferIdx, &mScenes[mCurrentScene]->envFeature, sizeof(env), 0);
 
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
