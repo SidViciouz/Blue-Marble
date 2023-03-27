@@ -19,8 +19,14 @@ void Clickable::Draw()
 
 	//Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
 	//	Engine::mDescriptorManager->GetGpuHandle(Engine::mScenes[Engine::mCurrentScene]->mSrvIndices[mId], DescType::SRV));
-	Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(Engine::mNoiseMapDescriptorIdx, DescType::SRV));
-	//Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->, DescType::SRV));
+	// 
+	//Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(Engine::mNoiseMapDescriptorIdx, DescType::SRV));
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
+		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mGradientsDescriptorIdx, DescType::SRV));
+
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
+		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mPermutationDescriptorIdx, DescType::SRV));
+
 	Model::Draw();
 }
 

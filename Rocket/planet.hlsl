@@ -17,7 +17,7 @@ cbuffer obj : register(b0)
 	int pad;
 }
 
-cbuffer trans : register(b1)
+cbuffer env : register(b1)
 {
 	float4x4 view;
 	float4x4 projection;
@@ -26,9 +26,16 @@ cbuffer trans : register(b1)
 	int pad1;
 	float3 cameraFront;
 	int pad2;
+	float currentTime;
+	int pad3;
+	int pad4;
+	int pad5;
 }
 
-Texture2D<float4> noiseMap : register(t0);
+//Texture2D<float4> noiseMap : register(t0);
+
+Texture1D<float4> gradients : register(t0);
+Texture1D<int> permutation : register(t1);
 
 struct PatchTess
 {
@@ -49,6 +56,89 @@ struct VertexIn
 	float2 tex : TEXTURE;
 	float3 normal : NORMAL;
 };
+
+float smoothstep(float t)
+{
+	return t * t * (3 - 2 * t);
+}
+
+int hash(int x, int y, int z)
+{
+	return permutation[permutation[permutation[x] + y] + z];
+}
+
+float evalDensity(float3 position)
+{
+	int x0 = (int)floor(position.x) & 127;
+	int y0 = (int)floor(position.y) & 127;
+	int z0 = (int)floor(position.z) & 127;
+
+	int x1 = (x0 + 1) & 127;
+	int y1 = (y0 + 1) & 127;
+	int z1 = (z0 + 1) & 127;
+
+	float tx = position.x - (int)floor(position.x);
+	float ty = position.y - (int)floor(position.y);
+	float tz = position.z - (int)floor(position.z);
+
+	float u = smoothstep(tx);
+	float v = smoothstep(ty);
+	float w = smoothstep(tz);
+
+	float3 c000 = gradients[hash(x0, y0, z0)].xyz;
+	float3 c100 = gradients[hash(x1, y0, z0)].xyz;
+	float3 c010 = gradients[hash(x0, y1, z0)].xyz;
+	float3 c110 = gradients[hash(x1, y1, z0)].xyz;
+	float3 c001 = gradients[hash(x0, y0, z1)].xyz;
+	float3 c101 = gradients[hash(x1, y0, z1)].xyz;
+	float3 c011 = gradients[hash(x0, y1, z1)].xyz;
+	float3 c111 = gradients[hash(x1, y1, z1)].xyz;
+
+	float u0 = tx;
+	float u1 = tx - 1;
+	float v0 = ty;
+	float v1 = ty - 1;
+	float w0 = tz;
+	float w1 = tz - 1;
+
+	float3 p000 = float3(u0, v0, w0);
+	float3 p100 = float3(u1, v0, w0);
+	float3 p010 = float3(u0, v1, w0);
+	float3 p110 = float3(u1, v1, w0);
+	float3 p001 = float3(u0, v0, w1);
+	float3 p101 = float3(u1, v0, w1);
+	float3 p011 = float3(u0, v1, w1);
+	float3 p111 = float3(u1, v1, w1);
+
+	float a = lerp(dot(c000, p000), dot(c100, p100), u);
+	float b = lerp(dot(c010, p010), dot(c110, p110), u);
+	float c = lerp(dot(c001, p001), dot(c101, p101), u);
+	float d = lerp(dot(c011, p011), dot(c111, p111), u);
+
+	float e = lerp(a, b, v);
+	float f = lerp(c, d, v);
+
+	return lerp(e, f, w);
+}
+
+float noise(float3 position)
+{
+	float noiseSum = 0.0f;
+	float amplitude = 1.0f;
+	float frequency = 1.0f;
+	int layers = 7;
+
+	position.x += currentTime * 10.0f;
+
+	for (int i = 0; i < layers; ++i)
+	{
+		noiseSum += evalDensity(position * frequency) * amplitude;
+		amplitude *= 2.0f;
+		frequency *= 0.5f;
+	}
+
+	return noiseSum / (float)layers;
+}
 
 VertexOut VS(VertexIn vin)
 {
@@ -127,50 +217,6 @@ DomainOut DS(PatchTess patchTess, float3 uv : SV_DomainLocation, const OutputPat
 	return dout;
 }
 
-float smoothstep(float t)
-{
-	return t * t * (3 - 2 * t);
-}
-
-float eval(float2 uv)
-{
-	int x0 = (int)floor(uv.x) & 127;
-	int y0 = (int)floor(uv.y) & 127;
-
-	int x1 = (x0 + 1) & 127;
-	int y1 = (y0 + 1) & 127;
-
-	float tx = uv.x - (int)floor(uv.x);
-	float ty = uv.y - (int)floor(uv.y);
-
-	float t0 = smoothstep(tx);
-	float t1 = smoothstep(ty);
-
-	float4 gradient00 = noiseMap.Load(int3(x0, y0, 0));
-	float4 gradient01 = noiseMap.Load(int3(x0, y1, 0));
-	float4 gradient10 = noiseMap.Load(int3(x1, y0, 0));
-	float4 gradient11 = noiseMap.Load(int3(x1, y1, 0));
-	
-	float a = lerp(dot(gradient00.xy,float2(uv.x-x0,uv.y-y0)), dot(gradient01.xy, float2(uv.x - x0, uv.y - y1)), t0);
-	float b = lerp(dot(gradient10.xy, float2(uv.x - x1, uv.y - y0)), dot(gradient11.xy, float2(uv.x - x1, uv.y - y1)), t0);
-
-
-	return lerp(a, b, t1);
-}
-
-float layerEval(float2 uv)
-{
-	float fractal = 0.0f;
-	float amplitude = 1.0f;
-
-	for (int k = 0; k < 5; ++k) {
-		fractal += (1 + eval(uv)) * 0.5 * amplitude;
-		uv *= 2.0f;
-		amplitude *= 0.2;
-	}
-
-	return fractal;
-}
 
 struct GeoOut
 {
@@ -187,7 +233,8 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 	GeoOut gout;
 	for (int i = 0; i < 3; ++i)
 	{
-		float height = layerEval(gin[i].tex*127.0f)/50.0f;
+		//float height = layerEval(gin[i].tex*127.0f)/50.0f;
+		float height = max(noise(float3(gin[i].tex*127, 0.0f)),0);
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
 		gout.pos = mul(mul(float4(gout.posW,1.0f), transpose(view)), transpose(projection));
@@ -201,7 +248,7 @@ float4 PS(GeoOut pin) : SV_Target
 {
 	float3 L = { 0.0f,0.0f,1.0f };
 	float rambertTerm = 0.0f;
-	float4 color = float4(diffuseAlbedo * float3(0.1f, 0.1f, 0.1f), 1.0f);
+	float4 color = float4(diffuseAlbedo * float3(0.1f, 0.1f, 0.1f), 0.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
 
@@ -239,7 +286,7 @@ float4 PS(GeoOut pin) : SV_Target
 		float m = (1.0f - roughness) * 32.0f;
 		roughnessTerm = (m + 8.0f) * pow(max(dot(halfway, pin.normal), 0.0f), m) / 8.0f;
 
-		color += float4(rambertTerm * lights[i].color * (diffuseAlbedo + fresnelTerm * roughnessTerm), 1.0f);
+		color += float4(rambertTerm * lights[i].color * (diffuseAlbedo + fresnelTerm * roughnessTerm), 0.0f);
 	}
 
 	return color;

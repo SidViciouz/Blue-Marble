@@ -17,8 +17,6 @@ unique_ptr<ResourceManager>	Engine::mResourceManager;
 vector<unique_ptr<Frame>> Engine::mFrames;
 int	Engine::mCurrentFrame = 0;
 
-int Engine::mNoiseMapDescriptorIdx;
-
 unique_ptr<PerlinMap> Engine::mPerlinMap;
 
 Engine::Engine(HINSTANCE hInstance)
@@ -57,8 +55,6 @@ void Engine::Initialize()
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
 	mRigidBodySystem->GenerateParticle();
-
-	CreateNoiseMap();
 
 	mPerlinMap = make_unique<PerlinMap>();
 
@@ -460,7 +456,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		m->mRootSignature = "planet";
 		m->mPso = "planet";
 		m->SetPosition(10.0f,3.0f,10.0f);
-		//m->mScale = { 10.0f,10.0f,10.0f };
+		m->mScale = { 10.0f,10.0f,10.0f };
 		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
 		m->mRigidBody->SetAngularMomentum(1.0f, 10.0f, 1.0f);
 		m->mId = "earth";
@@ -537,12 +533,12 @@ unique_ptr<Unclickables> Engine::CreateWorld(int sceneIndex)
 	}
 	else if (sceneIndex == 1)
 	{
-		/*
+		
 		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
 		m->mPso = "World";
 		m->mId = "space";
 		(*model)[m->mId] = move(m);
-		*/
+		
 	}
 
 	return move(model);
@@ -797,42 +793,6 @@ void Engine::Input()
 		mScenes[mCurrentScene]->mCamera->UpdateView();
 		mScenes[mCurrentScene]->mCamera->UpdateInvViewProjection();
 	}
-}
-
-void Engine::CreateNoiseMap()
-{
-	mNoiseMap = make_unique<TextureResource>();
-	
-	const double pi = 3.14159265358979;
-
-	float perlinArray[128][512];
-
-	mt19937 generator(2020);
-	uniform_real_distribution<float> dist;
-	
-	for (int i = 0; i < 128; ++i)
-	{
-		for (int j = 0; j < 128; ++j)
-		{
-			//float theta = acos(2.0f * dist(generator) - 1.0f);
-			float phi = 2.0f * dist(generator) * pi;
-
-			float x = cos(phi);
-			float y = sin(phi);
-			//float z = cos(theta);
-
-			perlinArray[j][4 * i]= x;
-			perlinArray[j][4 * i + 1] = y;
-			perlinArray[j][4 * i + 2] = 0;
-			perlinArray[j][4 * i + 3] = 0;
-		}
-	}
-
-	mNoiseMap->CopyCreate(perlinArray, 128, 128, 16, DXGI_FORMAT_R32G32B32A32_FLOAT);
-
-
-	mNoiseMapDescriptorIdx =  mDescriptorManager->CreateSrv(mNoiseMap->mTexture.Get(),
-		DXGI_FORMAT_R32G32B32A32_FLOAT, D3D12_SRV_DIMENSION_TEXTURE2D);
 }
 
 
@@ -1166,12 +1126,17 @@ void Engine::CreateShaderAndRootSignature()
 	mRootSignatures["CreateParticles"] = move(rs);
 
 
-	D3D12_DESCRIPTOR_RANGE rangePlanet[1];
+	D3D12_DESCRIPTOR_RANGE rangePlanet[2];
 	rangePlanet[0].BaseShaderRegister = 0;
 	rangePlanet[0].NumDescriptors = 1;
 	rangePlanet[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangePlanet[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangePlanet[0].RegisterSpace = 0;
+	rangePlanet[1].BaseShaderRegister = 1;
+	rangePlanet[1].NumDescriptors = 1;
+	rangePlanet[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangePlanet[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangePlanet[1].RegisterSpace = 0;
 
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -1182,11 +1147,16 @@ void Engine::CreateShaderAndRootSignature()
 	rootParameter[1].Descriptor.RegisterSpace = 0;
 	rootParameter[1].Descriptor.ShaderRegister = 1;
 	rootParameter[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameter[2].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameter[2].DescriptorTable.pDescriptorRanges = rangePlanet;
+	rootParameter[2].DescriptorTable.pDescriptorRanges = &rangePlanet[0];
+	rootParameter[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameter[3].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[3].DescriptorTable.pDescriptorRanges = &rangePlanet[1];
 
-	rsDesc.NumParameters = 3;
+
+	rsDesc.NumParameters = 4;
 	rsDesc.pParameters = rootParameter;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;

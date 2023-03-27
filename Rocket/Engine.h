@@ -80,10 +80,6 @@ private:
 	void										Update();
 	void										Draw();
 	void										Input();
-	//
-	void										CreateNoiseMap();
-	unique_ptr<TextureResource>					mNoiseMap;
-	//
 
 	//윈도우 관련 데이터
 	static Engine*								mLatestWindow;
@@ -146,8 +142,6 @@ public:
 	
 	int											mDepthBufferIndex;
 	int											mBackBufferOffset;
-
-	static int									mNoiseMapDescriptorIdx;
 
 	static unique_ptr<PerlinMap>				mPerlinMap;
 };
