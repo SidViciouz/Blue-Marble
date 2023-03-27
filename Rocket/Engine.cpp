@@ -19,6 +19,8 @@ int	Engine::mCurrentFrame = 0;
 
 unique_ptr<PerlinMap> Engine::mPerlinMap;
 
+unique_ptr<MeshManager> Engine::mMeshManager;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -457,7 +459,7 @@ unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
 		m->mRootSignature = "planet";
 		m->mPso = "planet";
 		m->SetPosition(10.0f,3.0f,10.0f);
-		m->mScale = { 15.0f,15.0f,15.0f };
+		m->mScale = { 10.0f,10.0f,10.0f };
 		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
 		m->mRigidBody->SetAngularMomentum(1.0f, 10.0f, 1.0f);
 		m->mId = "earth";

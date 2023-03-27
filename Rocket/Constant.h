@@ -4,6 +4,8 @@
 
 #define MAX_OBJECT_NUM 1000
 
+#define MAX_SCENE_NODE_NUM 1000
+
 using namespace DirectX;
 
 struct obj
@@ -29,4 +31,11 @@ struct env
 	int											pad3;
 	int											pad4;
 	int											pad5;
+};
+
+struct Vertex
+{
+	XMFLOAT3									position;
+	XMFLOAT2									uv;
+	XMFLOAT3									normal;
 };

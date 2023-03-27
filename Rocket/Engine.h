@@ -21,6 +21,7 @@
 #include "DescriptorManager.h"
 #include "ResourceManager.h"
 #include "PerlinMap.h"
+#include "MeshManager.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -144,4 +145,6 @@ public:
 	int											mBackBufferOffset;
 
 	static unique_ptr<PerlinMap>				mPerlinMap;
+
+	static unique_ptr<MeshManager>				mMeshManager;
 };

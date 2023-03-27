@@ -20,6 +20,7 @@ public:
 	* 한 resource에서 다른 resource로 data를 copy한다. (GPU->GPU)
 	*/
 	void										CopyUploadToTexture(int src,int dst,int width,int height,int depth,DXGI_FORMAT format, int elementByte);
+	void										CopyUploadToBuffer(int src, int dst);
 	int											CalculateAlignment(int value, int alignment);
 	ID3D12Resource*								GetResource(int index);
 	void										SwapChainPresent();

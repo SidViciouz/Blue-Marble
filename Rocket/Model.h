@@ -16,13 +16,6 @@ using namespace Microsoft::WRL;
 
 class RigidBody;
 
-struct Vertex
-{
-	XMFLOAT3									position;
-	XMFLOAT2									uv;
-	XMFLOAT3									normal;
-};
-
 class Model : public Entity
 {
 public:

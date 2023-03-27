@@ -8,6 +8,8 @@
 class SceneNode
 {
 public:
+												SceneNode();
+
 	void										Draw();
 	void										Update(const XMFLOAT4X4& parentsWorld);
 
@@ -15,10 +17,16 @@ public:
 	Position									mRelativePosition;
 	Quaternion									mRelativeQuaternion;
 
-	vector<int>									mMeshIndices;
-	vector<int>									mVolumeIndices;
+	obj											mObjFeature;
+
+	vector<string>								mMeshNames;
+	vector<string>								mVolumeNames;
 
 	vector<unique_ptr<SceneNode>>				mChildNodes;
-	obj											mObjFeature;
+
 	bool										mDirty = true;
+
+	int											mSceneNodeIndex;
+
+	static bool									mSceneNodeNumTable[MAX_SCENE_NODE_NUM];
 };

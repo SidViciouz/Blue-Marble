@@ -192,6 +192,11 @@ void ResourceManager::CopyUploadToTexture(int src, int dst, int width, int heigh
 
 }
 
+void ResourceManager::CopyUploadToBuffer(int src, int dst)
+{
+	Engine::mCommandList->CopyResource(GetResource(dst), GetResource(src));
+}
+
 int ResourceManager::CalculateAlignment(int value, int alignment)
 {
 	//alignment가 2의 거듭제곱이여야한다.
