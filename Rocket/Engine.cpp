@@ -50,9 +50,21 @@ void Engine::Initialize()
 	//각 Scene들에 모델, 카메라, 조명 생성
 	LoadScene();
 
+	mMeshManager = make_unique<MeshManager>();
+	mMeshManager->Load("ball", "../Model/ball.obj", true);
+	mMeshManager->Load("box", "../Model/box.obj", true);
+	mMeshManager->Load("my", "../Model/my.obj", true);
+
+
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
+	{
 		scene->get()->CreateModelSrv(MAX_OBJECT);
+	}
+
+	unique_ptr<MeshNode> ballMesh = make_unique<MeshNode>("ball");
+	ballMesh->AddChild(make_unique<MeshNode>("my"));
+	mScenes[mCurrentScene]->mSceneRoot->AddChild(move(ballMesh));
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
@@ -658,6 +670,11 @@ void Engine::Update()
 		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &volume->second->mObjFeature, sizeof(obj),
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
+
+	mScenes[mCurrentScene]->mSceneRoot->Update({1.0f,0.0f,0.0f,0.0f,
+												0.0f,1.0f,0.0f,0.0f,
+												0.0f,0.0f,1.0f,0.0f,
+												0.0f,0.0f,0.0f,1.0f});
 }
 
 void Engine::Draw()
@@ -729,6 +746,8 @@ void Engine::Draw()
 	* scene의 object들을 draw한다.
 	*/
 	mScenes[mCurrentScene]->Draw();
+
+	mScenes[mCurrentScene]->mSceneRoot->Draw();
 
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{

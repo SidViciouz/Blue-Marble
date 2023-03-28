@@ -10,17 +10,17 @@ class SceneNode
 public:
 												SceneNode();
 
-	void										Draw();
+	virtual void								Draw();
 	void										Update(const XMFLOAT4X4& parentsWorld);
+
+	void										AddChild(unique_ptr<SceneNode> child);
+	void										RemoveChild(unique_ptr<SceneNode> child);
 
 	string										mName;
 	Position									mRelativePosition;
 	Quaternion									mRelativeQuaternion;
 
 	obj											mObjFeature;
-
-	vector<string>								mMeshNames;
-	vector<string>								mVolumeNames;
 
 	vector<unique_ptr<SceneNode>>				mChildNodes;
 

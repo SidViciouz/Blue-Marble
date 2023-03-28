@@ -22,6 +22,7 @@
 #include "ResourceManager.h"
 #include "PerlinMap.h"
 #include "MeshManager.h"
+#include "MeshNode.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;

@@ -24,22 +24,6 @@ SceneNode::SceneNode()
 
 void SceneNode::Draw()
 {
-	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
-		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-
-	for (auto& meshName : mMeshNames)
-	{
-		//drawMesh(meshIndex);
-		Engine::mMeshManager->Draw(meshName);
-	}
-	
-	for (auto& volumeName : mVolumeNames)
-	{
-		//drawVolume(volumeIndex);
-
-	}
-
 	//drawing child nodes
 	for (auto& childNode : mChildNodes)
 	{
@@ -58,14 +42,24 @@ void SceneNode::Update(const XMFLOAT4X4& parentsWorld)
 
 		XMStoreFloat4x4(&mObjFeature.world, world);
 
-		Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx, &mObjFeature, sizeof(obj),
-			mSceneNodeIndex * constantBufferAlignment(sizeof(obj)));
-
 		mDirty = false;
 	}
+
+	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx, &mObjFeature, sizeof(obj),
+		mSceneNodeIndex * constantBufferAlignment(sizeof(obj)));
 
 	for (auto& childNode : mChildNodes)
 	{
 		childNode->Update(mObjFeature.world);
 	}
+}
+
+void SceneNode::AddChild(unique_ptr<SceneNode> child)
+{
+	mChildNodes.push_back(move(child));
+}
+
+void SceneNode::RemoveChild(unique_ptr<SceneNode> child)
+{
+
 }

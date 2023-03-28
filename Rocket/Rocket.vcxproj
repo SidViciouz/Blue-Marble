@@ -157,6 +157,7 @@
     <ClInclude Include="Math\Quaternion.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshManager.h" />
+    <ClInclude Include="MeshNode.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Engine.h" />
@@ -194,6 +195,7 @@
     <ClCompile Include="Math\Quaternion.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshManager.cpp" />
+    <ClCompile Include="MeshNode.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="PerlinMap.cpp" />

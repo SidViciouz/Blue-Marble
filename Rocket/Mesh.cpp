@@ -143,14 +143,6 @@ D3D12_INDEX_BUFFER_VIEW* Mesh::GetIndexBufferView()
 
 void Mesh::Draw()
 {
-	Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["planet"].Get());
-	Engine::mCommandList->SetPipelineState(Engine::mPSOs["planet"].Get());
-	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
-		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mGradientsDescriptorIdx, DescType::SRV));
-	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
-		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mPermutationDescriptorIdx, DescType::SRV));
-
 	Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
 	Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());
 	Engine::mCommandList->DrawIndexedInstanced(mIndices.size() , 1, 0, 0, 0);
