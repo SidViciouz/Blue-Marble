@@ -44,14 +44,12 @@ void SceneNode::Update()
 			0.0f,0.0f,0.0f,1.0f
 		};
 		//copy operation
-		mAccumulatedPosition = mRelativePosition;
 		mAccumulatedQuaternion = mRelativeQuaternion;
 	}
 
 	else
 	{
 		parentsWorld = mParentNode->mObjFeature.world;
-		mAccumulatedPosition = mParentNode->mAccumulatedPosition + mRelativePosition;
 		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
 	}
 
@@ -63,6 +61,7 @@ void SceneNode::Update()
 
 	XMStoreFloat4x4(&mObjFeature.world, world);
 
+	mAccumulatedPosition.Set(mObjFeature.world._41, mObjFeature.world._42, mObjFeature.world._43);
 
 	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx, &mObjFeature, sizeof(obj),
 		mSceneNodeIndex * constantBufferAlignment(sizeof(obj)));

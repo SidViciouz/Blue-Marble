@@ -24,6 +24,8 @@
 #include "MeshManager.h"
 #include "MeshNode.h"
 #include "VolumeNode.h"
+#include "CapsuleCollisionComponent.h"
+#include "SphereCollisionComponent.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;

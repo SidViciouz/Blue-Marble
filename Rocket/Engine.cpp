@@ -62,11 +62,18 @@ void Engine::Initialize()
 	}
 
 	shared_ptr<MeshNode> boxMesh = make_shared<MeshNode>("box");
-	boxMesh->mRelativePosition.Set(5.0f, 0.0f, 0.0f);
+	boxMesh->mRelativePosition.Set(3.0f, 0.0f, 0.0f);
+	boxMesh->mCollisionComponent = make_shared<CapsuleCollisionComponent>(boxMesh, 2.0f, 5.0f);
 	shared_ptr<MeshNode> ballMesh = make_shared<MeshNode>("ball");
 	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(0.5f), 0.0f, cosf(0.5f));
+	ballMesh->mCollisionComponent = make_shared<CapsuleCollisionComponent>(ballMesh, 2.0f, 5.0f);
 	ballMesh->AddChild(boxMesh);
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
+
+	if (ballMesh->IsColliding(boxMesh.get()))
+		printf("ball and box is colliding\n");
+	else
+		printf("ball and box is not colliding\n");
 	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(1.0f, 1.0f, 20.0f));
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
