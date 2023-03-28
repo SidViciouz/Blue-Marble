@@ -51,5 +51,5 @@ public:
 	string										mSelectedModelName;
 	shared_ptr<Model>							mSelectedModel;
 
-	unique_ptr<SceneNode>						mSceneRoot;
+	shared_ptr<SceneNode>						mSceneRoot;
 };

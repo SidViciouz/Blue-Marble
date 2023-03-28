@@ -96,17 +96,13 @@ Mesh::Mesh(string name, const char* fileName, bool hasRigidBody) :
 	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
 	Engine::mResourceManager->Upload(mIndexUploadBufferIdx, mIndices.data(), sizeof(uint16_t) * mIndices.size(), 0);
 	
-	D3D12_RESOURCE_BARRIER barrier[4];
+	D3D12_RESOURCE_BARRIER barrier[2];
 	barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(Engine::mResourceManager->GetResource(mVertexBufferIdx),
 		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
 	barrier[1] = CD3DX12_RESOURCE_BARRIER::Transition(Engine::mResourceManager->GetResource(mIndexBufferIdx),
 		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
-	barrier[2] = CD3DX12_RESOURCE_BARRIER::Transition(Engine::mResourceManager->GetResource(mVertexBufferIdx),
-		D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_SOURCE);
-	barrier[3] = CD3DX12_RESOURCE_BARRIER::Transition(Engine::mResourceManager->GetResource(mIndexBufferIdx),
-		D3D12_RESOURCE_STATE_GENERIC_READ, D3D12_RESOURCE_STATE_COPY_SOURCE);
 	
-	Engine::mCommandList->ResourceBarrier(4, barrier);
+	Engine::mCommandList->ResourceBarrier(2, barrier);
 
 	Engine::mResourceManager->CopyUploadToBuffer(mVertexUploadBufferIdx, mVertexBufferIdx);
 	Engine::mResourceManager->CopyUploadToBuffer(mIndexUploadBufferIdx, mIndexBufferIdx);
@@ -115,12 +111,8 @@ Mesh::Mesh(string name, const char* fileName, bool hasRigidBody) :
 	barrier[0].Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
 	barrier[1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
 	barrier[1].Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
-	barrier[2].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
-	barrier[2].Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
-	barrier[3].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
-	barrier[3].Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
 
-	Engine::mCommandList->ResourceBarrier(4, barrier);
+	Engine::mCommandList->ResourceBarrier(2, barrier);
 }
 
 D3D12_VERTEX_BUFFER_VIEW* Mesh::GetVertexBufferView()

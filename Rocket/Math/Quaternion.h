@@ -9,6 +9,9 @@ private:
 	XMFLOAT4									mQuaternion;
 												
 public:
+												Quaternion();
+	Quaternion									operator*(const Quaternion& other) const;
+
 	void										Set(const XMFLOAT4& quaternion);
 	void										Set(const float& x,const float& y,const float& z,const float& w);
 

@@ -4,6 +4,7 @@
 #include "Math/Position.h"
 #include "Math/Quaternion.h"
 #include "Constant.h"
+#include "CollisionComponent.h"
 
 class SceneNode
 {
@@ -11,19 +12,25 @@ public:
 												SceneNode();
 
 	virtual void								Draw();
-	virtual void								Update(const XMFLOAT4X4& parentsWorld);
+	virtual void								Update();
+	bool										IsColliding(SceneNode* counterPart);
 
-	void										AddChild(unique_ptr<SceneNode> child);
-	void										RemoveChild(unique_ptr<SceneNode> child);
+	void										AddChild(shared_ptr<SceneNode> child);
+	void										RemoveChild(shared_ptr<SceneNode> child);
 
 	Position									mRelativePosition;
 	Quaternion									mRelativeQuaternion;
 
+	Position									mAccumulatedPosition;
+	Quaternion									mAccumulatedQuaternion;
+
+	shared_ptr<CollisionComponent>				mCollisionComponent;
+
 	obj											mObjFeature;
 
-	vector<unique_ptr<SceneNode>>				mChildNodes;
+	vector<shared_ptr<SceneNode>>				mChildNodes;
+	SceneNode*									mParentNode = nullptr;
 
-	bool										mDirty = true;
 
 	int											mSceneNodeIndex;
 

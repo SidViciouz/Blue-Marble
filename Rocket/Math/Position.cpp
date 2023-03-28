@@ -7,6 +7,14 @@ Position::Position()
 	mPosition.z = 0.0f;
 }
 
+Position Position::operator+(const Position& other) const
+{
+	Position position;
+	position.Set(mPosition.x + other.mPosition.x, mPosition.y + other.mPosition.y, mPosition.z + other.mPosition.z);
+
+	return position;
+}
+
 void Position::Set(const XMFLOAT3& position)
 {
 	mPosition = position;

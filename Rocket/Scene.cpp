@@ -2,7 +2,7 @@
 #include "Engine.h"
 
 Scene::Scene() :
-	mSpawnSystem(make_unique<SpawnSystem>()), mSceneRoot(make_unique<SceneNode>())
+	mSpawnSystem(make_unique<SpawnSystem>()), mSceneRoot(make_shared<SceneNode>())
 {
 
 }

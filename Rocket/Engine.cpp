@@ -55,17 +55,19 @@ void Engine::Initialize()
 	mMeshManager->Load("box", "../Model/box.obj", true);
 	mMeshManager->Load("my", "../Model/my.obj", true);
 
-
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
 	{
 		scene->get()->CreateModelSrv(MAX_OBJECT);
 	}
 
-	unique_ptr<MeshNode> ballMesh = make_unique<MeshNode>("ball");
-	ballMesh->AddChild(make_unique<MeshNode>("my"));
-	mScenes[mCurrentScene]->mSceneRoot->AddChild(move(ballMesh));
-	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(20.0f, 5.0f, 20.0f));
+	shared_ptr<MeshNode> boxMesh = make_shared<MeshNode>("box");
+	boxMesh->mRelativePosition.Set(5.0f, 0.0f, 0.0f);
+	shared_ptr<MeshNode> ballMesh = make_shared<MeshNode>("ball");
+	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(0.5f), 0.0f, cosf(0.5f));
+	ballMesh->AddChild(boxMesh);
+	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
+	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(1.0f, 1.0f, 20.0f));
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
@@ -590,7 +592,8 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 		v->mPso = "VolumeSphere";
 		v->mId = "sphere";
 		(*volumes)[v->mId] = move(v);
-		
+		*/
+
 		v = make_shared<VolumeCube>();
 		v->mRootSignature = "Volume";
 		v->mPso = "VolumeCube";
@@ -598,7 +601,7 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 		v->SetPosition(9.0f, 10.0f, 0.0f);
 		v->mScale = { 20.0f,5.0f,20.0f };
 		(*volumes)[v->mId] = move(v);
-		*/
+		
 	}
 
 	return move(volumes);
@@ -673,10 +676,7 @@ void Engine::Update()
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 
-	mScenes[mCurrentScene]->mSceneRoot->Update({1.0f,0.0f,0.0f,0.0f,
-												0.0f,1.0f,0.0f,0.0f,
-												0.0f,0.0f,1.0f,0.0f,
-												0.0f,0.0f,0.0f,1.0f});
+	mScenes[mCurrentScene]->mSceneRoot->Update();
 }
 
 void Engine::Draw()

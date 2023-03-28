@@ -1,11 +1,10 @@
 #include "VolumeNode.h"
 #include "Engine.h"
 
-VolumeNode::VolumeNode(float width, float height, float depth):
-	SceneNode()
+VolumeNode::VolumeNode(float width, float height, float depth)
+	: SceneNode()
 {
 	mScale = { width,height,depth };
-	mRelativePosition.Set(0.0f, 10.0f, 0.0f);
 }
 
 void VolumeNode::Draw()
@@ -37,24 +36,41 @@ void VolumeNode::Draw()
 	}
 }
 
-void VolumeNode::Update(const XMFLOAT4X4& parentsWorld)
+void VolumeNode::Update()
 {
-	if (mDirty == true)
+	XMFLOAT4X4 parentsWorld;
+
+	if (mParentNode == nullptr)
 	{
-		XMFLOAT3 pos = mRelativePosition.Get();
-		XMMATRIX world = XMMatrixScaling(mScale.x, mScale.y, mScale.z) * XMMatrixRotationQuaternion(XMLoadFloat4(&mRelativeQuaternion.Get())) * XMMatrixTranslation(pos.x, pos.y, pos.z)
-			* XMLoadFloat4x4(&parentsWorld);
-
-		XMStoreFloat4x4(&mObjFeature.world, world);
-
-		mDirty = false;
+		parentsWorld = {
+			1.0f,0.0f,0.0f,0.0f,
+			0.0f,1.0f,0.0f,0.0f,
+			0.0f,0.0f,1.0f,0.0f,
+			0.0f,0.0f,0.0f,1.0f
+		};
+		//copy operation
+		mAccumulatedPosition = mRelativePosition;
+		mAccumulatedQuaternion = mRelativeQuaternion;
 	}
+
+	else
+	{
+		parentsWorld = mParentNode->mObjFeature.world;
+		mAccumulatedPosition = mParentNode->mAccumulatedPosition + mRelativePosition;
+		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
+	}
+
+	XMFLOAT3 pos = mRelativePosition.Get();
+	XMMATRIX world = XMMatrixScaling(mScale.x, mScale.y, mScale.z) * XMMatrixRotationQuaternion(XMLoadFloat4(&mRelativeQuaternion.Get()))
+		* XMMatrixTranslation(pos.x, pos.y, pos.z) * XMLoadFloat4x4(&parentsWorld);;
+
+	XMStoreFloat4x4(&mObjFeature.world, world);
 
 	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx, &mObjFeature, sizeof(obj),
 		mSceneNodeIndex * constantBufferAlignment(sizeof(obj)));
 
 	for (auto& childNode : mChildNodes)
 	{
-		childNode->Update(mObjFeature.world);
+		childNode->Update();
 	}
 }

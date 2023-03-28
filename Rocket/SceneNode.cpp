@@ -31,35 +31,66 @@ void SceneNode::Draw()
 	}
 }
 
-void SceneNode::Update(const XMFLOAT4X4& parentsWorld)
+void SceneNode::Update()
 {
-	if (mDirty == true)
+	XMFLOAT4X4 parentsWorld;
+
+	if (mParentNode == nullptr)
 	{
-		XMFLOAT3 pos = mRelativePosition.Get();
-
-		XMMATRIX world = XMMatrixRotationQuaternion(XMLoadFloat4(&mRelativeQuaternion.Get())) * XMMatrixTranslation(pos.x,pos.y,pos.z)
-			* XMLoadFloat4x4(&parentsWorld);
-
-		XMStoreFloat4x4(&mObjFeature.world, world);
-
-		mDirty = false;
+		parentsWorld = {
+			1.0f,0.0f,0.0f,0.0f,
+			0.0f,1.0f,0.0f,0.0f,
+			0.0f,0.0f,1.0f,0.0f,
+			0.0f,0.0f,0.0f,1.0f
+		};
+		//copy operation
+		mAccumulatedPosition = mRelativePosition;
+		mAccumulatedQuaternion = mRelativeQuaternion;
 	}
+
+	else
+	{
+		parentsWorld = mParentNode->mObjFeature.world;
+		mAccumulatedPosition = mParentNode->mAccumulatedPosition + mRelativePosition;
+		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
+	}
+
+	XMFLOAT3 pos = mRelativePosition.Get();
+	XMMATRIX world = XMMatrixRotationQuaternion(XMLoadFloat4(&mRelativeQuaternion.Get())) *  XMMatrixTranslation(pos.x, pos.y, pos.z) *
+		XMLoadFloat4x4(&parentsWorld);
+	//XMMATRIX world = XMMatrixRotationQuaternion(XMLoadFloat4(&mAccumulatedQuaternion.Get())) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+		//* XMLoadFloat4x4(&parentsWorld);
+
+	XMStoreFloat4x4(&mObjFeature.world, world);
+
 
 	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx, &mObjFeature, sizeof(obj),
 		mSceneNodeIndex * constantBufferAlignment(sizeof(obj)));
 
 	for (auto& childNode : mChildNodes)
 	{
-		childNode->Update(mObjFeature.world);
+		childNode->Update();
 	}
 }
 
-void SceneNode::AddChild(unique_ptr<SceneNode> child)
+bool SceneNode::IsColliding(SceneNode* counterPart)
 {
+	if (mCollisionComponent != nullptr && counterPart->mCollisionComponent)
+	{
+		return mCollisionComponent->IsColliding(counterPart->mCollisionComponent.get());
+	}
+
+	return false;
+}
+
+
+void SceneNode::AddChild(shared_ptr<SceneNode> child)
+{
+	child->mParentNode = this;
 	mChildNodes.push_back(move(child));
 }
 
-void SceneNode::RemoveChild(unique_ptr<SceneNode> child)
+void SceneNode::RemoveChild(shared_ptr<SceneNode> child)
 {
 
 }
