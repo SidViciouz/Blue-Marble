@@ -5,6 +5,7 @@
 #include "Math/Quaternion.h"
 #include "Constant.h"
 #include "CollisionComponent.h"
+#include "RigidBodyComponent.h"
 
 class SceneNode
 {
@@ -25,6 +26,7 @@ public:
 	Quaternion									mAccumulatedQuaternion;
 
 	shared_ptr<CollisionComponent>				mCollisionComponent;
+	shared_ptr<RigidBodyComponent>				mRigidBodyComponent;
 
 	obj											mObjFeature;
 

@@ -167,6 +167,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="RigidBody.h" />
+    <ClInclude Include="RigidBodyComponent.h" />
     <ClInclude Include="RigidBodySystem.h" />
     <ClInclude Include="Rocket.h" />
     <ClInclude Include="Scene.h" />
