@@ -2,7 +2,7 @@
 #include "Engine.h"
 
 MeshNode::MeshNode(string name)
-	: mMeshName{name}
+	: mMeshName{ name }, SceneNode()
 {
 
 }

@@ -65,6 +65,7 @@ void Engine::Initialize()
 	unique_ptr<MeshNode> ballMesh = make_unique<MeshNode>("ball");
 	ballMesh->AddChild(make_unique<MeshNode>("my"));
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(move(ballMesh));
+	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(20.0f, 5.0f, 20.0f));
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
@@ -589,7 +590,7 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 		v->mPso = "VolumeSphere";
 		v->mId = "sphere";
 		(*volumes)[v->mId] = move(v);
-		*/
+		
 		v = make_shared<VolumeCube>();
 		v->mRootSignature = "Volume";
 		v->mPso = "VolumeCube";
@@ -597,6 +598,7 @@ unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
 		v->SetPosition(9.0f, 10.0f, 0.0f);
 		v->mScale = { 20.0f,5.0f,20.0f };
 		(*volumes)[v->mId] = move(v);
+		*/
 	}
 
 	return move(volumes);

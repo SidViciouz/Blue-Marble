@@ -178,6 +178,7 @@
     <ClInclude Include="Util.h" />
     <ClInclude Include="Volume.h" />
     <ClInclude Include="VolumeCube.h" />
+    <ClInclude Include="VolumeNode.h" />
     <ClInclude Include="VolumeSphere.h" />
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +212,7 @@
     <ClCompile Include="Unclickable.cpp" />
     <ClCompile Include="Volume.cpp" />
     <ClCompile Include="VolumeCube.cpp" />
+    <ClCompile Include="VolumeNode.cpp" />
     <ClCompile Include="VolumeSphere.cpp" />
   </ItemGroup>
   <ItemGroup>

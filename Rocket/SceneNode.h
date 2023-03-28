@@ -11,12 +11,11 @@ public:
 												SceneNode();
 
 	virtual void								Draw();
-	void										Update(const XMFLOAT4X4& parentsWorld);
+	virtual void								Update(const XMFLOAT4X4& parentsWorld);
 
 	void										AddChild(unique_ptr<SceneNode> child);
 	void										RemoveChild(unique_ptr<SceneNode> child);
 
-	string										mName;
 	Position									mRelativePosition;
 	Quaternion									mRelativeQuaternion;
 
