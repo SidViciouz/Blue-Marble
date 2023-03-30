@@ -23,9 +23,18 @@ void MeshNode::Draw()
 	//drawMesh(meshIndex);
 	Engine::mMeshManager->Draw(mMeshName);
 
+	if (mCollisionComponent != nullptr)
+	{
+		Engine::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["ColliderShape"].Get());
+		Engine::mCommandList->SetPipelineState(Engine::mPSOs["ColliderShape"].Get());
+		mCollisionComponent->Draw();
+	}
+
 	//drawing child nodes
 	for (auto& childNode : mChildNodes)
 	{
 		childNode->Draw();
 	}
+
 }

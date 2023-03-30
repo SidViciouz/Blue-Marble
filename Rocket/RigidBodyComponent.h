@@ -1,17 +1,27 @@
 #pragma once
 
 #include "Util.h"
+#include "Constant.h"
+#include "Math/Quaternion.h"
+
+class SceneNode;
 
 class RigidBodyComponent
 {
 public:
-                                                
-    XMFLOAT3                                    position;    // position
-    XMFLOAT3                                    velocity;    // linear velocity
-    XMFLOAT3                                    force;       // force acting on the body
-    float                                       mass;           // mass
-    XMFLOAT3                                    inertia;     // moment of inertia
-    XMFLOAT3                                    angularVel;  // angular velocity
-    XMFLOAT3                                    torque;      // torque acting on the body
-    XMFLOAT4                                    rotation;    // rotation quaternion
+                                                RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,float mass);
+    void                                        Update(float deltaTime);
+    void                                        AddForce(Vector3 force, Vector3 relativePosition);
+
+    Vector3                                     mPosition;    // position
+    Vector3                                     mVelocity;    // linear velocity
+    Vector3                                     mForce;       // force acting on the body
+    float                                       mMass;           // mass
+    XMFLOAT3X3                                  mInertiaTensor;     // moment of inertia
+    XMFLOAT3X3                                  mInvInertiaTensor;
+    Vector3                                     mAngularVel;  // angular velocity
+    Vector3                                     mTorque;      // torque acting on the body
+    Quaternion                                  mRotation;    // rotation quaternion
+
+    shared_ptr<SceneNode>						mNodeAttachedTo;
 };

@@ -10,9 +10,11 @@ private:
 												
 public:
 												Quaternion();
+												Quaternion(const float& x, const float& y, const float& z, const float& w);
 	Quaternion									operator*(const Quaternion& other) const;
 
 	void										Set(const XMFLOAT4& quaternion);
+	void										Set(const Quaternion& quaternion);
 	void										Set(const float& x,const float& y,const float& z,const float& w);
 
 	/*
@@ -20,6 +22,7 @@ public:
 	* 따라서 mul은 quaternion * mQuaternion으로 계산한다.
 	*/
 	void										Mul(const XMFLOAT4& quaternion);
+	void										Mul(const Quaternion& quaternion);
 	void										Mul(const float& x, const float& y, const float& z, const float& w);
 
 	const XMFLOAT4&								Get();

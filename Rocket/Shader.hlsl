@@ -32,7 +32,7 @@ cbuffer obj : register(b0)
 	int pad;
 }
 
-cbuffer trans : register(b1)
+cbuffer env : register(b1)
 {
 	float4x4 view;
 	float4x4 projection;

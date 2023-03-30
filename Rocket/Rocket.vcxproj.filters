@@ -150,6 +150,9 @@
     <ClInclude Include="RigidBodyComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="BoxCollisionComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rocket.cpp">
@@ -257,6 +260,12 @@
     <ClCompile Include="CollisionComponent.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="RigidBodyComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxCollisionComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rocket.rc">
@@ -289,5 +298,6 @@
     <FxCompile Include="RigidMomentum.hlsl" />
     <FxCompile Include="RigidPosQuat.hlsl" />
     <FxCompile Include="planet.hlsl" />
+    <FxCompile Include="ColliderShape.hlsl" />
   </ItemGroup>
 </Project>

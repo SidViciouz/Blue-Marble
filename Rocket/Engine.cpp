@@ -61,19 +61,16 @@ void Engine::Initialize()
 		scene->get()->CreateModelSrv(MAX_OBJECT);
 	}
 
-	shared_ptr<MeshNode> boxMesh = make_shared<MeshNode>("box");
-	boxMesh->mRelativePosition.Set(3.0f, 0.0f, 0.0f);
-	boxMesh->mCollisionComponent = make_shared<CapsuleCollisionComponent>(boxMesh, 2.0f, 5.0f);
-	shared_ptr<MeshNode> ballMesh = make_shared<MeshNode>("ball");
-	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(0.5f), 0.0f, cosf(0.5f));
-	ballMesh->mCollisionComponent = make_shared<CapsuleCollisionComponent>(ballMesh, 2.0f, 5.0f);
-	ballMesh->AddChild(boxMesh);
+	boxMesh = make_shared<MeshNode>("box");
+	boxMesh->mRelativePosition.Set(2.5f, 0.0f, 0.0f);
+	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 2.0f, 2.0f,2.0f);
+	ballMesh = make_shared<MeshNode>("ball");
+	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
+	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 2.0f, 2.0f,2.0f);
+	//ballMesh->AddChild(boxMesh);
+	mScenes[mCurrentScene]->mSceneRoot->AddChild(boxMesh);
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
-
-	if (ballMesh->IsColliding(boxMesh.get()))
-		printf("ball and box is colliding\n");
-	else
-		printf("ball and box is not colliding\n");
+	mScenes[mCurrentScene]->mSceneRoot->Update();
 	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(1.0f, 1.0f, 20.0f));
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
@@ -683,7 +680,14 @@ void Engine::Update()
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 
+	Vector3 dir(1.0f, 1.0f, 1.0f);
+	dir = dir.normalize();
+	ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()),
+		dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()), cosf(1.0f * mTimer.GetDeltaTime()));
 	mScenes[mCurrentScene]->mSceneRoot->Update();
+	ballMesh->IsColliding(boxMesh.get());
+	boxMesh->IsColliding(ballMesh.get());
+
 }
 
 void Engine::Draw()
@@ -996,6 +1000,14 @@ void Engine::CreateShaderAndRootSignature()
 		L"compile shader error4!");
 	mShaders["planetPS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"ColliderShape.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ColliderShapeVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"ColliderShape.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ColliderShapePS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 
@@ -1198,6 +1210,33 @@ void Engine::CreateShaderAndRootSignature()
 		L"create root signature error!");
 	mRootSignatures["planet"] = move(rs);
 
+
+	D3D12_ROOT_PARAMETER rootParameterCollider[3];
+	rootParameterCollider[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterCollider[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameterCollider[0].Descriptor.RegisterSpace = 0;
+	rootParameterCollider[0].Descriptor.ShaderRegister = 0;
+	rootParameterCollider[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterCollider[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameterCollider[1].Descriptor.RegisterSpace = 0;
+	rootParameterCollider[1].Descriptor.ShaderRegister = 1;
+	rootParameterCollider[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameterCollider[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameterCollider[2].Constants.Num32BitValues = 4;
+	rootParameterCollider[2].Constants.RegisterSpace = 0;
+	rootParameterCollider[2].Constants.ShaderRegister = 2;
+
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	rsDesc.NumParameters = 3;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &samplerDesc;
+	rsDesc.pParameters = rootParameterCollider;
+
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["ColliderShape"] = move(rs);
 }
 
 void Engine::CreatePso()
@@ -1478,6 +1517,26 @@ void Engine::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&rigidPosQuatPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["RigidPosQuat"] = move(pso);
+
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 1;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+	psoDesc.pRootSignature = mRootSignatures["ColliderShape"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["ColliderShapeVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["ColliderShapeVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["ColliderShapePS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["ColliderShapePS"]->GetBufferSize();
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.DepthClipEnable = false;
+	psoDesc.DepthStencilState.DepthEnable = false;
+	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["ColliderShape"] = move(pso);
 
 
 	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
