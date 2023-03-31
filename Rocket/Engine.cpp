@@ -72,6 +72,8 @@ void Engine::Initialize()
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
 	mScenes[mCurrentScene]->mSceneRoot->Update();
 	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(1.0f, 1.0f, 20.0f));
+	ballMesh->IsColliding(boxMesh.get());
+	boxMesh->IsColliding(ballMesh.get());
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
@@ -680,14 +682,17 @@ void Engine::Update()
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 
+	
 	Vector3 dir(1.0f, 1.0f, 1.0f);
 	dir = dir.normalize();
 	ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()),
 		dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()), cosf(1.0f * mTimer.GetDeltaTime()));
+	
 	mScenes[mCurrentScene]->mSceneRoot->Update();
+	
 	ballMesh->IsColliding(boxMesh.get());
 	boxMesh->IsColliding(ballMesh.get());
-
+	
 }
 
 void Engine::Draw()
@@ -762,6 +767,7 @@ void Engine::Draw()
 
 	mScenes[mCurrentScene]->mSceneRoot->Draw();
 
+	/*
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
 		mCommandList->SetGraphicsRootConstantBufferView(0,
@@ -773,6 +779,7 @@ void Engine::Draw()
 
 		(*rigid)->DrawParticles();
 	}
+	*/
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;

@@ -2,6 +2,8 @@
 #include "Constant.h"
 #include "SceneNode.h"
 #include "Engine.h"
+#include <unordered_set>
+#include <set>
 
 BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo, int width, int height, int depth)
 	: CollisionComponent(NodeAttachedTo), mWidth{ width }, mHeight{ height }, mDepth{ depth }
@@ -169,7 +171,11 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 
 
 	if (retval)
+	{
 		mIsColliding = 1;
+		CollisionInfo collision = EPA(S,selfPoints,otherPoints);
+		printf("%f , [%f %f %f]\n", collision.depth, collision.normal.v.x, collision.normal.v.y, collision.normal.v.z);
+	}
 	else
 		mIsColliding = 0;
 
@@ -217,7 +223,7 @@ Vector3	BoxCollisionComponent::Support(const Vector3& D, const vector<Vector3>& 
 	return maxSelf - maxOther;
 }
 
-bool BoxCollisionComponent::DoSimplex(vector<Vector3>& S, Vector3& D)
+bool BoxCollisionComponent::DoSimplex(vector<Vector3>& S, Vector3& D) const
 {
 	/*
 	* S는 적어도 2개 이상의 point를 갖고있다.
@@ -492,14 +498,176 @@ bool BoxCollisionComponent::DoSimplex(vector<Vector3>& S, Vector3& D)
 
 		else
 		{
+			/*
+			* S = [D,C,B,A]
+			*/
 			isIntersected = true;
 		}
 	}
 
-	if (D.length() < 0.0001f)
+	if (D.length() < 0.00001f)
 		isIntersected = true;
 
 	return isIntersected;
+}
+
+CollisionInfo BoxCollisionComponent::EPA(vector<Vector3>& S, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints) const
+{
+	assert(S.size() > 0 && S.size() < 5);
+
+	bool loopContinue = true;
+	Vector3 O;
+	Vector3 C;
+
+	if (S.size() == 1)
+	{
+
+	}
+	else if (S.size() == 2)
+	{
+
+	}
+	else if (S.size() == 3)
+	{
+
+	}
+	else if (S.size() == 4)
+	{
+		/*		 
+		* loop:
+		*	 D = GetClosestPoints(polytope,selfPoints,otherPoints) - O;
+		*	 N = Support(D,selfPoints,otherPoints);
+		*	 if( false == Expand(polytope,N)) 
+		*	 {
+		*		loop out
+		*	 }
+		*/
+
+		/*
+		* S = [D,C,B,A]
+		*/
+		/*
+		* face를 정의한다. (counter clockwise)
+		*/
+		vector<int> F = { 0,1,3,
+						  1,2,3,
+						  2,0,3,
+						  1,0,2 };
+		while (loopContinue)
+		{
+			C = GetClosestPoints(S, F);
+			Vector3 D = C - O;
+			Vector3 N = Support(D, selfPoints, otherPoints);
+			if (!Expand(S, F, N))
+			{
+				loopContinue = false;
+			}
+		}
+	}
+	
+
+	return CollisionInfo{ true,C.length(), C };
+}
+
+Vector3 BoxCollisionComponent::GetClosestPoints(const vector<Vector3>& S, const vector<int>& F) const
+{
+	/*
+	* 우선 closest face를 계산한다.
+	*/
+	int numOfFace = F.size() / 3;
+	Vector3 O;
+	float minDistance = D3D12_FLOAT32_MAX;
+	int minFace = 0;
+
+	for (int i = 0; i < numOfFace; ++i)
+	{
+		int offset = i * 3;
+		Vector3 normal = ((S[F[offset + 1]] - S[F[offset]]) ^ (S[F[offset + 2]] - S[F[offset]])).normalize();
+		Vector3 toOrigin = O - S[F[offset]];
+		float distance = normal * toOrigin;
+
+		if (distance < minDistance)
+		{
+			minDistance = distance;
+			minFace = i;
+		}
+	}
+
+	/*
+	* origin을 closest face에 투영한다.
+	*/
+
+	int offset = minFace * 3;
+	minDistance *= -1.0f;
+	Vector3 closestPoint = ((S[F[offset + 1]] - S[F[offset]]) ^ (S[F[offset + 2]] - S[F[offset]])).normalize() * minDistance;
+
+	return closestPoint;
+}
+
+bool BoxCollisionComponent::Expand(vector<Vector3>& S, vector<int>& F, const Vector3& N) const
+{
+	/*
+	* 우선, 어떤 facet들이 N을 볼 수 있는 지를 계산한다.
+	* 즉 F의 normal vector 방향에 N이 존재하는 지를 계산한다.
+	* 볼 수 있는 facet은 제거한다.
+	*/
+	int numOfFacet = F.size() / 3;
+	set<pair<int, int>> Edges;
+
+	for (int i = numOfFacet - 1 ; i >= 0; --i)
+	{
+		int offset = i * 3;
+		Vector3 A = S[F[offset]];
+		Vector3 B = S[F[offset + 1]];
+		Vector3 C = S[F[offset + 2]];
+
+		float dir = ((B - A) ^ (C - A)) * (N - A);
+
+		if (dir == 0.0f)
+		{
+			return false;
+		}
+		else if (dir > 0.0f)
+		{
+			pair<int, int> edges[3] =
+			{
+				{F[offset],F[offset + 1]},
+				{F[offset + 1],F[offset + 2]},
+				{F[offset + 2],F[offset]}
+			};
+			for (int j = 0; j < 3; ++j)
+			{
+				if (Edges.count(edges[j]) == 0)
+					Edges.insert(edges[j]);
+				else
+					Edges.erase(edges[j]);
+			}
+
+			F.erase(F.cbegin() + offset, F.cbegin() + offset + 3);
+		}
+	}
+	
+	/*
+	* 만약 N을 볼 수 있는 facet이 없다면, false를 반환한다.
+	*/
+	
+	if (Edges.size() == 0)
+		return false;
+
+	/*
+	* edge들과 N을 이용해서 convex hull을 생성한다.
+	*/
+	
+	S.push_back(N);
+	int newVertexIdx = S.size() - 1;
+	for (auto& Edge : Edges)
+	{
+		F.push_back(Edge.first);
+		F.push_back(Edge.second);
+		F.push_back(newVertexIdx);
+	}
+	
+	return true;
 }
 
 D3D12_VERTEX_BUFFER_VIEW* BoxCollisionComponent::GetVertexBufferView()

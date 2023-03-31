@@ -49,7 +49,7 @@ cbuffer size : register(b2)
 	int isColliding;
 }
 
-VertexOut VS(VertexIn vin)
+VertexOut VS(VertexIn vin, uint id : SV_VertexID)
 {
 
 	VertexOut vout;

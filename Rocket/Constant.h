@@ -60,7 +60,7 @@ struct Vector3
 	Vector3										operator+(const Vector3& other) const
 	{
 		Vector3 result;
-
+		
 		XMStoreFloat3(&result.v,XMLoadFloat3(&v) + XMLoadFloat3(&other.v));
 
 		return result;
@@ -131,4 +131,13 @@ struct Vector3
 
 		return result;
 	}
+};
+
+
+struct CollisionInfo
+{
+	bool isIntersected = false;
+	float depth = 0.0f;
+	Vector3 normal;
+	Vector3 point;
 };
