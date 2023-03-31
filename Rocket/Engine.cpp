@@ -62,10 +62,11 @@ void Engine::Initialize()
 	}
 
 	boxMesh = make_shared<MeshNode>("box");
-	boxMesh->mRelativePosition.Set(2.5f, 0.0f, 0.0f);
+	boxMesh->mRelativePosition.Set(2.0f, 0.0f, 1.0f);
 	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 2.0f, 2.0f,2.0f);
 	ballMesh = make_shared<MeshNode>("ball");
-	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
+	//ballMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
+	ballMesh->mRelativePosition.Set(0.0f, 0.0f, 0.0f);
 	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 2.0f, 2.0f,2.0f);
 	//ballMesh->AddChild(boxMesh);
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(boxMesh);
@@ -683,10 +684,12 @@ void Engine::Update()
 	}
 
 	
-	Vector3 dir(1.0f, 1.0f, 1.0f);
+	Vector3 dir(1.0f, 0.0f, 0.0f);
 	dir = dir.normalize();
-	ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()),
-		dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()), cosf(1.0f * mTimer.GetDeltaTime()));
+	ballMesh->mRelativePosition.Add(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
+		dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
+	ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
+		dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
 	
 	mScenes[mCurrentScene]->mSceneRoot->Update();
 	
@@ -763,7 +766,7 @@ void Engine::Draw()
 	/*
 	* scene의 object들을 draw한다.
 	*/
-	mScenes[mCurrentScene]->Draw();
+	//mScenes[mCurrentScene]->Draw();
 
 	mScenes[mCurrentScene]->mSceneRoot->Draw();
 

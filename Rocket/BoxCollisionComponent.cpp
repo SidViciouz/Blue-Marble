@@ -22,6 +22,9 @@ BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedT
 	mVertices.push_back(Vertex{ {0.5f,0.5f,-0.5f},{},{} });
 	mVertices.push_back(Vertex{ {0.5f,0.5f,0.5f},{},{} });
 
+	mVertices.push_back(Vertex{ {0.0f,0.0f,0.0f},{},{} });
+	mVertices.push_back(Vertex{ {0.0f,0.0f,0.0f},{},{} });
+
 	mIndices.push_back(0);
 	mIndices.push_back(1);
 	mIndices.push_back(1);
@@ -48,6 +51,9 @@ BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedT
 	mIndices.push_back(4);
 	mIndices.push_back(4);
 	mIndices.push_back(6);
+
+	mIndices.push_back(8);
+	mIndices.push_back(9);
 
 	mVertexBufferIdx = Engine::mResourceManager->CreateDefaultBuffer(sizeof(Vertex) * mVertices.size());
 	mIndexBufferIdx = Engine::mResourceManager->CreateDefaultBuffer(sizeof(uint16_t) * mIndices.size());
@@ -174,7 +180,6 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 	{
 		mIsColliding = 1;
 		CollisionInfo collision = EPA(S,selfPoints,otherPoints);
-		printf("%f , [%f %f %f]\n", collision.depth, collision.normal.v.x, collision.normal.v.y, collision.normal.v.z);
 	}
 	else
 		mIsColliding = 0;
@@ -342,8 +347,11 @@ bool BoxCollisionComponent::DoSimplex(vector<Vector3>& S, Vector3& D) const
 		Vector3 AD = S[0] - S[3];
 		Vector3 AO = O - S[3];
 
-
-		if ((AC ^ AB) * AO > 0.0f)
+		/*
+		* temp가 0이어도 temp >= 0.0f이 거짓으로 판정됨.
+		*/
+		float temp;
+		if ((temp = (AC ^ AB) * AO > 0.0f))// || fabs(temp) < 0.00001f)
 		{
 			if ((AC ^ (AC ^ AB)) * AO > 0.0f)
 			{
@@ -394,7 +402,7 @@ bool BoxCollisionComponent::DoSimplex(vector<Vector3>& S, Vector3& D) const
 			}
 		}
 
-		else if ((AD ^ AC) * AO > 0.0f)
+		else if ((temp = (AD ^ AC) * AO > 0.0f))// || (fabs(temp) < 0.00001f))
 		{
 			if ((AD ^ (AD ^ AC)) * AO > 0.0f)
 			{
@@ -445,7 +453,7 @@ bool BoxCollisionComponent::DoSimplex(vector<Vector3>& S, Vector3& D) const
 			}
 		}
 
-		else if ((AB ^ AD) * AO > 0.0f)
+		else if ((temp = (AB ^ AD) * AO > 0.0f))// || (fabs(temp) < 0.00001f))
 		{
 			if ((AB ^ (AB ^ AD)) * AO > 0.0f)
 			{
@@ -511,7 +519,7 @@ bool BoxCollisionComponent::DoSimplex(vector<Vector3>& S, Vector3& D) const
 	return isIntersected;
 }
 
-CollisionInfo BoxCollisionComponent::EPA(vector<Vector3>& S, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints) const
+CollisionInfo BoxCollisionComponent::EPA(vector<Vector3>& S, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints)
 {
 	assert(S.size() > 0 && S.size() < 5);
 
@@ -521,15 +529,18 @@ CollisionInfo BoxCollisionComponent::EPA(vector<Vector3>& S, const vector<Vector
 
 	if (S.size() == 1)
 	{
-
+		C = S[0];
 	}
 	else if (S.size() == 2)
 	{
-
+		C = (S[0] + S[1]) * 0.5f;
 	}
 	else if (S.size() == 3)
 	{
-
+		/*
+		* 가장 가까운 모서리를 선택하려면 수정해야한다.
+		*/
+		C = (S[0] + S[1] + S[2]) / 3.0f;
 	}
 	else if (S.size() == 4)
 	{
@@ -556,15 +567,27 @@ CollisionInfo BoxCollisionComponent::EPA(vector<Vector3>& S, const vector<Vector
 		while (loopContinue)
 		{
 			C = GetClosestPoints(S, F);
-			Vector3 D = C - O;
+			Vector3 D = C;// -O;
+			/*
+			if (D.length() < 0.00001f)
+			{
+				C = Vector3(0.0f, 0.0f, 0.0f);
+				break;
+			}
+			*/
 			Vector3 N = Support(D, selfPoints, otherPoints);
+
 			if (!Expand(S, F, N))
 			{
 				loopContinue = false;
 			}
 		}
+
 	}
 	
+	mVertices[9].position = { C.v.x, C.v.y, C.v.z };
+	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
+	printf("%f , [%f %f %f]\n", C.length(), C.v.x, C.v.y, C.v.z);
 
 	return CollisionInfo{ true,C.length(), C };
 }
@@ -577,19 +600,32 @@ Vector3 BoxCollisionComponent::GetClosestPoints(const vector<Vector3>& S, const 
 	int numOfFace = F.size() / 3;
 	Vector3 O;
 	float minDistance = D3D12_FLOAT32_MAX;
-	int minFace = 0;
+	int minFace = -1;
+	bool flip = false;
 
 	for (int i = 0; i < numOfFace; ++i)
 	{
+		bool curFlip = false;
+
 		int offset = i * 3;
 		Vector3 normal = ((S[F[offset + 1]] - S[F[offset]]) ^ (S[F[offset + 2]] - S[F[offset]])).normalize();
 		Vector3 toOrigin = O - S[F[offset]];
 		float distance = normal * toOrigin;
 
+		
+		if (distance < 0.0f)
+		{
+			normal = ((S[F[offset + 2]] - S[F[offset]]) ^ (S[F[offset + 1]] - S[F[offset]])).normalize();
+			distance = normal * toOrigin;
+			curFlip = true;
+		}
+		
+
 		if (distance < minDistance)
 		{
 			minDistance = distance;
 			minFace = i;
+			flip = curFlip;
 		}
 	}
 
@@ -599,9 +635,22 @@ Vector3 BoxCollisionComponent::GetClosestPoints(const vector<Vector3>& S, const 
 
 	int offset = minFace * 3;
 	minDistance *= -1.0f;
-	Vector3 closestPoint = ((S[F[offset + 1]] - S[F[offset]]) ^ (S[F[offset + 2]] - S[F[offset]])).normalize() * minDistance;
+	if (!flip)
+	{
+		Vector3 closestPoint = ((S[F[offset + 1]] - S[F[offset]]) ^ (S[F[offset + 2]] - S[F[offset]])).normalize() * minDistance;
+		if (closestPoint.length() == 0.0f)
+		printf("\nface : %d, distance : %d\n", minFace,-1.0f*minDistance);
+		return closestPoint;
+	}
+	
+	else
+	{
+		Vector3 closestPoint = ((S[F[offset + 2]] - S[F[offset]]) ^ (S[F[offset + 1]] - S[F[offset]])).normalize() * minDistance;
+		if (closestPoint.length() == 0.0f)
+		printf("\nface : %d, distance : %d\n", minFace, -1.0f * minDistance);
+		return closestPoint;
+	}
 
-	return closestPoint;
 }
 
 bool BoxCollisionComponent::Expand(vector<Vector3>& S, vector<int>& F, const Vector3& N) const
@@ -670,9 +719,28 @@ bool BoxCollisionComponent::Expand(vector<Vector3>& S, vector<int>& F, const Vec
 	return true;
 }
 
+Vector3 BoxCollisionComponent::BaryCentric(const Vector3& p, const Vector3& a, const Vector3& b, const Vector3& c) const
+{
+	Vector3 v0 = b - a;
+	Vector3 v1 = c - a;
+	Vector3 v2 = p - a;
+
+	float d00 = v0 * v0;
+	float d01 = v0 * v1;
+	float d11 = v1 * v1;
+	float d20 = v2 * v0;
+	float d21 = v2 * v1;
+
+	float denominator = d00 * d11 + d01 * d01;
+	float v = (d11 * d20 - d01 * d21) / denominator;
+	float w = (d00 * d21 - d01 * d20) / denominator;
+
+	return Vector3(1.0f - v - w, v, w);
+}
+
 D3D12_VERTEX_BUFFER_VIEW* BoxCollisionComponent::GetVertexBufferView()
 {
-	mVertexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mVertexBufferIdx)->GetGPUVirtualAddress();
+	mVertexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mVertexUploadBufferIdx)->GetGPUVirtualAddress();
 	mVertexBufferView.StrideInBytes = sizeof(Vertex);
 	mVertexBufferView.SizeInBytes = sizeof(Vertex) * mVertices.size();
 
@@ -681,7 +749,7 @@ D3D12_VERTEX_BUFFER_VIEW* BoxCollisionComponent::GetVertexBufferView()
 
 D3D12_INDEX_BUFFER_VIEW* BoxCollisionComponent::GetIndexBufferView()
 {
-	mIndexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mIndexBufferIdx)->GetGPUVirtualAddress();
+	mIndexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mIndexUploadBufferIdx)->GetGPUVirtualAddress();
 	mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
 	mIndexBufferView.SizeInBytes = sizeof(uint16_t) * mIndices.size();
 

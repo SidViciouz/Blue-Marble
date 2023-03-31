@@ -54,6 +54,30 @@ VertexOut VS(VertexIn vin, uint id : SV_VertexID)
 
 	VertexOut vout;
 
+	if (isColliding == 1 &&( id == 9 || id == 8))
+	{
+		float4x4 transMatrix = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		world[0][3], world[1][3], world[2][3], 1.0f
+		};
+
+		float4 posW = mul(float4(vin.pos, 1.0f), transMatrix);
+
+		float4 posH = mul(mul(posW, transpose(view)), transpose(projection));
+
+		vout.pos = posH;
+
+		return vout;
+	}
+	else if (isColliding == 0 && (id == 9 || id == 8))
+	{
+		vout.pos = float4(0.0f,0.0f,0.0f,0.0f);
+
+		return vout;
+	}
+
 	float4x4 scaledMatrix = {
 		width, 0.0f, 0.0f, 0.0f,
 		0.0f, height, 0.0f, 0.0f,

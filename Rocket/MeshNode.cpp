@@ -20,7 +20,6 @@ void MeshNode::Draw()
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mPermutationDescriptorIdx, DescType::SRV));
 	
-	//drawMesh(meshIndex);
 	Engine::mMeshManager->Draw(mMeshName);
 
 	if (mCollisionComponent != nullptr)
