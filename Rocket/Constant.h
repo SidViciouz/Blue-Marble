@@ -141,3 +141,9 @@ struct CollisionInfo
 	Vector3 normal;
 	Vector3 point;
 };
+
+struct Closest
+{
+	Vector3 point;
+	int		faceIdx;
+};

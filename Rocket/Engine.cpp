@@ -684,7 +684,7 @@ void Engine::Update()
 	}
 
 	
-	Vector3 dir(1.0f, 0.0f, 0.0f);
+	Vector3 dir(1.0f, 1.0f, 1.0f);
 	dir = dir.normalize();
 	ballMesh->mRelativePosition.Add(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
 		dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
@@ -695,7 +695,6 @@ void Engine::Update()
 	
 	ballMesh->IsColliding(boxMesh.get());
 	boxMesh->IsColliding(ballMesh.get());
-	
 }
 
 void Engine::Draw()
