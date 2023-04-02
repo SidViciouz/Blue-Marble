@@ -28,7 +28,9 @@ protected:
 	* F는 그 point들로부터 face를 정의하는 집합이다. 연속된 3개의 인덱스가 하나의 face를 정의한다.
 	* face는 counter clockwise로 정의되어었다.
 	*/
-	Closest										GetClosestPoints(const vector<pair<Vector3,Vector3>>& S, const vector<int>& F) const;
+	Closest										GetClosest(const vector<pair<Vector3,Vector3>>& S, const vector<int>& F) const;
+	Vector3										GetClosestPoint(const vector<pair<Vector3, Vector3>>& S, const vector<int>& F) const;
+
 	/*
 	* 새로운 point N을 S에 추가하고, 이를 이용해서 F를 새롭게 정의한다.
 	*/

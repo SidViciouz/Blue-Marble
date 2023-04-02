@@ -150,7 +150,6 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 
 
 	// gjk algorithm
-
 	bool loopContinue = true;
 	vector<pair<Vector3,Vector3>> S;
 	Vector3 O;
@@ -159,8 +158,8 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 	Vector3 D = O - C;
 	while (loopContinue)
 	{
-		Vector3 selfN = Support(D, selfPoints);
-		Vector3 N = selfN - Support(D*-1.0f, otherPoints);
+		Vector3 selfN = Support(D*-1.0f, selfPoints);
+		Vector3 N = Support(D, otherPoints) - selfN;
 		if (N * D < 0.0f)
 		{
 			loopContinue = false;
@@ -181,6 +180,7 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 	{
 		mIsColliding = 1;
 		CollisionInfo collision = EPA(S,selfPoints,otherPoints);
+		//printf("%f %f %f\n", collision.point.v.x, collision.point.v.y, collision.point.v.z);
 	}
 	else
 		mIsColliding = 0;
@@ -500,8 +500,8 @@ bool BoxCollisionComponent::DoSimplex(vector<pair<Vector3,Vector3>>& S, Vector3&
 		}
 	}
 
-	if (D.length() < 0.00001f)
-		isIntersected = true;
+	//if (D.length() < 0.00001f)
+	//	isIntersected = true;
 
 	return isIntersected;
 }
@@ -511,92 +511,99 @@ CollisionInfo BoxCollisionComponent::EPA(vector<pair<Vector3,Vector3>>& S, const
 	assert(S.size() > 0 && S.size() < 5);
 
 	bool loopContinue = true;
-	Vector3 O;
 	Closest C;
+	Vector3 MTV;
+	CollisionInfo retVal;
 
 	if (S.size() == 1)
 	{
-		C.point = S[0].first;
+		MTV = S[0].first;
+		retVal.point = S[0].second;
 	}
 	else if (S.size() == 2)
 	{
-		C.point = (S[0].first + S[1].first) * 0.5f;
+		MTV = (S[0].first + S[1].first) * 0.5f;
+		retVal.point = (S[0].second + S[1].second) * 0.5f;
 	}
 	else if (S.size() == 3)
 	{
 		/*
 		* 가장 가까운 모서리를 선택하려면 수정해야한다.
 		*/
-		C.point = (S[0].first + S[1].first + S[2].first) / 3.0f;
+		MTV = (S[0].first + S[1].first + S[2].first) / 3.0f;
+		retVal.point = (S[0].second + S[1].second + S[2].second) / 3.0f;
 	}
 	else if (S.size() == 4)
 	{
-		/*		 
-		* loop:
-		*	 D = GetClosestPoints(polytope,selfPoints,otherPoints) - O;
-		*	 N = Support(D,selfPoints,otherPoints);
-		*	 if( false == Expand(polytope,N)) 
-		*	 {
-		*		loop out
-		*	 }
-		*/
-
 		/*
 		* S = [D,C,B,A]
 		*/
 		/*
 		* face를 정의한다. (counter clockwise)
 		*/
+
+		
 		vector<int> F = { 0,1,3,
 						  1,2,3,
 						  2,0,3,
 						  1,0,2 };
+		
 		while (loopContinue)
 		{
-			C = GetClosestPoints(S, F);
+			
+			C = GetClosest(S, F);
 
-			Vector3 D = C.point;// -O;
+			int offset = C.faceIdx * 3;
+			Vector3 faceNormal = (S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first);
+			if (faceNormal * (S[F[offset]].first * -1.0f) > 0.0f)
+				faceNormal = faceNormal * -1.0f;
+		
+			Vector3 selfN = Support(faceNormal, selfPoints);
+			Vector3 N = Support(faceNormal*-1.0f,otherPoints) - selfN;
 
-			Vector3 selfN = Support(D, selfPoints);
-			Vector3 N = selfN - Support(D*-1.0f,otherPoints);
-
-			if (!Expand(S, F, N, selfN))
+			if (N.length() <= C.distance)
 			{
 				loopContinue = false;
 			}
+			/*
+			* Expand에 문제가 있는 것으로 보인다. 
+			* 위의 if문에서 loop를 빠져나가지 않는다는 것은 N이 가장 가까운 평면보다 먼 곳에 있다는 뜻이다.
+			* 그러므로 expand는 반드시 true를 반환해야한다.
+			* 그리고 위의 if문에서 언젠가 loop를 빠져나가야하는데, 그러지 못하고 있다.
+			*/
+			else if (!Expand(S, F, N, selfN))
+			{
+				loopContinue = false;
+			}
+			
 		}
-		/*
-		if (C.faceIdx == -1)
-		{
-			C.point.v = { 0.0f,0.0f,0.0f };
-		}
-		*/
-		//Vector3 baryCentricCoord = BaryCentric(C.point, S[F[C.faceIdx * 3]].first, S[F[C.faceIdx * 3 + 1]].first, S[F[C.faceIdx * 3 + 2]].first);
-		//printf("%f %f %f\n", baryCentricCoord.v.x, baryCentricCoord.v.y, baryCentricCoord.v.z);
-		C = GetClosestPoints(S, F);
-		Vector3 baryCentricCoord = BaryCentric(C.point, S[F[C.faceIdx * 3]].first, S[F[C.faceIdx * 3 + 1]].first, S[F[C.faceIdx * 3 + 2]].first);
-		Vector3 newP = S[F[C.faceIdx * 3]].second * baryCentricCoord.v.x + S[F[C.faceIdx * 3 + 1]].second * baryCentricCoord.v.y
+
+		C = GetClosest(S, F);
+		MTV = GetClosestPoint(S,F);
+
+		Vector3 baryCentricCoord = BaryCentric(MTV, S[F[C.faceIdx * 3]].first, S[F[C.faceIdx * 3 + 1]].first, S[F[C.faceIdx * 3 + 2]].first);
+
+		retVal.point = S[F[C.faceIdx * 3]].second * baryCentricCoord.v.x + S[F[C.faceIdx * 3 + 1]].second * baryCentricCoord.v.y
 			+ S[F[C.faceIdx * 3 + 2]].second * baryCentricCoord.v.z;
-		printf("%f %f %f\n", newP.v.x, newP.v.y, newP.v.z);
-
-		mVertices[9].position = { newP.v.x, newP.v.y, newP.v.z };
-		Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
+			
+		//MTV = (S[0].first + S[1].first + S[2].first + S[3].first) / 4.0f;
+		//retVal.point = (S[0].second + S[1].second + S[2].second + S[3].second) / 4.0f;
 	}
+	mVertices[9].position = { retVal.point.v.x, retVal.point.v.y, retVal.point.v.z };
+	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
 
-	//mVertices[9].position = { C.point.v.x, C.point.v.y, C.point.v.z };
-	//Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
-	//printf("%f , [%f %f %f]\n", C.point.length(), C.point.v.x, C.point.v.y, C.point.v.z);
-
-	return CollisionInfo{ true,C.point.length(), C.point };
+	retVal.isIntersected = true;
+	retVal.depth = MTV.length();
+	retVal.normal = MTV;
+	return retVal;
 }
 
-Closest BoxCollisionComponent::GetClosestPoints(const vector<pair<Vector3,Vector3>>& S, const vector<int>& F) const
+Closest BoxCollisionComponent::GetClosest(const vector<pair<Vector3,Vector3>>& S, const vector<int>& F) const
 {
 	/*
 	* 우선 closest face를 계산한다.
 	*/
 	int numOfFace = F.size() / 3;
-	Vector3 O;
 	float minDistance = D3D12_FLOAT32_MAX;
 	int minFace = -1;
 	bool flip = false;
@@ -607,7 +614,7 @@ Closest BoxCollisionComponent::GetClosestPoints(const vector<pair<Vector3,Vector
 
 		int offset = i * 3;
 		Vector3 normal = ((S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first)).normalize();
-		Vector3 toOrigin = O - S[F[offset]].first;
+		Vector3 toOrigin = S[F[offset]].first*-1.0f;
 		float distance = normal * toOrigin;
 
 		
@@ -627,41 +634,58 @@ Closest BoxCollisionComponent::GetClosestPoints(const vector<pair<Vector3,Vector
 		}
 	}
 
-	/*
-	* origin을 closest face에 투영한다.
-	*/
+	Closest ret;
+	ret.faceIdx = minFace;
+	ret.distance = minDistance;
+
+	return ret;
+}
+
+Vector3 BoxCollisionComponent::GetClosestPoint(const vector<pair<Vector3, Vector3>>& S, const vector<int>& F) const
+{
+	int numOfFace = F.size() / 3;
+	float minDistance = D3D12_FLOAT32_MAX;
+	int minFace = -1;
+	bool flip = false;
+
+	for (int i = 0; i < numOfFace; ++i)
+	{
+		bool curFlip = false;
+
+		int offset = i * 3;
+		Vector3 normal = ((S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first)).normalize();
+		Vector3 toOrigin = S[F[offset]].first*-1.0f;
+		float distance = normal * toOrigin;
+
+
+		if (distance < 0.0f)
+		{
+			normal = ((S[F[offset + 2]].first - S[F[offset]].first) ^ (S[F[offset + 1]].first - S[F[offset]].first)).normalize();
+			distance = normal * toOrigin;
+			curFlip = true;
+		}
+
+
+		if (distance < minDistance)
+		{
+			minDistance = distance;
+			minFace = i;
+			flip = curFlip;
+		}
+	}
 
 	int offset = minFace * 3;
 	minDistance *= -1.0f;
 
-	Closest ret;
-	ret.faceIdx = minFace;
-	
-	/*
-	if (minDistance < 0.000001f)
-	{
-		minDistance = -1.0f;
-		ret.faceIdx = -1;
-	}
-	*/
-	
-
 	if (!flip)
 	{
-		ret.point = ((S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first)).normalize() * minDistance;
-		//if (ret.point.length() == 0.0f)
-		//printf("\nface : %d, distance : %d\n", minFace,-1.0f*minDistance);
-		return ret;
-	}
-	
-	else
-	{
-		ret.point = ((S[F[offset + 2]].first - S[F[offset]].first) ^ (S[F[offset + 1]].first - S[F[offset]].first)).normalize() * minDistance;
-		//if (ret.point.length() == 0.0f)
-		//printf("\nface : %d, distance : %d\n", minFace, -1.0f * minDistance);
-		return ret;
+		return ((S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first)).normalize() * minDistance;
 	}
 
+	else
+	{
+		return ((S[F[offset + 2]].first - S[F[offset]].first) ^ (S[F[offset + 1]].first - S[F[offset]].first)).normalize() * minDistance;
+	}
 }
 
 bool BoxCollisionComponent::Expand(vector<pair<Vector3,Vector3>>& S, vector<int>& F, const Vector3& N, const Vector3& selfN) const
@@ -683,12 +707,35 @@ bool BoxCollisionComponent::Expand(vector<pair<Vector3,Vector3>>& S, vector<int>
 
 		float dir = ((B - A) ^ (C - A)) * (N - A);
 
-		if (dir == 0.0f)
+		if (fabs(dir) <= 0.000001f)
 		{
 			return false;
 		}
+		
+		else if (dir < 0.0f)
+		{
+			/*
+			pair<int, int> edges[3] =
+			{
+				{F[offset],F[offset + 2]},
+				{F[offset + 2],F[offset + 1]},
+				{F[offset + 1],F[offset]}
+			};
+			for (int j = 0; j < 3; ++j)
+			{
+				if (Edges.count(edges[j]) == 0)
+					Edges.insert(edges[j]);
+				else
+					Edges.erase(edges[j]);
+			}
+
+			F.erase(F.cbegin() + offset, F.cbegin() + offset + 3);
+			*/
+			//continue;
+		}
 		else if (dir > 0.0f)
 		{
+			
 			pair<int, int> edges[3] =
 			{
 				{F[offset],F[offset + 1]},
@@ -704,6 +751,7 @@ bool BoxCollisionComponent::Expand(vector<pair<Vector3,Vector3>>& S, vector<int>
 			}
 
 			F.erase(F.cbegin() + offset, F.cbegin() + offset + 3);
+			
 		}
 	}
 	
@@ -718,6 +766,7 @@ bool BoxCollisionComponent::Expand(vector<pair<Vector3,Vector3>>& S, vector<int>
 	* edge들과 N을 이용해서 convex hull을 생성한다.
 	*/
 	
+	//S에 중복되는 점은 추가하지 않아야한다.
 	S.push_back({ N ,selfN });
 	int newVertexIdx = S.size() - 1;
 	for (auto& Edge : Edges)

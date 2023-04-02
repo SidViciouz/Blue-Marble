@@ -144,6 +144,6 @@ struct CollisionInfo
 
 struct Closest
 {
-	Vector3 point;
 	int		faceIdx;
+	float	distance;
 };
