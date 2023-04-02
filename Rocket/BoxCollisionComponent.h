@@ -20,22 +20,12 @@ public:
 
 protected:
 
-	Vector3										Support(const Vector3& D, const vector<Vector3>& selfPoints) const;
-	bool										DoSimplex(vector<pair<Vector3,Vector3>>& S, Vector3& D) const;
-	CollisionInfo								EPA(vector<pair<Vector3,Vector3>>& S,const vector<Vector3>& selfPoints,const vector<Vector3>& otherPoints);
-	/*
-	* S는 simplex의 point들의 집합이고,
-	* F는 그 point들로부터 face를 정의하는 집합이다. 연속된 3개의 인덱스가 하나의 face를 정의한다.
-	* face는 counter clockwise로 정의되어었다.
-	*/
-	Closest										GetClosest(const vector<pair<Vector3,Vector3>>& S, const vector<int>& F) const;
-	Vector3										GetClosestPoint(const vector<pair<Vector3, Vector3>>& S, const vector<int>& F) const;
-
-	/*
-	* 새로운 point N을 S에 추가하고, 이를 이용해서 F를 새롭게 정의한다.
-	*/
-	bool										Expand(vector<pair<Vector3,Vector3>>& S, vector<int>& F, const Vector3& N, const Vector3& selfN) const;
-
+	bool										GJK(const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints,CollisionInfo& collisionInfo);
+	void										UpdateSimplex3(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir);
+	bool										UpdateSimplex4(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir);
+	void										EPA(Points& a, Points& b, Points& c, Points& d, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo);
+	void										CalculateSearchPoint(Points& point, Vector3& searchDir, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints);
+	Vector3										Support(const Vector3& dir, const vector<Vector3>& Points);
 	Vector3										BaryCentric(const Vector3& p, const Vector3& a, const Vector3& b, const Vector3& c) const;
 
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();

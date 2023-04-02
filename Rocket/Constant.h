@@ -73,6 +73,14 @@ struct Vector3
 		
 		return result;
 	}
+	Vector3										operator-() const
+	{
+		Vector3 result;
+		
+		XMStoreFloat3(&result.v, XMLoadFloat3(&v)*-1.0f);
+
+		return result;
+	}
 	Vector3										operator*(const float& c) const
 	{
 		Vector3 result;
@@ -131,19 +139,33 @@ struct Vector3
 
 		return result;
 	}
+	bool										Zero()
+	{
+		if (v.x == 0 && v.y == 0 && v.z == 0)
+			return true;
+		else
+			return false;
+	}
+	bool										operator==(const Vector3& other)
+	{
+		if (v.x == other.v.x && v.y == other.v.y && v.z == other.v.z)
+			return true;
+		else
+			return false;
+	}
 };
 
+struct Points
+{
+	Vector3 p;
+	Vector3 a;
+	Vector3 b;
+};
 
 struct CollisionInfo
 {
-	bool isIntersected = false;
-	float depth = 0.0f;
+	Vector3 localA;
+	Vector3 localB;
 	Vector3 normal;
-	Vector3 point;
-};
-
-struct Closest
-{
-	int		faceIdx;
-	float	distance;
+	float penetration;
 };

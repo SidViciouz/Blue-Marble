@@ -5,6 +5,12 @@
 #include <unordered_set>
 #include <set>
 
+#define GJK_MAX_NUM_ITERATIONS 64
+#define EPA_TOLERANCE 0.0001
+#define EPA_MAX_NUM_FACES 64
+#define EPA_MAX_NUM_LOOSE_EDGES 32
+#define EPA_MAX_NUM_ITERATIONS 64
+
 BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo, int width, int height, int depth)
 	: CollisionComponent(NodeAttachedTo), mWidth{ width }, mHeight{ height }, mDepth{ depth }
 {
@@ -85,9 +91,6 @@ BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedT
 
 bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 {
-	bool retval = false;
-
-
 	//두 collider에 대한 shape를 얻는다.
 	int selfW = mWidth * 0.5f;
 	int selfH = mHeight * 0.5f;
@@ -147,45 +150,317 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 	{
 		XMStoreFloat3(&point.v, XMVector3Transform(XMLoadFloat3(&point.v), otherQmpm));
 	}
+	
+	CollisionInfo collisionInfo;
+	bool retval = GJK(selfPoints, otherPoints, collisionInfo);
 
-
-	// gjk algorithm
-	bool loopContinue = true;
-	vector<pair<Vector3,Vector3>> S;
-	Vector3 O;
-	Vector3 C = selfPoints[0] - otherPoints[0];
-	S.push_back({ C,selfPoints[0] });
-	Vector3 D = O - C;
-	while (loopContinue)
-	{
-		Vector3 selfN = Support(D*-1.0f, selfPoints);
-		Vector3 N = Support(D, otherPoints) - selfN;
-		if (N * D < 0.0f)
-		{
-			loopContinue = false;
-		}
-		else
-		{
-			S.push_back({ N,selfN });
-			if (DoSimplex(S, D))
-			{
-				loopContinue = false;
-				retval = true;
-			}
-		}
-	}
-
+	mVertices[9].position = collisionInfo.normal.v;
+	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
 
 	if (retval)
-	{
 		mIsColliding = 1;
-		CollisionInfo collision = EPA(S,selfPoints,otherPoints);
-		//printf("%f %f %f\n", collision.point.v.x, collision.point.v.y, collision.point.v.z);
-	}
 	else
 		mIsColliding = 0;
 
 	return retval;
+}
+
+bool BoxCollisionComponent::GJK(const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo)
+{
+	Vector3* mtv;
+	Points a, b, c, d;
+	Vector3 searchDir = selfPoints[0] - otherPoints[0];
+	
+	CalculateSearchPoint(c, searchDir, selfPoints, otherPoints);
+	searchDir = -c.p;
+
+	CalculateSearchPoint(b, searchDir, selfPoints, otherPoints);
+
+	if (b.p * searchDir < 0)
+		return false;
+
+	searchDir = ((c.p - b.p) ^ (-b.p)) ^ (c.p - b.p);
+	if (searchDir.Zero())
+	{
+		searchDir = (c.p - b.p) ^ Vector3(1, 0, 0);
+		if (searchDir.Zero())
+		{
+			searchDir = (c.p - b.p) ^ Vector3(0, 0, -1);
+		}
+	}
+
+	int simpDim = 2;
+
+	for (int iterations = 0; iterations < GJK_MAX_NUM_ITERATIONS; iterations++)
+	{
+		CalculateSearchPoint(a, searchDir, selfPoints, otherPoints);
+
+		if (a.p * searchDir < 0)
+			return false;
+		
+		simpDim++;
+
+		if (simpDim == 3)
+			UpdateSimplex3(a, b, c, d, simpDim, searchDir);
+		else if (UpdateSimplex4(a, b, c, d, simpDim, searchDir))
+		{
+			EPA(a, b, c, d, selfPoints, otherPoints, collisionInfo);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void BoxCollisionComponent::UpdateSimplex3(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir)
+{
+	Vector3 n = (b.p - a.p) ^ (c.p - a.p);
+	Vector3 AO = -a.p;
+
+	simpDim = 2;
+	if (((b.p - a.p) ^ n) * AO > 0)
+	{
+		c = a;
+		searchDir = ((b.p - a.p) ^ AO) ^ (b.p - a.p);
+		return;
+	}
+
+	if ((n ^ (c.p - a.p)) * AO > 0)
+	{
+		b = a;
+		searchDir = ((c.p - a.p) ^ AO) ^ (c.p - a.p);
+		return;
+	}
+
+	simpDim = 3;
+	if (n * AO > 0)
+	{
+		d = c;
+		c = b;
+		b = a;
+		searchDir = n;
+		return;
+	}
+	d = b;
+	b = a;
+	searchDir = -n;
+	return;
+}
+
+bool BoxCollisionComponent::UpdateSimplex4(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir)
+{
+	Vector3 ABC = (b.p - a.p)^( c.p - a.p);
+	Vector3 ACD = (c.p - a.p)^(d.p - a.p);
+	Vector3 ADB = (d.p - a.p)^(b.p - a.p);
+
+	Vector3 AO = -a.p;
+	simpDim = 3;
+
+	
+	if (ABC*AO > 0) { 
+		d = c;
+		c = b;
+		b = a;
+		searchDir = ABC;
+		return false;
+	}
+
+	if (ACD*AO > 0) { 
+		b = a;
+		searchDir = ACD;
+		return false;
+	}
+	if (ADB*AO > 0) { 
+		c = d;
+		d = b;
+		b = a;
+		searchDir = ADB;
+		return false;
+	}
+
+	return true;
+}
+
+void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo)
+{
+	Points faces[EPA_MAX_NUM_FACES][4];
+
+	Vector3 VertexA[3];
+	Vector3 VertexB[3];
+
+	faces[0][0] = a;
+	faces[0][1] = b;
+	faces[0][2] = c;
+	faces[0][3].p = ((b.p - a.p) ^ (c.p - a.p)).normalize(); //ABC
+	faces[1][0] = a;
+	faces[1][1] = c;
+	faces[1][2] = d;
+	faces[1][3].p = ((c.p - a.p)^(d.p - a.p)).normalize(); //ACD
+	faces[2][0] = a;
+	faces[2][1] = d;
+	faces[2][2] = b;
+	faces[2][3].p = ((d.p - a.p)^( b.p - a.p)).normalize(); //ADB
+	faces[3][0] = b;
+	faces[3][1] = d;
+	faces[3][2] = c;
+	faces[3][3].p = ((d.p - b.p)^( c.p - b.p)).normalize(); //BDC
+
+	int num_faces = 4;
+	int closest_face;
+
+	for (int iterations = 0; iterations < EPA_MAX_NUM_ITERATIONS; iterations++) {
+		//Find face that's closest to origin
+		float min_dist = faces[0][0].p*faces[0][3].p;
+		closest_face = 0;
+		for (int i = 1; i < num_faces; i++) {
+			float dist = faces[i][0].p*faces[i][3].p;
+			if (dist < min_dist) {
+				min_dist = dist;
+				closest_face = i;
+			}
+		}
+
+		//search normal to face that's closest to origin
+		Vector3 search_dir = faces[closest_face][3].p;
+
+		Points p;
+		CalculateSearchPoint(p, search_dir, selfPoints, otherPoints);
+
+		if (p.p*search_dir - min_dist < EPA_TOLERANCE) {
+
+			collisionInfo.normal = faces[closest_face][3].p * (p.p * search_dir);
+			/*
+			Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p); //plane of closest triangle face
+			Vector3 projectionPoint = closestPlane.ProjectPointOntoPlane(Vector3(0, 0, 0)); //projecting the origin onto the triangle(both are in Minkowski space)
+			float u, v, w;
+			Barycentric(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p,
+				projectionPoint, u, v, w); //finding the barycentric coordinate of this projection point to the triangle
+
+			Vector3 localA = faces[closest_face][0].a * u + faces[closest_face][1].a * v + faces[closest_face][2].a * w;
+			Vector3 localB = faces[closest_face][0].b * u + faces[closest_face][1].b * v + faces[closest_face][2].b * w;
+			float penetration = (localA - localB).length();
+			Vector3 normal = (localA - localB).normalize();
+
+			localA -= coll1->GetTransform().GetPosition();
+			localB -= coll2->GetTransform().GetPosition();
+
+			collisionInfo.AddContactPoint(localA, localB, normal, penetration);
+			*/
+			return;
+		}
+
+		Points loose_edges[EPA_MAX_NUM_LOOSE_EDGES][2]; //keep track of edges we need to fix after removing faces
+		int num_loose_edges = 0;
+
+		//Find all triangles that are facing p
+		for (int i = 0; i < num_faces; i++)
+		{
+			if (faces[i][3].p* (p.p - faces[i][0].p) > 0) //triangle i faces p, remove it
+			{
+				//Add removed triangle's edges to loose edge list.
+				//If it's already there, remove it (both triangles it belonged to are gone)
+				for (int j = 0; j < 3; j++) //Three edges per face
+				{
+					Points current_edge[2] = { faces[i][j], faces[i][(j + 1) % 3] };
+					bool found_edge = false;
+					for (int k = 0; k < num_loose_edges; k++) //Check if current edge is already in list
+					{
+						if (loose_edges[k][1].p == current_edge[0].p && loose_edges[k][0].p == current_edge[1].p) {
+							loose_edges[k][0] = loose_edges[num_loose_edges - 1][0]; //Overwrite current edge
+							loose_edges[k][1] = loose_edges[num_loose_edges - 1][1]; //with last edge in list
+							num_loose_edges--;
+							found_edge = true;
+							k = num_loose_edges; //exit loop because edge can only be shared once
+						}
+					}//endfor loose_edges
+
+					if (!found_edge) { //add current edge to list
+						// assert(num_loose_edges<EPA_MAX_NUM_LOOSE_EDGES);
+						if (num_loose_edges >= EPA_MAX_NUM_LOOSE_EDGES) break;
+						loose_edges[num_loose_edges][0] = current_edge[0];
+						loose_edges[num_loose_edges][1] = current_edge[1];
+						num_loose_edges++;
+					}
+				}
+
+				//Remove triangle i from list
+				faces[i][0] = faces[num_faces - 1][0];
+				faces[i][1] = faces[num_faces - 1][1];
+				faces[i][2] = faces[num_faces - 1][2];
+				faces[i][3] = faces[num_faces - 1][3];
+				num_faces--;
+				i--;
+			}//endif p can see triangle i
+		}//endfor num_faces
+
+		//Reconstruct polytope with p added
+		for (int i = 0; i < num_loose_edges; i++)
+		{
+			// assert(num_faces<EPA_MAX_NUM_FACES);
+			if (num_faces >= EPA_MAX_NUM_FACES) break;
+			faces[num_faces][0] = loose_edges[i][0];
+			faces[num_faces][1] = loose_edges[i][1];
+			faces[num_faces][2] = p;
+			faces[num_faces][3].p = ((loose_edges[i][0].p - loose_edges[i][1].p)^( loose_edges[i][0].p - p.p)).normalize();
+
+			//Check for wrong normal to maintain CCW winding
+			float bias = 0.000001; //in case dot result is only slightly < 0 (because origin is on face)
+			if ((faces[num_faces][0].p* faces[num_faces][3].p) + bias < 0) {
+				Points temp = faces[num_faces][0];
+				faces[num_faces][0] = faces[num_faces][1];
+				faces[num_faces][1] = temp;
+				faces[num_faces][3].p = -faces[num_faces][3].p;
+			}
+			num_faces++;
+		}
+	} //End for iterations
+	printf("EPA did not converge\n");
+	//Return most recent closest point
+	collisionInfo.normal = faces[closest_face][3].p * (faces[closest_face][0].p*faces[closest_face][3].p);
+	/*
+	Vector3 search_dir = faces[closest_face][3].p;
+
+	Points p;
+	CalculateSearchPoint(p, search_dir, selfPoints, otherPoints);
+
+	Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p);
+	Vector3 projectionPoint = closestPlane.ProjectPointOntoPlane(Vector3(0, 0, 0));
+	float u, v, w;
+	Barycentric(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p,
+		projectionPoint, u, v, w);
+	Vector3 localA = faces[closest_face][0].a * u + faces[closest_face][1].a * v + faces[closest_face][2].a * w;
+	Vector3 localB = faces[closest_face][0].b * u + faces[closest_face][1].b * v + faces[closest_face][2].b * w;
+	float penetration = (localA - localB).length();
+	Vector3 normal = (localA - localB).normalize();
+
+	collisionInfo.AddContactPoint(localA, localB, normal, penetration);
+	*/
+	return;
+}
+
+void BoxCollisionComponent::CalculateSearchPoint(Points& point, Vector3& searchDir, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints)
+{
+	point.b = Support(searchDir, otherPoints);
+	point.a = Support(-searchDir, selfPoints);
+	point.p = point.b - point.a;
+}
+
+Vector3 BoxCollisionComponent::Support(const Vector3& dir, const vector<Vector3>& Points)
+{
+	float maxDot = Points[0] * dir;
+	int index = 0;
+
+	for (int i=0; i<Points.size(); ++i)
+	{
+		float dot = Points[i] * dir;
+		if (dot > maxDot)
+		{
+			maxDot = dot;
+			index = i;
+		}
+	}
+
+	return Points[index];
 }
 
 void BoxCollisionComponent::Draw()
@@ -197,587 +472,6 @@ void BoxCollisionComponent::Draw()
 	Engine::mCommandList->DrawIndexedInstanced(mIndices.size(), 1, 0, 0, 0);
 }
 
-Vector3	BoxCollisionComponent::Support(const Vector3& D, const vector<Vector3>& selfPoints) const
-{
-	Vector3 maxSelf = selfPoints[0];
-	float maxSelfDot = selfPoints[0] * D;
-	
-	for (auto& selfPoint : selfPoints)
-	{
-		float dot = selfPoint * D;
-		if (dot > maxSelfDot)
-		{
-			maxSelf = selfPoint;
-			maxSelfDot = dot;
-		}
-	}
-
-	return maxSelf;
-}
-
-bool BoxCollisionComponent::DoSimplex(vector<pair<Vector3,Vector3>>& S, Vector3& D) const
-{
-	/*
-	* S는 적어도 2개 이상의 point를 갖고있다.
-	* gjk algorithm에서 적어도 2개 이상일 때부터 호출하기 때문이다.
-	*/
-	assert(S.size() > 1 && S.size() < 5);
-
-	bool isIntersected = false;
-	Vector3 O;
-	
-	if (S.size() == 2)
-	{
-		/*
-		* S = [B,A]
-		*/
-		Vector3 AB = S[0].first - S[1].first;
-		Vector3 AO = O - S[1].first;
-
-		if (AB * AO > 0.0f)
-		{
-			/*
-			* S = [B,A]
-			*/
-			D = (AB ^ AO) ^ AB;
-		}
-		else
-		{
-			/*
-			* S = [A]
-			*/
-			S.erase(S.cbegin());
-			D = AO;
-		}
-	}
-
-	else if (S.size() == 3)
-	{
-		/*
-		* S = [C,B,A]
-		*/
-		Vector3 AB = S[1].first - S[2].first;
-		Vector3 AC = S[0].first - S[2].first;
-		Vector3 AO = O - S[2].first;
-
-		if (((AB ^ AC) ^ AC) * AO > 0.0f)
-		{
-			if (AC * AO)
-			{
-				/*
-				* S = [C,A]
-				*/
-				S.erase(S.cbegin() + 1);
-				D = (AC ^ AO) ^ AC;
-			}
-			else
-			{
-				/*
-				* S = [A]
-				*/
-				S.erase(S.cbegin(), S.cbegin() + 2);
-				D = AO;
-			}
-		}
-		else if((AB^(AB^AC))*AO > 0.0f)
-		{
-			if (AB * AO)
-			{
-				/*
-				* S = [B,A]
-				*/
-				S.erase(S.cbegin());
-				D = (AB ^ AO) ^ AB;
-			}
-			else
-			{
-				/*
-				* S = [A]
-				*/
-				S.erase(S.cbegin(), S.cbegin() + 2);
-				D = AO;
-			}
-		}
-		else
-		{
-			if ((AB ^ AC) * AO > 0.0f)
-			{
-				/*
-				* S = [C,B,A]
-				*/
-				D = (AB ^ AC);
-			}
-			else
-			{
-				/*
-				* S = [C,B,A]
-				*/
-				D = (AC ^ AB);
-			}
-		}
-	}
-
-	else if (S.size() == 4)
-	{
-		/*
-		* S = [D,C,B,A]
-		*/
-		
-		/*
-		* D->C->B 순으로 clockwise가 아닌 경우 clockwise로 변경한다.
-		*/
-		if (( (S[2].first - S[1].first ) ^ (S[0].first - S[1].first) ) * (S[1].first - S[3].first) > 0.0f)
-			swap(S[0], S[2]);
-		
-		Vector3 AB = S[2].first - S[3].first;
-		Vector3 AC = S[1].first - S[3].first;
-		Vector3 AD = S[0].first - S[3].first;
-		Vector3 AO = O - S[3].first;
-
-		/*
-		* temp가 0이어도 temp >= 0.0f이 거짓으로 판정됨.
-		*/
-		float temp;
-		if ((temp = (AC ^ AB) * AO > 0.0f))// || fabs(temp) < 0.00001f)
-		{
-			if ((AC ^ (AC ^ AB)) * AO > 0.0f)
-			{
-				if (AC * AO > 0.0f)
-				{
-					/*
-					* S = [C,A]
-					*/
-					S.erase(S.cbegin()+2);
-					S.erase(S.cbegin());
-					D = (AC ^ AO) ^ AC;
-				}
-				else
-				{
-					/*
-					* S = [A]
-					*/
-					S.erase(S.cbegin(), S.cbegin() + 3);
-					D = AO;
-				}
-			}
-			else if (((AC^AB)^AB)* AO > 0.0f)
-			{
-				if (AB * AO)
-				{
-					/*
-					* S = [B,A]
-					*/
-					S.erase(S.cbegin(), S.cbegin() + 2);
-					D = (AB ^ AO) ^ AB;
-				}
-				else
-				{
-					/*
-					* S = [A]
-					*/
-					S.erase(S.cbegin(), S.cbegin() + 3);
-					D = AO;
-				}
-			}
-			else
-			{
-				/*
-				* S = [C,B,A]
-				*/
-				S.erase(S.cbegin());
-				D = AC ^ AB;
-			}
-		}
-
-		else if ((temp = (AD ^ AC) * AO > 0.0f))// || (fabs(temp) < 0.00001f))
-		{
-			if ((AD ^ (AD ^ AC)) * AO > 0.0f)
-			{
-				if (AD * AO > 0.0f)
-				{
-					/*
-					* S = [D,A]
-					*/
-					S.erase(S.cbegin() + 1,S.cbegin() + 3);
-					D = (AD ^ AO) ^ AD;
-				}
-				else
-				{
-					/*
-					* S = [A]
-					*/
-					S.erase(S.cbegin(), S.cbegin() + 3);
-					D = AO;
-				}
-			}
-			else if (((AD ^ AC) ^ AC) * AO > 0.0f)
-			{
-				if (AC * AO)
-				{
-					/*
-					* S = [C,A]
-					*/
-					S.erase(S.cbegin() + 2);
-					S.erase(S.cbegin());
-					D = (AC ^ AO) ^ AC;
-				}
-				else
-				{
-					/*
-					* S = [A]
-					*/
-					S.erase(S.cbegin(), S.cbegin() + 3);
-					D = AO;
-				}
-			}
-			else
-			{
-				/*
-				* S = [D,C,A]
-				*/
-				S.erase(S.cbegin() + 2);
-				D = AD ^ AC;
-			}
-		}
-
-		else if ((temp = (AB ^ AD) * AO > 0.0f))// || (fabs(temp) < 0.00001f))
-		{
-			if ((AB ^ (AB ^ AD)) * AO > 0.0f)
-			{
-				if (AB * AO > 0.0f)
-				{
-					/*
-					* S = [B,A]
-					*/
-					S.erase(S.cbegin(),S.cbegin()+2);
-					D = (AB ^ AO) ^ AB;
-				}
-				else
-				{
-					/*
-					* S = [A]
-					*/
-					S.erase(S.cbegin(), S.cbegin() + 3);
-					D = AO;
-				}
-			}
-			else if (((AB ^ AD) ^ AD) * AO > 0.0f)
-			{
-				if (AD * AO)
-				{
-					/*
-					* S = [D,A]
-					*/
-					S.erase(S.cbegin()+1, S.cbegin() + 3);
-					D = (AD ^ AO) ^ AD;
-				}
-				else
-				{
-					/*
-					* S = [A]
-					*/
-					S.erase(S.cbegin(), S.cbegin() + 3);
-					D = AO;
-				}
-			}
-			else
-			{
-				/*
-				* S = [B,D,A]
-				*/
-				S.erase(S.cbegin() + 1);
-				swap(S[0], S[1]);
-				D = AB ^ AD;
-			}
-		}
-
-		else
-		{
-			/*
-			* S = [D,C,B,A]
-			*/
-			isIntersected = true;
-		}
-	}
-
-	//if (D.length() < 0.00001f)
-	//	isIntersected = true;
-
-	return isIntersected;
-}
-
-CollisionInfo BoxCollisionComponent::EPA(vector<pair<Vector3,Vector3>>& S, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints)
-{
-	assert(S.size() > 0 && S.size() < 5);
-
-	bool loopContinue = true;
-	Closest C;
-	Vector3 MTV;
-	CollisionInfo retVal;
-
-	if (S.size() == 1)
-	{
-		MTV = S[0].first;
-		retVal.point = S[0].second;
-	}
-	else if (S.size() == 2)
-	{
-		MTV = (S[0].first + S[1].first) * 0.5f;
-		retVal.point = (S[0].second + S[1].second) * 0.5f;
-	}
-	else if (S.size() == 3)
-	{
-		/*
-		* 가장 가까운 모서리를 선택하려면 수정해야한다.
-		*/
-		MTV = (S[0].first + S[1].first + S[2].first) / 3.0f;
-		retVal.point = (S[0].second + S[1].second + S[2].second) / 3.0f;
-	}
-	else if (S.size() == 4)
-	{
-		/*
-		* S = [D,C,B,A]
-		*/
-		/*
-		* face를 정의한다. (counter clockwise)
-		*/
-
-		
-		vector<int> F = { 0,1,3,
-						  1,2,3,
-						  2,0,3,
-						  1,0,2 };
-		
-		while (loopContinue)
-		{
-			
-			C = GetClosest(S, F);
-
-			int offset = C.faceIdx * 3;
-			Vector3 faceNormal = (S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first);
-			if (faceNormal * (S[F[offset]].first * -1.0f) > 0.0f)
-				faceNormal = faceNormal * -1.0f;
-		
-			Vector3 selfN = Support(faceNormal, selfPoints);
-			Vector3 N = Support(faceNormal*-1.0f,otherPoints) - selfN;
-
-			if (N.length() <= C.distance)
-			{
-				loopContinue = false;
-			}
-			/*
-			* Expand에 문제가 있는 것으로 보인다. 
-			* 위의 if문에서 loop를 빠져나가지 않는다는 것은 N이 가장 가까운 평면보다 먼 곳에 있다는 뜻이다.
-			* 그러므로 expand는 반드시 true를 반환해야한다.
-			* 그리고 위의 if문에서 언젠가 loop를 빠져나가야하는데, 그러지 못하고 있다.
-			*/
-			else if (!Expand(S, F, N, selfN))
-			{
-				loopContinue = false;
-			}
-			
-		}
-
-		C = GetClosest(S, F);
-		MTV = GetClosestPoint(S,F);
-
-		Vector3 baryCentricCoord = BaryCentric(MTV, S[F[C.faceIdx * 3]].first, S[F[C.faceIdx * 3 + 1]].first, S[F[C.faceIdx * 3 + 2]].first);
-
-		retVal.point = S[F[C.faceIdx * 3]].second * baryCentricCoord.v.x + S[F[C.faceIdx * 3 + 1]].second * baryCentricCoord.v.y
-			+ S[F[C.faceIdx * 3 + 2]].second * baryCentricCoord.v.z;
-			
-		//MTV = (S[0].first + S[1].first + S[2].first + S[3].first) / 4.0f;
-		//retVal.point = (S[0].second + S[1].second + S[2].second + S[3].second) / 4.0f;
-	}
-	mVertices[9].position = { retVal.point.v.x, retVal.point.v.y, retVal.point.v.z };
-	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
-
-	retVal.isIntersected = true;
-	retVal.depth = MTV.length();
-	retVal.normal = MTV;
-	return retVal;
-}
-
-Closest BoxCollisionComponent::GetClosest(const vector<pair<Vector3,Vector3>>& S, const vector<int>& F) const
-{
-	/*
-	* 우선 closest face를 계산한다.
-	*/
-	int numOfFace = F.size() / 3;
-	float minDistance = D3D12_FLOAT32_MAX;
-	int minFace = -1;
-	bool flip = false;
-
-	for (int i = 0; i < numOfFace; ++i)
-	{
-		bool curFlip = false;
-
-		int offset = i * 3;
-		Vector3 normal = ((S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first)).normalize();
-		Vector3 toOrigin = S[F[offset]].first*-1.0f;
-		float distance = normal * toOrigin;
-
-		
-		if (distance < 0.0f)
-		{
-			normal = ((S[F[offset + 2]].first - S[F[offset]].first) ^ (S[F[offset + 1]].first - S[F[offset]].first)).normalize();
-			distance = normal * toOrigin;
-			curFlip = true;
-		}
-		
-
-		if (distance < minDistance)
-		{
-			minDistance = distance;
-			minFace = i;
-			flip = curFlip;
-		}
-	}
-
-	Closest ret;
-	ret.faceIdx = minFace;
-	ret.distance = minDistance;
-
-	return ret;
-}
-
-Vector3 BoxCollisionComponent::GetClosestPoint(const vector<pair<Vector3, Vector3>>& S, const vector<int>& F) const
-{
-	int numOfFace = F.size() / 3;
-	float minDistance = D3D12_FLOAT32_MAX;
-	int minFace = -1;
-	bool flip = false;
-
-	for (int i = 0; i < numOfFace; ++i)
-	{
-		bool curFlip = false;
-
-		int offset = i * 3;
-		Vector3 normal = ((S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first)).normalize();
-		Vector3 toOrigin = S[F[offset]].first*-1.0f;
-		float distance = normal * toOrigin;
-
-
-		if (distance < 0.0f)
-		{
-			normal = ((S[F[offset + 2]].first - S[F[offset]].first) ^ (S[F[offset + 1]].first - S[F[offset]].first)).normalize();
-			distance = normal * toOrigin;
-			curFlip = true;
-		}
-
-
-		if (distance < minDistance)
-		{
-			minDistance = distance;
-			minFace = i;
-			flip = curFlip;
-		}
-	}
-
-	int offset = minFace * 3;
-	minDistance *= -1.0f;
-
-	if (!flip)
-	{
-		return ((S[F[offset + 1]].first - S[F[offset]].first) ^ (S[F[offset + 2]].first - S[F[offset]].first)).normalize() * minDistance;
-	}
-
-	else
-	{
-		return ((S[F[offset + 2]].first - S[F[offset]].first) ^ (S[F[offset + 1]].first - S[F[offset]].first)).normalize() * minDistance;
-	}
-}
-
-bool BoxCollisionComponent::Expand(vector<pair<Vector3,Vector3>>& S, vector<int>& F, const Vector3& N, const Vector3& selfN) const
-{
-	/*
-	* 우선, 어떤 facet들이 N을 볼 수 있는 지를 계산한다.
-	* 즉 F의 normal vector 방향에 N이 존재하는 지를 계산한다.
-	* 볼 수 있는 facet은 제거한다.
-	*/
-	int numOfFacet = F.size() / 3;
-	set<pair<int, int>> Edges;
-
-	for (int i = numOfFacet - 1 ; i >= 0; --i)
-	{
-		int offset = i * 3;
-		Vector3 A = S[F[offset]].first;
-		Vector3 B = S[F[offset + 1]].first;
-		Vector3 C = S[F[offset + 2]].first;
-
-		float dir = ((B - A) ^ (C - A)) * (N - A);
-
-		if (fabs(dir) <= 0.000001f)
-		{
-			return false;
-		}
-		
-		else if (dir < 0.0f)
-		{
-			/*
-			pair<int, int> edges[3] =
-			{
-				{F[offset],F[offset + 2]},
-				{F[offset + 2],F[offset + 1]},
-				{F[offset + 1],F[offset]}
-			};
-			for (int j = 0; j < 3; ++j)
-			{
-				if (Edges.count(edges[j]) == 0)
-					Edges.insert(edges[j]);
-				else
-					Edges.erase(edges[j]);
-			}
-
-			F.erase(F.cbegin() + offset, F.cbegin() + offset + 3);
-			*/
-			//continue;
-		}
-		else if (dir > 0.0f)
-		{
-			
-			pair<int, int> edges[3] =
-			{
-				{F[offset],F[offset + 1]},
-				{F[offset + 1],F[offset + 2]},
-				{F[offset + 2],F[offset]}
-			};
-			for (int j = 0; j < 3; ++j)
-			{
-				if (Edges.count(edges[j]) == 0)
-					Edges.insert(edges[j]);
-				else
-					Edges.erase(edges[j]);
-			}
-
-			F.erase(F.cbegin() + offset, F.cbegin() + offset + 3);
-			
-		}
-	}
-	
-	/*
-	* 만약 N을 볼 수 있는 facet이 없다면, false를 반환한다.
-	*/
-	
-	if (Edges.size() == 0)
-		return false;
-
-	/*
-	* edge들과 N을 이용해서 convex hull을 생성한다.
-	*/
-	
-	//S에 중복되는 점은 추가하지 않아야한다.
-	S.push_back({ N ,selfN });
-	int newVertexIdx = S.size() - 1;
-	for (auto& Edge : Edges)
-	{
-		F.push_back(Edge.first);
-		F.push_back(Edge.second);
-		F.push_back(newVertexIdx);
-	}
-	
-	return true;
-}
 
 Vector3 BoxCollisionComponent::BaryCentric(const Vector3& p, const Vector3& a, const Vector3& b, const Vector3& c) const
 {

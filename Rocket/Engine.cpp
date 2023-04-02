@@ -689,8 +689,8 @@ void Engine::Update()
 	dir = dir.normalize();
 	ballMesh->mRelativePosition.Add(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
 		dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
-	ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
-		dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
+	//ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
+	//	dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
 	
 	mScenes[mCurrentScene]->mSceneRoot->Update();
 	
