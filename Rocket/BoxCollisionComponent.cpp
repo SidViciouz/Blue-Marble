@@ -90,7 +90,7 @@ BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedT
 	Engine::mCommandList->ResourceBarrier(2, barrier);
 }
 
-bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
+bool BoxCollisionComponent::IsColliding(CollisionComponent* other, CollisionInfo& collisionInfo)
 {
 	//두 collider에 대한 shape를 얻는다.
 	int selfW = mWidth * 0.5f;
@@ -158,7 +158,6 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 	mOtherPosition = Vector3(otherP.Get().x, otherP.Get().y, otherP.Get().z);
 	//
 
-	CollisionInfo collisionInfo;
 	bool retval = GJK(selfPoints, otherPoints, collisionInfo);
 
 	mVertices[8].position = collisionInfo.localA.v;

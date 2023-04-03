@@ -14,7 +14,7 @@ public:
 
 	virtual void								Draw();
 	virtual void								Update();
-	bool										IsColliding(SceneNode* counterPart);
+	bool										IsColliding(SceneNode* counterPart, CollisionInfo& collisionInfo);
 
 	void										AddChild(shared_ptr<SceneNode> child);
 	void										RemoveChild(shared_ptr<SceneNode> child);

@@ -7,7 +7,7 @@ CapsuleCollisionComponent::CapsuleCollisionComponent(shared_ptr<SceneNode> NodeA
 
 }
 
-bool CapsuleCollisionComponent::IsColliding(CollisionComponent* counterPart)
+bool CapsuleCollisionComponent::IsColliding(CollisionComponent* counterPart, CollisionInfo& collisionInfo)
 {
     // Calculate the sum of the radii
     float radiusSum = mRadius + dynamic_cast<CapsuleCollisionComponent*>(counterPart)->mRadius;

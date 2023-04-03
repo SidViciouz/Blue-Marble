@@ -72,11 +72,11 @@ void SceneNode::Update()
 	}
 }
 
-bool SceneNode::IsColliding(SceneNode* counterPart)
+bool SceneNode::IsColliding(SceneNode* counterPart, CollisionInfo& collisionInfo)
 {
 	if (mCollisionComponent != nullptr && counterPart->mCollisionComponent)
 	{
-		return mCollisionComponent->IsColliding(counterPart->mCollisionComponent.get());
+		return mCollisionComponent->IsColliding(counterPart->mCollisionComponent.get(),collisionInfo);
 	}
 
 	return false;

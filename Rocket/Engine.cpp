@@ -62,7 +62,7 @@ void Engine::Initialize()
 	}
 
 	boxMesh = make_shared<MeshNode>("box");
-	boxMesh->mRelativePosition.Set(2.5f,1.0f, 0.0f);
+	boxMesh->mRelativePosition.Set(1.9f,1.0f, 0.0f);
 	boxMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 2.0f, 2.0f,2.0f);
 	ballMesh = make_shared<MeshNode>("ball");
@@ -74,8 +74,10 @@ void Engine::Initialize()
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
 	mScenes[mCurrentScene]->mSceneRoot->Update();
 	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(1.0f, 1.0f, 20.0f));
-	ballMesh->IsColliding(boxMesh.get());
-	//boxMesh->IsColliding(ballMesh.get());
+
+	CollisionInfo collisionInfo;
+	ballMesh->IsColliding(boxMesh.get(), collisionInfo);
+	boxMesh->IsColliding(ballMesh.get(), collisionInfo);
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
@@ -689,13 +691,17 @@ void Engine::Update()
 	dir = dir.normalize();
 	ballMesh->mRelativePosition.Add(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
 		dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
-	//ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
-	//	dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
+	ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
+		dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
 	
 	mScenes[mCurrentScene]->mSceneRoot->Update();
 	
-	ballMesh->IsColliding(boxMesh.get());
-	boxMesh->IsColliding(ballMesh.get());
+	CollisionInfo collisionInfo;
+	ballMesh->IsColliding(boxMesh.get(), collisionInfo);
+	ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.51f).v);
+	boxMesh->IsColliding(ballMesh.get(), collisionInfo);
+	boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.51f).v);
+
 }
 
 void Engine::Draw()

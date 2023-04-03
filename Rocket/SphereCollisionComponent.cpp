@@ -8,7 +8,7 @@ SphereCollisionComponent::SphereCollisionComponent(shared_ptr<SceneNode> NodeAtt
 
 }
 
-bool SphereCollisionComponent::IsColliding(CollisionComponent* counterPart)
+bool SphereCollisionComponent::IsColliding(CollisionComponent* counterPart, CollisionInfo& collisionInfo)
 {
     if (auto otherSphere = dynamic_cast<SphereCollisionComponent*>(counterPart))
     {

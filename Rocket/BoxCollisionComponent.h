@@ -9,7 +9,7 @@ class BoxCollisionComponent : public CollisionComponent
 {
 public:
 												BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo,int width,int height,int depth);
-	virtual bool								IsColliding(CollisionComponent* other) override;
+	virtual bool								IsColliding(CollisionComponent* other, CollisionInfo& collisionInfo) override;
 	virtual void								Draw() override;
 
 	int											mWidth;

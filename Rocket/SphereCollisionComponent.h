@@ -10,7 +10,7 @@ public:
 	/*
 	* sphere to sphere collsion test¿Ã¥Ÿ.
 	*/
-	virtual bool								IsColliding(CollisionComponent* counterPart) override;
+	virtual bool								IsColliding(CollisionComponent* counterPart, CollisionInfo& collisionInfo) override;
 
 protected:
 	float										mRadius;
