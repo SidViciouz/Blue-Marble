@@ -26,11 +26,13 @@ protected:
 	void										EPA(Points& a, Points& b, Points& c, Points& d, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo);
 	void										CalculateSearchPoint(Points& point, Vector3& searchDir, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints);
 	Vector3										Support(const Vector3& dir, const vector<Vector3>& Points);
-	Vector3										BaryCentric(const Vector3& p, const Vector3& a, const Vector3& b, const Vector3& c) const;
+	void										Barycentric(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& p, float& u, float& v, float& w);
 
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
 
+	Vector3										mSelfPosition;
+	Vector3										mOtherPosition;
 	int											mIsColliding = 0;
 	int											mVertexBufferIdx;
 	int											mIndexBufferIdx;

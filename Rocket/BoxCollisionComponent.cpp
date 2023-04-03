@@ -2,6 +2,7 @@
 #include "Constant.h"
 #include "SceneNode.h"
 #include "Engine.h"
+#include "Plane.h"
 #include <unordered_set>
 #include <set>
 
@@ -151,10 +152,17 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other)
 		XMStoreFloat3(&point.v, XMVector3Transform(XMLoadFloat3(&point.v), otherQmpm));
 	}
 	
+
+	//
+	mSelfPosition = Vector3(selfP.Get().x, selfP.Get().y, selfP.Get().z);
+	mOtherPosition = Vector3(otherP.Get().x, otherP.Get().y, otherP.Get().z);
+	//
+
 	CollisionInfo collisionInfo;
 	bool retval = GJK(selfPoints, otherPoints, collisionInfo);
 
-	mVertices[9].position = collisionInfo.normal.v;
+	mVertices[8].position = collisionInfo.localA.v;
+	mVertices[9].position = collisionInfo.localB.v;
 	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
 
 	if (retval)
@@ -328,8 +336,8 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 
 		if (p.p*search_dir - min_dist < EPA_TOLERANCE) {
 
-			collisionInfo.normal = faces[closest_face][3].p * (p.p * search_dir);
-			/*
+			//collisionInfo.normal = faces[closest_face][3].p * (p.p * search_dir);
+			
 			Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p); //plane of closest triangle face
 			Vector3 projectionPoint = closestPlane.ProjectPointOntoPlane(Vector3(0, 0, 0)); //projecting the origin onto the triangle(both are in Minkowski space)
 			float u, v, w;
@@ -341,11 +349,15 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 			float penetration = (localA - localB).length();
 			Vector3 normal = (localA - localB).normalize();
 
-			localA -= coll1->GetTransform().GetPosition();
-			localB -= coll2->GetTransform().GetPosition();
+			localA = localA - mSelfPosition;
+			localB = localB - mOtherPosition;
 
-			collisionInfo.AddContactPoint(localA, localB, normal, penetration);
-			*/
+			collisionInfo.localA = localA;
+			collisionInfo.localB = localB;
+			collisionInfo.penetration = penetration;
+			collisionInfo.normal = normal;
+			//collisionInfo.AddContactPoint(localA, localB, normal, penetration);
+			
 			return;
 		}
 
@@ -416,8 +428,8 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 	} //End for iterations
 	printf("EPA did not converge\n");
 	//Return most recent closest point
-	collisionInfo.normal = faces[closest_face][3].p * (faces[closest_face][0].p*faces[closest_face][3].p);
-	/*
+	//collisionInfo.normal = faces[closest_face][3].p * (faces[closest_face][0].p*faces[closest_face][3].p);
+	
 	Vector3 search_dir = faces[closest_face][3].p;
 
 	Points p;
@@ -433,8 +445,12 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 	float penetration = (localA - localB).length();
 	Vector3 normal = (localA - localB).normalize();
 
-	collisionInfo.AddContactPoint(localA, localB, normal, penetration);
-	*/
+	collisionInfo.localA = localA;
+	collisionInfo.localB = localB;
+	collisionInfo.penetration = penetration;
+	collisionInfo.normal = normal;
+	//collisionInfo.AddContactPoint(localA, localB, normal, penetration);
+	
 	return;
 }
 
@@ -463,6 +479,21 @@ Vector3 BoxCollisionComponent::Support(const Vector3& dir, const vector<Vector3>
 	return Points[index];
 }
 
+void BoxCollisionComponent::Barycentric(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& p, float& u, float& v, float& w)
+{
+	Vector3 v0 = b - a, v1 = c - a, v2 = p - a;
+	float d00 = v0*v0;
+	float d01 = v0*v1;
+	float d11 = v1*v1;
+	float d20 = v2*v0;
+	float d21 = v2*v1;
+	float denom = d00 * d11 - d01 * d01;
+	v = (d11 * d20 - d01 * d21) / denom;
+	w = (d00 * d21 - d01 * d20) / denom;
+	u = 1.0f - v - w;
+
+}
+
 void BoxCollisionComponent::Draw()
 {
 	int data[4] = { mWidth,mHeight,mDepth,mIsColliding };
@@ -472,25 +503,6 @@ void BoxCollisionComponent::Draw()
 	Engine::mCommandList->DrawIndexedInstanced(mIndices.size(), 1, 0, 0, 0);
 }
 
-
-Vector3 BoxCollisionComponent::BaryCentric(const Vector3& p, const Vector3& a, const Vector3& b, const Vector3& c) const
-{
-	Vector3 v0 = b - a;
-	Vector3 v1 = c - a;
-	Vector3 v2 = p - a;
-
-	float d00 = v0 * v0;
-	float d01 = v0 * v1;
-	float d11 = v1 * v1;
-	float d20 = v2 * v0;
-	float d21 = v2 * v1;
-
-	float denominator = d00 * d11 + d01 * d01;
-	float v = (d11 * d20 - d01 * d21) / denominator;
-	float w = (d00 * d21 - d01 * d20) / denominator;
-
-	return Vector3(1.0f - v - w, v, w);
-}
 
 D3D12_VERTEX_BUFFER_VIEW* BoxCollisionComponent::GetVertexBufferView()
 {

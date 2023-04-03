@@ -695,7 +695,7 @@ void Engine::Update()
 	mScenes[mCurrentScene]->mSceneRoot->Update();
 	
 	ballMesh->IsColliding(boxMesh.get());
-	//boxMesh->IsColliding(ballMesh.get());
+	boxMesh->IsColliding(ballMesh.get());
 }
 
 void Engine::Draw()

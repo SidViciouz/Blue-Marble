@@ -1,9 +1,27 @@
 #include "RigidBodyComponent.h"
 #include "SceneNode.h"
+#include "BoxCollisionComponent.h"
 
 RigidBodyComponent::RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,float mass)
 	: mNodeAttachedTo{ NodeAttachedTo }, mMass{ mass }
 {
+	BoxCollisionComponent* box = dynamic_cast<BoxCollisionComponent*>(mNodeAttachedTo->mCollisionComponent.get());
+	
+	float w = box->mWidth;
+	float h = box->mHeight;
+	float d = box->mDepth;
+
+	mInertiaTensor = 
+	{
+		mMass*(h*h + d*d)/12.0f, 0, 0,
+		0, mMass*(w*w + d*d)/12.0f,0,
+		0,0,mMass*(w*w+h*h)/12.0f
+	};
+
+	XMMATRIX inertiaM = XMLoadFloat3x3(&mInertiaTensor);
+	XMVECTOR det = XMMatrixDeterminant(inertiaM);
+	XMStoreFloat3x3(&mInvInertiaTensor, XMMatrixInverse(&det, inertiaM));
+
 	mPosition.v = mNodeAttachedTo->mAccumulatedPosition.Get();
 	mRotation = mNodeAttachedTo->mAccumulatedQuaternion;
 }
@@ -23,7 +41,15 @@ void RigidBodyComponent::Update(float deltaTime)
 	// update angular properties
 	mRotation = mNodeAttachedTo->mAccumulatedQuaternion;
 
-	Vector3 deltaAngularVel = (mTorque * deltaTime) * mInvInertiaTensor;
+	XMMATRIX rotationM = XMMatrixRotationQuaternion(XMLoadFloat4(&mRotation.Get()));
+	XMMATRIX rotationMT = XMMatrixTranspose(rotationM);
+	XMMATRIX invInertiaM = XMLoadFloat3x3(&mInvInertiaTensor);
+
+	XMFLOAT3X3 rotatedInvInertiaTensor;
+
+	XMStoreFloat3x3(&rotatedInvInertiaTensor,XMMatrixMultiply(XMMatrixMultiply(rotationM,invInertiaM),rotationMT));
+
+	Vector3 deltaAngularVel = (mTorque * deltaTime) * rotatedInvInertiaTensor;
 
 	mAngularVel = mAngularVel + deltaAngularVel;
 

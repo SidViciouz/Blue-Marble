@@ -56,7 +56,7 @@ VertexOut VS(VertexIn vin, uint id : SV_VertexID)
 
 	if (isColliding == 1 &&( id == 9 || id == 8))
 	{
-		/*
+		
 		float4x4 transMatrix = {
 		1.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -65,8 +65,8 @@ VertexOut VS(VertexIn vin, uint id : SV_VertexID)
 		};
 
 		float4 posW = mul(float4(vin.pos, 1.0f), transMatrix);
-		*/
-		float4 posH = mul(mul(float4(vin.pos, 1.0f), transpose(view)), transpose(projection));
+		
+		float4 posH = mul(mul(posW, transpose(view)), transpose(projection));
 
 		vout.pos = posH;
 

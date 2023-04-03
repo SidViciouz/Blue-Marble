@@ -127,7 +127,7 @@ struct Vector3
 
 		return result;
 	}
-	float										length()
+	float										length() const
 	{
 		return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 	}
