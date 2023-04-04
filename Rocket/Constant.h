@@ -135,6 +135,9 @@ struct Vector3
 	{
 		Vector3 result;
 
+		if (Zero())
+			return result;
+
 		XMStoreFloat3(&result.v, XMLoadFloat3(&v) / length());
 
 		return result;

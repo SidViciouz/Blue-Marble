@@ -35,8 +35,7 @@ void RigidBodyComponent::Update(float deltaTime)
 
 	mVelocity = mVelocity + deltaVel;
 
-	mPosition = mPosition + (deltaVel * deltaTime);
-
+	mPosition = mPosition + (mVelocity * deltaTime);
 
 	// update angular properties
 	mRotation = mNodeAttachedTo->mAccumulatedQuaternion;
@@ -45,24 +44,51 @@ void RigidBodyComponent::Update(float deltaTime)
 	XMMATRIX rotationMT = XMMatrixTranspose(rotationM);
 	XMMATRIX invInertiaM = XMLoadFloat3x3(&mInvInertiaTensor);
 
-	XMFLOAT3X3 rotatedInvInertiaTensor;
+	XMStoreFloat3x3(&mRotatedInvInertiaTensor,XMMatrixMultiply(XMMatrixMultiply(rotationM,invInertiaM),rotationMT));
 
-	XMStoreFloat3x3(&rotatedInvInertiaTensor,XMMatrixMultiply(XMMatrixMultiply(rotationM,invInertiaM),rotationMT));
-
-	Vector3 deltaAngularVel = (mTorque * deltaTime) * rotatedInvInertiaTensor;
+	Vector3 deltaAngularVel = (mTorque * deltaTime) * mRotatedInvInertiaTensor;
 
 	mAngularVel = mAngularVel + deltaAngularVel;
 
-	float deltaAngle = (deltaAngularVel * deltaTime).length() / 2.0f;
+	float deltaAngle = (mAngularVel * deltaTime).length() / 2.0f;
 
-	Vector3 vec = deltaAngularVel.normalize() * sinf(deltaAngle);
+	Vector3 vec = mAngularVel.normalize() * sinf(deltaAngle);
 	Quaternion deltaQuat( vec.v.x, vec.v.y, vec.v.z, cosf(deltaAngle));
 
 	mRotation.Mul(deltaQuat);
+
+	mForce = Vector3();
+	mTorque = Vector3();
+
+	mNodeAttachedTo->mRelativePosition.Add((mVelocity * deltaTime).v);
+	mNodeAttachedTo->mRelativeQuaternion.Set(mRotation);
 }
 
 void RigidBodyComponent::AddForce(Vector3 force, Vector3 relativePosition)
 {
 	mForce = mForce + force;
 	mTorque = mTorque + relativePosition ^ force;
+}
+
+void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<RigidBodyComponent> other,float deltaTime)
+{
+	XMFLOAT3 xmP1 = this->mNodeAttachedTo->mAccumulatedPosition.Get();
+	Vector3 p1(xmP1.x, xmP1.y, xmP1.z);
+	XMFLOAT3 xmP2 = other->mNodeAttachedTo->mAccumulatedPosition.Get();
+	Vector3 p2(xmP2.x, xmP2.y, xmP2.z);
+
+	float e = 0.3f;
+	Vector3 n = collisionInfo.normal;
+	float invM1 = 1.0f/this->mMass;
+	float invM2 = 1.0f/other->mMass;
+	XMFLOAT3X3 I1 = this->mRotatedInvInertiaTensor;
+	XMFLOAT3X3 I2 = other->mRotatedInvInertiaTensor;
+	Vector3 r1 = collisionInfo.localA - p1;
+	Vector3 r2 = collisionInfo.localB - p2;
+	Vector3 vr = (this->mVelocity + (this->mAngularVel^r1)) - (other->mVelocity + (other->mAngularVel ^ r2));
+	
+	float denominator = invM1 + invM2 + ((( (r1 ^ n) * I1 )^ r1) + (((r2 ^ n) * I2 )^ r2)) * n;
+	float impulse =  (1 + e)*(vr*n)/denominator;
+
+	AddForce(n*impulse/deltaTime,r1);
 }

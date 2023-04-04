@@ -62,13 +62,17 @@ void Engine::Initialize()
 	}
 
 	boxMesh = make_shared<MeshNode>("box");
-	boxMesh->mRelativePosition.Set(1.9f,1.0f, 0.0f);
+	boxMesh->mRelativePosition.Set(5.0f,1.0f, 1.0f);
 	boxMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 2.0f, 2.0f,2.0f);
+	boxMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(boxMesh, 1.0f);
 	ballMesh = make_shared<MeshNode>("ball");
 	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	ballMesh->mRelativePosition.Set(0.0f, 0.0f, 0.0f);
 	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 2.0f, 2.0f,2.0f);
+	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
+	ballMesh->mRigidBodyComponent->AddForce(Vector3(150.0f,0.0f,0.0f), Vector3(1.5f,1.5f,1.5f));
+
 	//ballMesh->AddChild(boxMesh);
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(boxMesh);
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
@@ -689,19 +693,24 @@ void Engine::Update()
 	
 	Vector3 dir(1.0f, 0.0f, 0.0f);
 	dir = dir.normalize();
-	ballMesh->mRelativePosition.Add(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
-		dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
-	ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
-		dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
-	
-	mScenes[mCurrentScene]->mSceneRoot->Update();
+	//ballMesh->mRelativePosition.Add(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
+	//	dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
+	//ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
+	//	dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
 	
 	CollisionInfo collisionInfo;
 	ballMesh->IsColliding(boxMesh.get(), collisionInfo);
-	ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.51f).v);
+	ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, boxMesh->mRigidBodyComponent,mTimer.GetDeltaTime());
+	//ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
 	boxMesh->IsColliding(ballMesh.get(), collisionInfo);
-	boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.51f).v);
+	boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, ballMesh->mRigidBodyComponent, mTimer.GetDeltaTime());
+	//boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
 
+	ballMesh->mRigidBodyComponent->Update(mTimer.GetDeltaTime());
+	boxMesh->mRigidBodyComponent->Update(mTimer.GetDeltaTime());
+
+
+	mScenes[mCurrentScene]->mSceneRoot->Update();
 }
 
 void Engine::Draw()
@@ -772,7 +781,7 @@ void Engine::Draw()
 	/*
 	* scene의 object들을 draw한다.
 	*/
-	//mScenes[mCurrentScene]->Draw();
+	mScenes[mCurrentScene]->Draw();
 
 	mScenes[mCurrentScene]->mSceneRoot->Draw();
 

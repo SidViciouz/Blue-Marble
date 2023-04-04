@@ -12,6 +12,7 @@ public:
                                                 RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,float mass);
     void                                        Update(float deltaTime);
     void                                        AddForce(Vector3 force, Vector3 relativePosition);
+    void                                        AddImpulse(CollisionInfo& collisionInfo,shared_ptr<RigidBodyComponent> other,float deltaTime);
 
     Vector3                                     mPosition;    // position
     Vector3                                     mVelocity;    // linear velocity
@@ -22,6 +23,8 @@ public:
     Vector3                                     mAngularVel;  // angular velocity
     Vector3                                     mTorque;      // torque acting on the body
     Quaternion                                  mRotation;    // rotation quaternion
+    XMFLOAT3X3                                  mRotatedInvInertiaTensor;
+
 
     shared_ptr<SceneNode>						mNodeAttachedTo;
 };
