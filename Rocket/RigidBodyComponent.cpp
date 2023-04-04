@@ -61,7 +61,7 @@ void RigidBodyComponent::Update(float deltaTime)
 	mTorque = Vector3();
 
 	mNodeAttachedTo->mRelativePosition.Add((mVelocity * deltaTime).v);
-	mNodeAttachedTo->mRelativeQuaternion.Set(mRotation);
+	mNodeAttachedTo->mRelativeQuaternion.Mul(deltaQuat);
 }
 
 void RigidBodyComponent::AddForce(Vector3 force, Vector3 relativePosition)
@@ -70,14 +70,14 @@ void RigidBodyComponent::AddForce(Vector3 force, Vector3 relativePosition)
 	mTorque = mTorque + relativePosition ^ force;
 }
 
-void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<RigidBodyComponent> other,float deltaTime)
+void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<RigidBodyComponent> other)
 {
 	XMFLOAT3 xmP1 = this->mNodeAttachedTo->mAccumulatedPosition.Get();
 	Vector3 p1(xmP1.x, xmP1.y, xmP1.z);
 	XMFLOAT3 xmP2 = other->mNodeAttachedTo->mAccumulatedPosition.Get();
 	Vector3 p2(xmP2.x, xmP2.y, xmP2.z);
 
-	float e = 0.3f;
+	float e = 0.8f;
 	Vector3 n = collisionInfo.normal;
 	float invM1 = 1.0f/this->mMass;
 	float invM2 = 1.0f/other->mMass;
@@ -90,5 +90,10 @@ void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<Rig
 	float denominator = invM1 + invM2 + ((( (r1 ^ n) * I1 )^ r1) + (((r2 ^ n) * I2 )^ r2)) * n;
 	float impulse =  (1 + e)*(vr*n)/denominator;
 
-	AddForce(n*impulse/deltaTime,r1);
+	mVelocity = -n * (vr*n) * e / (invM1 + invM2);
+	//mVelocity = -mVelocity*e;
+	//mVelocity = mVelocity + (n * impulse * 1.5f) * invM1;
+	mAngularVel = mAngularVel + ((n * impulse)^r1) * I1;
+	mAngularVel = mAngularVel * e;
+	//mAngularVel = mAngularVel * e;
 }

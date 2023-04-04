@@ -62,26 +62,28 @@ void Engine::Initialize()
 	}
 
 	boxMesh = make_shared<MeshNode>("box");
-	boxMesh->mRelativePosition.Set(5.0f,1.0f, 1.0f);
+	boxMesh->mRelativePosition.Set(4.5f,5.0f, 0.0f);
 	boxMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
-	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 2.0f, 2.0f,2.0f);
+	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 3.0f, 3.0f,3.0f);
 	boxMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(boxMesh, 1.0f);
+	boxMesh->mRigidBodyComponent->AddForce(Vector3(-300.0f, 0.0f, 0.0f), Vector3());
 	ballMesh = make_shared<MeshNode>("ball");
+	ballMesh->mRelativePosition.Set(0.0f, 5.0f, 0.0f);
 	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
-	ballMesh->mRelativePosition.Set(0.0f, 0.0f, 0.0f);
-	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 2.0f, 2.0f,2.0f);
+	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 3.0f,3.0f,3.0f);
 	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
-	ballMesh->mRigidBodyComponent->AddForce(Vector3(150.0f,0.0f,0.0f), Vector3(1.5f,1.5f,1.5f));
+	ballMesh->mRigidBodyComponent->AddForce(Vector3(300.0f,0.0f,0.0f), Vector3());
+	groundMesh = make_shared<MeshNode>("box");
+	groundMesh->mRelativePosition.Set(0.0f, -5.0f, 0.0f);
+	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 1.0f, 20.0f);
+	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
 
 	//ballMesh->AddChild(boxMesh);
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(boxMesh);
 	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
+	mScenes[mCurrentScene]->mSceneRoot->AddChild(groundMesh);
 	mScenes[mCurrentScene]->mSceneRoot->Update();
 	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(1.0f, 1.0f, 20.0f));
-
-	CollisionInfo collisionInfo;
-	ballMesh->IsColliding(boxMesh.get(), collisionInfo);
-	boxMesh->IsColliding(ballMesh.get(), collisionInfo);
 
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
@@ -697,20 +699,38 @@ void Engine::Update()
 	//	dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
 	//ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
 	//	dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
-	
-	CollisionInfo collisionInfo;
-	ballMesh->IsColliding(boxMesh.get(), collisionInfo);
-	ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, boxMesh->mRigidBodyComponent,mTimer.GetDeltaTime());
-	//ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
-	boxMesh->IsColliding(ballMesh.get(), collisionInfo);
-	boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, ballMesh->mRigidBodyComponent, mTimer.GetDeltaTime());
-	//boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
-
 	ballMesh->mRigidBodyComponent->Update(mTimer.GetDeltaTime());
 	boxMesh->mRigidBodyComponent->Update(mTimer.GetDeltaTime());
 
-
 	mScenes[mCurrentScene]->mSceneRoot->Update();
+	
+	ballMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f * 1.0f, 0.0f), Vector3());
+	boxMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f*1.0f, 0.0f), Vector3());
+
+	CollisionInfo collisionInfo;
+	if (ballMesh->IsColliding(boxMesh.get(), collisionInfo))
+	{
+		ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
+		ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, boxMesh->mRigidBodyComponent);
+	}
+	if (boxMesh->IsColliding(ballMesh.get(), collisionInfo))
+	{
+		boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
+		boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, ballMesh->mRigidBodyComponent);
+	}
+	if (boxMesh->IsColliding(groundMesh.get(), collisionInfo))
+	{
+		boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
+		boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
+	}
+	if (ballMesh->IsColliding(groundMesh.get(), collisionInfo))
+	{
+		ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
+		ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
+	}
+	
+
+
 }
 
 void Engine::Draw()

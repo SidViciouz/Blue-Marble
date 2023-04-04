@@ -155,4 +155,5 @@ public:
 
 	shared_ptr<MeshNode> boxMesh;
 	shared_ptr<MeshNode> ballMesh;
+	shared_ptr<MeshNode> groundMesh;
 };

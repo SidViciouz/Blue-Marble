@@ -12,7 +12,7 @@ public:
                                                 RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,float mass);
     void                                        Update(float deltaTime);
     void                                        AddForce(Vector3 force, Vector3 relativePosition);
-    void                                        AddImpulse(CollisionInfo& collisionInfo,shared_ptr<RigidBodyComponent> other,float deltaTime);
+    void                                        AddImpulse(CollisionInfo& collisionInfo,shared_ptr<RigidBodyComponent> other);
 
     Vector3                                     mPosition;    // position
     Vector3                                     mVelocity;    // linear velocity
