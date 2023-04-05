@@ -51,6 +51,8 @@ void Engine::Initialize()
 	//각 Scene들에 모델, 카메라, 조명 생성
 	LoadScene();
 
+	mInputManager = make_shared <InputManager>();
+
 	mMeshManager = make_unique<MeshManager>();
 	mMeshManager->Load("ball", "../Model/ball.obj", true);
 	mMeshManager->Load("box", "../Model/box.obj", true);
@@ -253,9 +255,11 @@ MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+
 	switch (msg)
 	{
 	case WM_LBUTTONDOWN:
+		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
 		if (mScenes[mCurrentScene]->mIsModelSelected == false)
 		{
 			SelectObject(LOWORD(lParam), HIWORD(lParam));
@@ -263,6 +267,7 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_LBUTTONUP:
+		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
 		if (mIsInventorySelected == true)
 		{
 			mIsInventorySelected = false;
@@ -285,6 +290,7 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_MOUSEMOVE:
+		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
 		if (mScenes[mCurrentScene]->mIsModelSelected == true)
 		{
 			MoveObject(LOWORD(lParam), HIWORD(lParam));
@@ -294,6 +300,7 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_KEYDOWN :
+		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam),wParam);
 		if (wParam == 0x54)
 		{
 			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
@@ -646,7 +653,7 @@ void Engine::Update()
 
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
-	mScenes[mCurrentScene]->Update();
+	//mScenes[mCurrentScene]->Update();
 	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
 	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
@@ -654,7 +661,7 @@ void Engine::Update()
 	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
 	mScenes[mCurrentScene]->envFeature.currentTime = mTimer.GetTime();
 	mResourceManager->Upload(mFrames[mCurrentFrame]->mEnvConstantBufferIdx, &mScenes[mCurrentScene]->envFeature, sizeof(env), 0);
-
+	
 	/*
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
@@ -676,7 +683,7 @@ void Engine::Update()
 	}
 	*/
 
-	mAllScenes["MainScene"]->UpdateScene(mTimer.GetDeltaTime());
+	mAllScenes["MainScene"]->UpdateScene(mTimer);
 }
 
 void Engine::Draw()

@@ -11,6 +11,10 @@ public:
 	void										GoFront(float d);
 	void										GoRight(float d);
 	void										Turn(float x, float y);
+	const XMFLOAT4X4&							GetView() const;
+	const XMFLOAT4X4&							GetProjection() const;
+	const XMFLOAT4X4&							GetInvVIewProjection() const;
+	XMFLOAT3									GetFront() const;
 
 	virtual void								Draw() override;
 

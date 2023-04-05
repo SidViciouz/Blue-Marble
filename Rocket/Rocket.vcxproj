@@ -154,6 +154,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="IfError.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="MainScene.h" />
@@ -199,6 +200,7 @@
     <ClCompile Include="DescriptorManager.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MainScene.cpp" />

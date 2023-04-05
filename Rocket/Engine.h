@@ -25,6 +25,7 @@
 #include "MeshNode.h"
 #include "VolumeNode.h"
 #include "BoxCollisionComponent.h"
+#include "InputManager.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -151,8 +152,7 @@ public:
 
 	static unique_ptr<MeshManager>				mMeshManager;
 
-	shared_ptr<MeshNode> boxMesh;
-	shared_ptr<MeshNode> ballMesh;
-	shared_ptr<MeshNode> groundMesh;
 	unordered_map<string,shared_ptr<Scene>>		mAllScenes;
+
+	shared_ptr<InputManager>					mInputManager;
 };

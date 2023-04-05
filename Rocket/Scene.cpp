@@ -100,7 +100,21 @@ void Scene::Draw()
 	}
 }
 
-void Scene::UpdateScene(float deltaTime)
+void Scene::UpdateScene(const Timer& timer)
 {
+	envFeature.view =
+	{
+		1.0f,0.0f,0.0f,0.0f,
+		0.0f,1.0f,0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,10.0f,1.0f
+	};
+	envFeature.view = mCameraNode->GetView();
+	envFeature.projection = mCameraNode->GetProjection();
+	envFeature.cameraPosition = mCameraNode->GetAccumulatedPosition().Get();
+	envFeature.cameraFront = mCameraNode->GetFront();
+	envFeature.invViewProjection = mCameraNode->GetInvVIewProjection();
+	envFeature.currentTime = timer.GetTime();
 
+	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mEnvConstantBufferIdx, &envFeature, sizeof(env), 0);
 }

@@ -172,3 +172,12 @@ struct CollisionInfo
 	Vector3 normal;
 	float penetration;
 };
+
+struct Message
+{
+	UINT msgType;
+	UINT param1;
+	UINT param2;
+	UINT param3;
+	UINT param4;
+};

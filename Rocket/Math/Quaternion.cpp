@@ -49,7 +49,7 @@ void Quaternion::Mul(const float& x, const float& y, const float& z, const float
 	XMStoreFloat4(&mQuaternion, XMQuaternionMultiply(XMLoadFloat4(&mQuaternion), XMQuaternionNormalize(XMVectorSet(x, y, z, w))));
 }
 
-const XMFLOAT4& Quaternion::Get()
+const XMFLOAT4& Quaternion::Get() const
 {
 	return mQuaternion;
 }

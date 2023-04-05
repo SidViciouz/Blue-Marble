@@ -25,5 +25,5 @@ public:
 	void										Mul(const Quaternion& quaternion);
 	void										Mul(const float& x, const float& y, const float& z, const float& w);
 
-	const XMFLOAT4&								Get();
+	const XMFLOAT4&								Get() const;
 };

@@ -102,6 +102,39 @@ void CameraNode::Turn(float x, float y)
 	printf("axis : %f %f %f, angle : %f\n", XMVectorGetX(axis), XMVectorGetY(axis), XMVectorGetZ(axis), XMConvertToDegrees(angle));
 }
 
+const XMFLOAT4X4& CameraNode::GetView() const
+{
+	return mView;
+}
+
+const XMFLOAT4X4& CameraNode::GetProjection() const
+{
+	return mProjection;
+}
+
+const XMFLOAT4X4& CameraNode::GetInvVIewProjection() const
+{
+	return mInvViewProjection;
+}
+
+XMFLOAT3 CameraNode::GetFront() const
+{
+	float angle;
+	XMVECTOR axis;
+	XMVECTOR quat = XMLoadFloat4(&mRelativeQuaternion.Get());
+
+	XMQuaternionToAxisAngle(&axis, &angle, quat);
+	XMVECTOR perp = XMVector3Orthogonal(axis);
+
+	XMVECTOR front = XMVector3Normalize(XMVector3Rotate(perp, quat));
+
+	XMFLOAT3 frontDir;
+	XMStoreFloat3(&frontDir, front);
+
+	return frontDir;
+}
+
+
 void CameraNode::Draw()
 {
 
@@ -118,6 +151,7 @@ void CameraNode::UpdateViewMatrix()
 	XMMATRIX translationM = XMMatrixTranslationFromVector(XMLoadFloat3(&mRelativePosition.Get()));
 
 	XMStoreFloat4x4(&mView, XMMatrixMultiply(rotationM, translationM));
+	//XMStoreFloat4x4(&mView, translationM);
 
 	XMMATRIX v = XMLoadFloat4x4(&mView);
 	XMMATRIX p = XMLoadFloat4x4(&mProjection);
@@ -133,7 +167,6 @@ void CameraNode::UpdateProjectionMatrix()
 		return;
 
 	mProjectionDirty = false;
-
 
 	XMStoreFloat4x4(&mProjection, XMMatrixPerspectiveFovLH(mAngle, mRatio, mNear, mFar));
 

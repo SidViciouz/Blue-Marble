@@ -10,7 +10,7 @@ class MainScene : public Scene
 public:
 												MainScene();
 	void										Initialize();
-	virtual void								UpdateScene(float deltaTime) override;
+	virtual void								UpdateScene(const Timer& timer) override;
 
 	shared_ptr<MeshNode>						boxMesh;
 	shared_ptr<MeshNode>						ballMesh;

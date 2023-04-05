@@ -14,14 +14,14 @@ void MainScene::Initialize()
 	boxMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 3.0f, 3.0f, 3.0f);
 	boxMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(boxMesh, 1.0f);
-	boxMesh->mRigidBodyComponent->AddForce(Vector3(-3000.0f, 0.0f, 0.0f), Vector3());
+	boxMesh->mRigidBodyComponent->mVelocity.v.x = -3.0f;
 
 	ballMesh = make_shared<MeshNode>("ball");
 	ballMesh->SetRelativePosition(0.0f, 5.0f, 0.0f);
 	ballMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 3.0f, 3.0f, 3.0f);
 	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
-	ballMesh->mRigidBodyComponent->AddForce(Vector3(3000.0f, 0.0f, 0.0f), Vector3());
+	ballMesh->mRigidBodyComponent->mVelocity.v.x = 3.0f;
 	
 	shared_ptr<MeshNode> ballMesh2 = make_shared<MeshNode>("ball");
 	ballMesh2->SetRelativePosition(5.0f, 5.0f, 5.0f);
@@ -42,8 +42,9 @@ void MainScene::Initialize()
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
 	camera->SetRelativePosition(0.0f, 0.0f, -5.0f);
 	camera->Turn(100, 100);
-	camera->GoFront(10.0f);
-	camera->GoRight(10.0f);
+	camera->GoFront(15.0f);
+	camera->GoRight(-5.0f);
+	mCameraNode = camera;
 	
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(ballMesh);
@@ -53,10 +54,12 @@ void MainScene::Initialize()
 	mSceneRoot->Update();
 }
 
-void MainScene::UpdateScene(float deltaTime)
+void MainScene::UpdateScene(const Timer& timer)
 {
-	ballMesh->mRigidBodyComponent->Update(deltaTime);
-	boxMesh->mRigidBodyComponent->Update(deltaTime);
+	Scene::UpdateScene(timer);
+
+	ballMesh->mRigidBodyComponent->Update(timer.GetDeltaTime());
+	boxMesh->mRigidBodyComponent->Update(timer.GetDeltaTime());
 
 	mSceneRoot->Update();
 

@@ -7,6 +7,8 @@
 #include "Volume.h"
 #include "SpawnSystem.h"
 #include "SceneNode.h"
+#include "Timer.h"
+#include "CameraNode.h"
 
 using namespace std;
 
@@ -53,5 +55,7 @@ public:
 
 	shared_ptr<SceneNode>						mSceneRoot;
 
-	virtual void								UpdateScene(float deltaTime);
+	shared_ptr<CameraNode>						mCameraNode;
+
+	virtual void								UpdateScene(const Timer& timer);
 };
