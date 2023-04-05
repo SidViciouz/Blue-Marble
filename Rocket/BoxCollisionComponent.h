@@ -8,13 +8,13 @@ class SceneNode;
 class BoxCollisionComponent : public CollisionComponent
 {
 public:
-												BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo,int width,int height,int depth);
+												BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo,float width,float height,float depth);
 	virtual bool								IsColliding(CollisionComponent* other, CollisionInfo& collisionInfo) override;
 	virtual void								Draw() override;
 
-	int											mWidth;
-	int											mHeight;
-	int											mDepth;
+	float										mWidth;
+	float										mHeight;
+	float										mDepth;
 
 
 

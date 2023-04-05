@@ -12,7 +12,7 @@
 #define EPA_MAX_NUM_LOOSE_EDGES 32
 #define EPA_MAX_NUM_ITERATIONS 64
 
-BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo, int width, int height, int depth)
+BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo, float width, float height, float depth)
 	: CollisionComponent(NodeAttachedTo), mWidth{ width }, mHeight{ height }, mDepth{ depth }
 {
 	assert(NodeAttachedTo != nullptr);

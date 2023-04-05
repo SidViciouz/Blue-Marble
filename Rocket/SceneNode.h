@@ -34,6 +34,14 @@ public:
 	void										MulRelativeQuaternion(const XMFLOAT4& quaternion);
 	void										MulRelativeQuaternion(const float& x, const float& y, const float& z, const float& w);
 
+	void										AddAccumulatedPosition(const XMFLOAT3& position);
+	void										AddAccumulatedPosition(const float& x, const float& y, const float& z);
+	void										MulAccumulatedQuaternion(const Quaternion& quaternion);
+	void										MulAccumulatedQuaternion(const XMFLOAT4& quaternion);
+	void										MulAccumulatedQuaternion(const float& x, const float& y, const float& z, const float& w);
+
+	void										MulAddRelativePosition(const float& d,const XMFLOAT3& position);
+
 	Position									GetRelativePosition();
 	Quaternion									GetRelativeQuaternion();
 	XMFLOAT3									GetScale();

@@ -143,6 +143,7 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CameraNode.h" />
     <ClInclude Include="Clickable.h" />
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Constant.h" />
@@ -191,6 +192,7 @@
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CameraNode.cpp" />
     <ClCompile Include="Clickable.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />

@@ -14,17 +14,17 @@ void MainScene::Initialize()
 	boxMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 3.0f, 3.0f, 3.0f);
 	boxMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(boxMesh, 1.0f);
-	boxMesh->mRigidBodyComponent->AddForce(Vector3(-300.0f, 0.0f, 0.0f), Vector3());
+	boxMesh->mRigidBodyComponent->AddForce(Vector3(-3000.0f, 0.0f, 0.0f), Vector3());
 
 	ballMesh = make_shared<MeshNode>("ball");
 	ballMesh->SetRelativePosition(0.0f, 5.0f, 0.0f);
 	ballMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 3.0f, 3.0f, 3.0f);
 	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
-	ballMesh->mRigidBodyComponent->AddForce(Vector3(300.0f, 0.0f, 0.0f), Vector3());
+	ballMesh->mRigidBodyComponent->AddForce(Vector3(3000.0f, 0.0f, 0.0f), Vector3());
 	
 	shared_ptr<MeshNode> ballMesh2 = make_shared<MeshNode>("ball");
-	ballMesh2->SetRelativePosition(5.0f, 5.0f, 0.0f);
+	ballMesh2->SetRelativePosition(5.0f, 5.0f, 5.0f);
 	ballMesh2->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh2, 3.0f, 3.0f, 3.0f);
 	ballMesh2->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh2, 1.0f);
 	ballMesh->AddChild(ballMesh2);
@@ -38,10 +38,18 @@ void MainScene::Initialize()
 	shared_ptr<VolumeNode> cloudVolume = make_shared<VolumeNode>(50.0f, 5.0f, 50.0f);
 	cloudVolume->SetRelativePosition(9.0f, 30.0f, 0.0f);
 
+	
+	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
+	camera->SetRelativePosition(0.0f, 0.0f, -5.0f);
+	camera->Turn(100, 100);
+	camera->GoFront(10.0f);
+	camera->GoRight(10.0f);
+	
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(ballMesh);
 	mSceneRoot->AddChild(groundMesh);
 	mSceneRoot->AddChild(cloudVolume);
+	mSceneRoot->AddChild(camera);
 	mSceneRoot->Update();
 }
 
@@ -66,6 +74,7 @@ void MainScene::UpdateScene(float deltaTime)
 		boxMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
 		boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, ballMesh->mRigidBodyComponent);
 	}
+	
 	if (boxMesh->IsColliding(groundMesh.get(), collisionInfo))
 	{
 		boxMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
@@ -76,4 +85,5 @@ void MainScene::UpdateScene(float deltaTime)
 		ballMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
 		ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
 	}
+	
 }

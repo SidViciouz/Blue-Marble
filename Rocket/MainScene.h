@@ -3,6 +3,7 @@
 #include "Scene.h"
 #include "MeshNode.h"
 #include "VolumeNode.h"
+#include "CameraNode.h"
 
 class MainScene : public Scene
 {

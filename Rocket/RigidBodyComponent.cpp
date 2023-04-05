@@ -22,14 +22,14 @@ RigidBodyComponent::RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,floa
 	XMVECTOR det = XMMatrixDeterminant(inertiaM);
 	XMStoreFloat3x3(&mInvInertiaTensor, XMMatrixInverse(&det, inertiaM));
 
-	mPosition.v = mNodeAttachedTo->GetAccumulatedPosition().Get();
-	mRotation = mNodeAttachedTo->GetAccumulatedQuaternion();
+	mPosition.v = mNodeAttachedTo->GetRelativePosition().Get();
+	mRotation = mNodeAttachedTo->GetRelativeQuaternion();
 }
 
 void RigidBodyComponent::Update(float deltaTime)
 {
 	// update linear properties
-	mPosition.v = mNodeAttachedTo->GetAccumulatedPosition().Get();
+	mPosition.v = mNodeAttachedTo->GetRelativePosition().Get();
 
 	Vector3 deltaVel = mForce * (deltaTime / mMass);
 
@@ -38,7 +38,7 @@ void RigidBodyComponent::Update(float deltaTime)
 	mPosition = mPosition + (mVelocity * deltaTime);
 
 	// update angular properties
-	mRotation = mNodeAttachedTo->GetAccumulatedQuaternion();
+	mRotation = mNodeAttachedTo->GetRelativeQuaternion();
 
 	XMMATRIX rotationM = XMMatrixRotationQuaternion(XMLoadFloat4(&mRotation.Get()));
 	XMMATRIX rotationMT = XMMatrixTranspose(rotationM);
@@ -72,9 +72,9 @@ void RigidBodyComponent::AddForce(Vector3 force, Vector3 relativePosition)
 
 void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<RigidBodyComponent> other)
 {
-	XMFLOAT3 xmP1 = this->mNodeAttachedTo->GetAccumulatedPosition().Get();
+	XMFLOAT3 xmP1 = this->mNodeAttachedTo->GetRelativePosition().Get();
 	Vector3 p1(xmP1.x, xmP1.y, xmP1.z);
-	XMFLOAT3 xmP2 = other->mNodeAttachedTo->GetAccumulatedPosition().Get();
+	XMFLOAT3 xmP2 = other->mNodeAttachedTo->GetRelativePosition().Get();
 	Vector3 p2(xmP2.x, xmP2.y, xmP2.z);
 
 	float e = 0.8f;
@@ -90,10 +90,10 @@ void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<Rig
 	float denominator = invM1 + invM2 + ((( (r1 ^ n) * I1 )^ r1) + (((r2 ^ n) * I2 )^ r2)) * n;
 	float impulse =  (1 + e)*(vr*n)/denominator;
 
-	mVelocity = -n * (vr*n) * e / (invM1 + invM2);
+	mVelocity = (-n * (vr*n) * e) / (invM1 + invM2);
+	//mVelocity = -n * (vr*n) * e;
 	//mVelocity = -mVelocity*e;
-	//mVelocity = mVelocity + (n * impulse * 1.5f) * invM1;
+	//mVelocity = mVelocity + (n * impulse) * invM1;
 	mAngularVel = mAngularVel + ((n * impulse)^r1) * I1;
 	mAngularVel = mAngularVel * e;
-	//mAngularVel = mAngularVel * e;
 }

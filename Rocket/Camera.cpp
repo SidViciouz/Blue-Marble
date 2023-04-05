@@ -2,7 +2,7 @@
 
 Camera::Camera(int width,int height)
 {
-	mPosition.Set(0.0f,0.0f,-5.0f);
+	mPosition.Set(0.0f,3.0f,-5.0f);
 	mUp = { 0.0f,1.0f,0.0f };
 	mFront = { 0.0f,0.0f,1.0f };
 	mRight = { 1.0f,0.0f,0.0f };

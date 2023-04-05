@@ -166,6 +166,11 @@ void SceneNode::MulRelativeQuaternion(const float& x, const float& y, const floa
 	mRelativeQuaternion.Mul(x, y, z, w);
 }
 
+void SceneNode::MulAddRelativePosition(const float& d,const XMFLOAT3& position)
+{
+	mRelativePosition.MulAdd(d,position);
+}
+
 
 Position SceneNode::GetRelativePosition()
 {
