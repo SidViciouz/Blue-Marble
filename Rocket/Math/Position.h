@@ -10,6 +10,7 @@ private:
 public:
 												Position();
 	Position									operator+(const Position& other) const;
+	Position									operator-(const Position& other) const;
 
 	void										Set(const XMFLOAT3& position);
 	void										Set(const float& x,const float& y,const float& z);

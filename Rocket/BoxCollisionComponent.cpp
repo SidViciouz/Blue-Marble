@@ -108,10 +108,10 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other, CollisionInfo
 	selfPoints.push_back(Vector3(selfW, selfH , selfD));
 
 	//rotate vector
-	Quaternion selfQ = mNodeAttachedTo->mAccumulatedQuaternion;
+	Quaternion selfQ = mNodeAttachedTo->GetAccumulatedQuaternion();
 	XMMATRIX selfQm = XMMatrixRotationQuaternion(XMLoadFloat4(&selfQ.Get()));
 
-	Position selfP = mNodeAttachedTo->mAccumulatedPosition;
+	Position selfP = mNodeAttachedTo->GetAccumulatedPosition();
 	XMMATRIX selfPm = XMMatrixTranslationFromVector(XMLoadFloat3(&selfP.Get()));
 
 	XMMATRIX selfQmpm = XMMatrixMultiply(selfQm, selfPm);
@@ -139,10 +139,10 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other, CollisionInfo
 	otherPoints.push_back(Vector3(otherW, otherH, otherD));
 
 	//rotate vector
-	Quaternion otherQ = other->mNodeAttachedTo->mAccumulatedQuaternion;
+	Quaternion otherQ = other->mNodeAttachedTo->GetAccumulatedQuaternion();
 	XMMATRIX otherQm = XMMatrixRotationQuaternion(XMLoadFloat4(&otherQ.Get()));
 
-	Position otherP = other->mNodeAttachedTo->mAccumulatedPosition;
+	Position otherP = other->mNodeAttachedTo->GetAccumulatedPosition();
 	XMMATRIX otherPm = XMMatrixTranslationFromVector(XMLoadFloat3(&otherP.Get()));
 
 	XMMATRIX otherQmpm = XMMatrixMultiply(otherQm, otherPm);

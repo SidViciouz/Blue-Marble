@@ -22,14 +22,14 @@ RigidBodyComponent::RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,floa
 	XMVECTOR det = XMMatrixDeterminant(inertiaM);
 	XMStoreFloat3x3(&mInvInertiaTensor, XMMatrixInverse(&det, inertiaM));
 
-	mPosition.v = mNodeAttachedTo->mAccumulatedPosition.Get();
-	mRotation = mNodeAttachedTo->mAccumulatedQuaternion;
+	mPosition.v = mNodeAttachedTo->GetAccumulatedPosition().Get();
+	mRotation = mNodeAttachedTo->GetAccumulatedQuaternion();
 }
 
 void RigidBodyComponent::Update(float deltaTime)
 {
 	// update linear properties
-	mPosition.v = mNodeAttachedTo->mAccumulatedPosition.Get();
+	mPosition.v = mNodeAttachedTo->GetAccumulatedPosition().Get();
 
 	Vector3 deltaVel = mForce * (deltaTime / mMass);
 
@@ -38,7 +38,7 @@ void RigidBodyComponent::Update(float deltaTime)
 	mPosition = mPosition + (mVelocity * deltaTime);
 
 	// update angular properties
-	mRotation = mNodeAttachedTo->mAccumulatedQuaternion;
+	mRotation = mNodeAttachedTo->GetAccumulatedQuaternion();
 
 	XMMATRIX rotationM = XMMatrixRotationQuaternion(XMLoadFloat4(&mRotation.Get()));
 	XMMATRIX rotationMT = XMMatrixTranspose(rotationM);
@@ -60,8 +60,8 @@ void RigidBodyComponent::Update(float deltaTime)
 	mForce = Vector3();
 	mTorque = Vector3();
 
-	mNodeAttachedTo->mRelativePosition.Add((mVelocity * deltaTime).v);
-	mNodeAttachedTo->mRelativeQuaternion.Mul(deltaQuat);
+	mNodeAttachedTo->AddRelativePosition((mVelocity * deltaTime).v);
+	mNodeAttachedTo->MulRelativeQuaternion(deltaQuat);
 }
 
 void RigidBodyComponent::AddForce(Vector3 force, Vector3 relativePosition)
@@ -72,9 +72,9 @@ void RigidBodyComponent::AddForce(Vector3 force, Vector3 relativePosition)
 
 void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<RigidBodyComponent> other)
 {
-	XMFLOAT3 xmP1 = this->mNodeAttachedTo->mAccumulatedPosition.Get();
+	XMFLOAT3 xmP1 = this->mNodeAttachedTo->GetAccumulatedPosition().Get();
 	Vector3 p1(xmP1.x, xmP1.y, xmP1.z);
-	XMFLOAT3 xmP2 = other->mNodeAttachedTo->mAccumulatedPosition.Get();
+	XMFLOAT3 xmP2 = other->mNodeAttachedTo->GetAccumulatedPosition().Get();
 	Vector3 p2(xmP2.x, xmP2.y, xmP2.z);
 
 	float e = 0.8f;

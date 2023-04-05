@@ -55,7 +55,7 @@ void VolumeNode::Update()
 	else
 	{
 		parentsWorld = mParentNode->mObjFeature.world;
-		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
+		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->GetAccumulatedQuaternion();
 	}
 
 	XMFLOAT3 pos = mRelativePosition.Get();

@@ -24,8 +24,6 @@
 #include "MeshManager.h"
 #include "MeshNode.h"
 #include "VolumeNode.h"
-#include "CapsuleCollisionComponent.h"
-#include "SphereCollisionComponent.h"
 #include "BoxCollisionComponent.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;

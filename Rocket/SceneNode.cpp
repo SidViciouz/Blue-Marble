@@ -95,3 +95,106 @@ void SceneNode::RemoveChild(shared_ptr<SceneNode> child)
 {
 
 }
+
+void SceneNode::SetRelativePosition(const XMFLOAT3& position)
+{
+	mRelativePosition.Set(position);
+}
+
+void SceneNode::SetRelativePosition(const float& x, const float& y, const float& z)
+{
+	mRelativePosition.Set(x, y, z);
+}
+
+void SceneNode::SetRelativeQuaternion(const XMFLOAT4& quaternion)
+{
+	mRelativeQuaternion.Set(quaternion);
+}
+
+void SceneNode::SetRelativeQuaternion(const float& x, const float& y, const float& z, const float& w)
+{
+	mRelativeQuaternion.Set(x, y, z, w);
+}
+
+void SceneNode::SetScale(const XMFLOAT3& scale)
+{
+	mScale = scale;
+}
+
+void SceneNode::SetScale(const float& x, const float& y, const float& z)
+{
+	mScale = { x,y,z };
+}
+
+void SceneNode::SetAccumulatedPosition(const XMFLOAT3& position)
+{
+	mAccumulatedPosition.Set(position);
+	if (mParentNode == nullptr)
+		mRelativePosition.Set(position);
+	else
+	{
+		mRelativePosition.Set((mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+	}
+}
+
+void SceneNode::SetAccumulatedPosition(const float& x, const float& y, const float& z)
+{
+	mAccumulatedPosition.Set(x,y,z);
+	if (mParentNode == nullptr)
+		mRelativePosition.Set(x,y,z);
+	else
+	{
+		mRelativePosition.Set((mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+	}
+}
+
+void SceneNode::AddRelativePosition(const XMFLOAT3& position)
+{
+	mRelativePosition.Add(position);
+}
+
+void SceneNode::AddRelativePosition(const float& x, const float& y, const float& z)
+{
+	mRelativePosition.Add(x, y, z);
+}
+
+void SceneNode::MulRelativeQuaternion(const Quaternion& quaternion)
+{
+	mRelativeQuaternion.Mul(quaternion);
+}
+
+void SceneNode::MulRelativeQuaternion(const XMFLOAT4& quaternion)
+{
+	mRelativeQuaternion.Mul(quaternion);
+}
+
+void SceneNode::MulRelativeQuaternion(const float& x, const float& y, const float& z, const float& w)
+{
+	mRelativeQuaternion.Mul(x, y, z, w);
+}
+
+
+Position SceneNode::GetRelativePosition()
+{
+	return mRelativePosition;
+}
+
+Quaternion SceneNode::GetRelativeQuaternion()
+{
+	return mRelativeQuaternion;
+}
+
+XMFLOAT3 SceneNode::GetScale()
+{
+	return mScale;
+}
+
+Position SceneNode::GetAccumulatedPosition()
+{
+	return mAccumulatedPosition;
+}
+
+Quaternion SceneNode::GetAccumulatedQuaternion()
+{
+	return mAccumulatedQuaternion;
+}
