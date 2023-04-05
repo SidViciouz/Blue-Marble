@@ -37,3 +37,12 @@ void MeshNode::Draw()
 	}
 
 }
+
+void MeshNode::Update()
+{
+	/*
+	* 여기에 추가로 필요한 것들을 작성한다.
+	*/
+
+	SceneNode::Update();
+}

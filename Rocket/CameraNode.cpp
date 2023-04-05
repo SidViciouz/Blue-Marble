@@ -1,4 +1,5 @@
 #include "CameraNode.h"
+#include "Engine.h"
 
 CameraNode::CameraNode(int width, int height)
 	: SceneNode()
@@ -15,6 +16,28 @@ CameraNode::CameraNode(int width, int height)
 
 void CameraNode::Update()
 {
+	/*
+	* 여기에 추가로 필요한 것들을 작성한다.
+	*/
+	
+	//deltaTime 추가해야한다.
+	if (Engine::mInputManager->GetKeys(0x57))
+	{
+		GoFront(0.1f);
+	}
+	if (Engine::mInputManager->GetKeys(0x53))
+	{
+		GoFront(-0.1f);
+	}
+	if (Engine::mInputManager->GetKeys(0x41))
+	{
+		GoRight(0.1f);
+	}
+	if (Engine::mInputManager->GetKeys(0x44))
+	{
+		GoRight(-0.1f);
+	}
+
 	UpdateViewMatrix();
 	UpdateProjectionMatrix();
 

@@ -22,6 +22,8 @@ unique_ptr<PerlinMap> Engine::mPerlinMap;
 
 unique_ptr<MeshManager> Engine::mMeshManager;
 
+shared_ptr<InputManager> Engine::mInputManager;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -300,7 +302,7 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_KEYDOWN :
-		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam),wParam);
+		mInputManager->SetKeys(wParam, true);
 		if (wParam == 0x54)
 		{
 			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
@@ -320,8 +322,10 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			mScenes[mCurrentScene]->mSpawnSystem->DestroyPush({ "Clickable","0"});
 		}
-
 		return 0;
+
+	case WM_KEYUP:
+		mInputManager->SetKeys(wParam, false);
 	}
 	
 	return DefWindowProc(hwnd, msg, wParam, lParam);

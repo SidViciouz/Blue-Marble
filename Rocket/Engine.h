@@ -154,5 +154,5 @@ public:
 
 	unordered_map<string,shared_ptr<Scene>>		mAllScenes;
 
-	shared_ptr<InputManager>					mInputManager;
+	static shared_ptr<InputManager>				mInputManager;
 };
