@@ -35,35 +35,28 @@ void SceneNode::Draw()
 
 void SceneNode::Update()
 {
-	XMFLOAT4X4 parentsWorld;
-
 	if (mParentNode == nullptr)
 	{
-		parentsWorld = {
-			1.0f,0.0f,0.0f,0.0f,
-			0.0f,1.0f,0.0f,0.0f,
-			0.0f,0.0f,1.0f,0.0f,
-			0.0f,0.0f,0.0f,1.0f
-		};
 		//copy operation
 		mAccumulatedQuaternion = mRelativeQuaternion;
+		mAccumulatedPosition = mRelativePosition;
 	}
 
 	else
 	{
-		parentsWorld = mParentNode->mObjFeature.world;
 		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
+		XMVECTOR p = XMLoadFloat3(&mRelativePosition.Get());
+		XMMATRIX q = XMMatrixRotationQuaternion(XMLoadFloat4(&mParentNode->mAccumulatedQuaternion.Get()));
+		XMFLOAT3 pq;
+		XMStoreFloat3( &pq ,XMVector3TransformCoord(p, q));
+		mAccumulatedPosition.Set(pq);
+		mAccumulatedPosition = mAccumulatedPosition + mParentNode->mAccumulatedPosition;
 	}
 
-	XMFLOAT3 pos = mRelativePosition.Get();
-	XMMATRIX world = XMMatrixRotationQuaternion(XMLoadFloat4(&mRelativeQuaternion.Get())) *  XMMatrixTranslation(pos.x, pos.y, pos.z) *
-		XMLoadFloat4x4(&parentsWorld);
-	//XMMATRIX world = XMMatrixRotationQuaternion(XMLoadFloat4(&mAccumulatedQuaternion.Get())) * XMMatrixTranslation(pos.x, pos.y, pos.z);
-		//* XMLoadFloat4x4(&parentsWorld);
+	XMFLOAT3 pos = mAccumulatedPosition.Get();
+	XMMATRIX world = XMMatrixScaling(mScale.x, mScale.y, mScale.z) * XMMatrixRotationQuaternion(XMLoadFloat4(&mAccumulatedQuaternion.Get())) * XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 	XMStoreFloat4x4(&mObjFeature.world, world);
-
-	mAccumulatedPosition.Set(mObjFeature.world._41, mObjFeature.world._42, mObjFeature.world._43);
 
 	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx, &mObjFeature, sizeof(obj),
 		mSceneNodeIndex * constantBufferAlignment(sizeof(obj)));
