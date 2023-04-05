@@ -21,6 +21,7 @@ public:
 
 	Position									mRelativePosition;
 	Quaternion									mRelativeQuaternion;
+	XMFLOAT3									mScale;
 
 	Position									mAccumulatedPosition;
 	Quaternion									mAccumulatedQuaternion;

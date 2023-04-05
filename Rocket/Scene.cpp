@@ -99,3 +99,8 @@ void Scene::Draw()
 		volume->second->Draw();
 	}
 }
+
+void Scene::UpdateScene(float deltaTime)
+{
+
+}

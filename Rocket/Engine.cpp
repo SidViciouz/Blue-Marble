@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "MainScene.h"
 
 vector<unique_ptr<Scene>> Engine::mScenes;
 ComPtr<ID3D12GraphicsCommandList> Engine::mCommandList;
@@ -56,39 +57,20 @@ void Engine::Initialize()
 	mMeshManager->Load("my", "../Model/my.obj", true);
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
+	/*
 	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
 	{
 		scene->get()->CreateModelSrv(MAX_OBJECT);
 	}
+	*/
 
-	boxMesh = make_shared<MeshNode>("box");
-	boxMesh->mRelativePosition.Set(4.5f,5.0f, 0.0f);
-	boxMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
-	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 3.0f, 3.0f,3.0f);
-	boxMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(boxMesh, 1.0f);
-	boxMesh->mRigidBodyComponent->AddForce(Vector3(-300.0f, 0.0f, 0.0f), Vector3());
-	ballMesh = make_shared<MeshNode>("ball");
-	ballMesh->mRelativePosition.Set(0.0f, 5.0f, 0.0f);
-	ballMesh->mRelativeQuaternion.Set(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
-	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 3.0f,3.0f,3.0f);
-	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
-	ballMesh->mRigidBodyComponent->AddForce(Vector3(300.0f,0.0f,0.0f), Vector3());
-	groundMesh = make_shared<MeshNode>("box");
-	groundMesh->mRelativePosition.Set(0.0f, -5.0f, 0.0f);
-	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 1.0f, 20.0f);
-	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
+	mAllScenes["MainScene"] = (make_shared<MainScene>());
 
-	//ballMesh->AddChild(boxMesh);
-	mScenes[mCurrentScene]->mSceneRoot->AddChild(boxMesh);
-	mScenes[mCurrentScene]->mSceneRoot->AddChild(ballMesh);
-	mScenes[mCurrentScene]->mSceneRoot->AddChild(groundMesh);
-	mScenes[mCurrentScene]->mSceneRoot->Update();
-	//mScenes[mCurrentScene]->mSceneRoot->AddChild(make_unique<VolumeNode>(1.0f, 1.0f, 20.0f));
-
+	/*
 	mRigidBodySystem = make_unique<RigidBodySystem>();
 	mRigidBodySystem->Load();
 	mRigidBodySystem->GenerateParticle();
-
+	*/
 	mPerlinMap = make_unique<PerlinMap>();
 
 	IfError::Throw(mCommandList->Close(),
@@ -673,6 +655,7 @@ void Engine::Update()
 	mScenes[mCurrentScene]->envFeature.currentTime = mTimer.GetTime();
 	mResourceManager->Upload(mFrames[mCurrentFrame]->mEnvConstantBufferIdx, &mScenes[mCurrentScene]->envFeature, sizeof(env), 0);
 
+	/*
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
 	{
@@ -691,46 +674,9 @@ void Engine::Update()
 		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &volume->second->mObjFeature, sizeof(obj),
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
+	*/
 
-	
-	Vector3 dir(1.0f, 0.0f, 0.0f);
-	dir = dir.normalize();
-	//ballMesh->mRelativePosition.Add(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
-	//	dir.v.y * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f));
-	//ballMesh->mRelativeQuaternion.Mul(dir.v.x * sinf(1.0f * mTimer.GetDeltaTime()*0.3f),
-	//	dir.v.y*sinf(1.0f * mTimer.GetDeltaTime()*0.3f), dir.v.z * sinf(1.0f * mTimer.GetDeltaTime()*0.3f), cosf(1.0f * mTimer.GetDeltaTime()*0.3f));
-	ballMesh->mRigidBodyComponent->Update(mTimer.GetDeltaTime());
-	boxMesh->mRigidBodyComponent->Update(mTimer.GetDeltaTime());
-
-	mScenes[mCurrentScene]->mSceneRoot->Update();
-	
-	ballMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f * 1.0f, 0.0f), Vector3());
-	boxMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f*1.0f, 0.0f), Vector3());
-
-	CollisionInfo collisionInfo;
-	if (ballMesh->IsColliding(boxMesh.get(), collisionInfo))
-	{
-		ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
-		ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, boxMesh->mRigidBodyComponent);
-	}
-	if (boxMesh->IsColliding(ballMesh.get(), collisionInfo))
-	{
-		boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
-		boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, ballMesh->mRigidBodyComponent);
-	}
-	if (boxMesh->IsColliding(groundMesh.get(), collisionInfo))
-	{
-		boxMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
-		boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
-	}
-	if (ballMesh->IsColliding(groundMesh.get(), collisionInfo))
-	{
-		ballMesh->mRelativePosition.Add((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
-		ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
-	}
-	
-
-
+	mAllScenes["MainScene"]->UpdateScene(mTimer.GetDeltaTime());
 }
 
 void Engine::Draw()
@@ -751,7 +697,7 @@ void Engine::Draw()
 	
 	//texture 초기화 해야함.
 	//첫번째 draw인 경우에는 제외해야함.
-	
+	/*
 	mRigidBodySystem->UploadRigidBody();
 	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
 	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
@@ -768,7 +714,7 @@ void Engine::Draw()
 		WaitUntilPrevFrameComplete();
 		mRigidBodySystem->UpdateRigidBody();
 	}
-	
+	*/
 	//
 	mScenes[mCurrentScene]->Spawn();
 
@@ -801,10 +747,10 @@ void Engine::Draw()
 	/*
 	* scene의 object들을 draw한다.
 	*/
-	mScenes[mCurrentScene]->Draw();
+	//mScenes[mCurrentScene]->Draw();
 
-	mScenes[mCurrentScene]->mSceneRoot->Draw();
-
+	//mScenes[mCurrentScene]->mSceneRoot->Draw();
+	mAllScenes["MainScene"]->mSceneRoot->Draw();
 	/*
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{

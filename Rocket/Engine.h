@@ -156,4 +156,5 @@ public:
 	shared_ptr<MeshNode> boxMesh;
 	shared_ptr<MeshNode> ballMesh;
 	shared_ptr<MeshNode> groundMesh;
+	unordered_map<string,shared_ptr<Scene>>		mAllScenes;
 };

@@ -17,6 +17,8 @@ SceneNode::SceneNode()
 		}
 	}
 
+	mScale = { 1.0f,1.0f,1.0f };
+
 	mObjFeature.diffuseAlbedo = { 0.7f, 0.9f, 0.75f };
 	mObjFeature.roughness = 0.3f;
 	mObjFeature.fresnel = { 0.1f,0.1f,0.1f };

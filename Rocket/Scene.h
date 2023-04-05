@@ -52,4 +52,6 @@ public:
 	shared_ptr<Model>							mSelectedModel;
 
 	shared_ptr<SceneNode>						mSceneRoot;
+
+	virtual void								UpdateScene(float deltaTime);
 };
