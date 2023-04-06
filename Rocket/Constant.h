@@ -176,8 +176,14 @@ struct CollisionInfo
 struct Message
 {
 	UINT msgType;
-	UINT param1;
-	UINT param2;
-	UINT param3;
-	UINT param4;
+	int param1;
+	int param2;
+	int param3;
+	int param4;
+};
+
+struct PrevMousePosition
+{
+	int x;
+	int y;
 };

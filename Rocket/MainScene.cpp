@@ -40,10 +40,6 @@ void MainScene::Initialize()
 
 	
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
-	camera->SetRelativePosition(0.0f, 0.0f, -5.0f);
-	camera->Turn(100, 100);
-	camera->GoFront(15.0f);
-	camera->GoRight(-5.0f);
 	mCameraNode = camera;
 	
 	mSceneRoot->AddChild(boxMesh);

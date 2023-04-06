@@ -10,11 +10,12 @@ public:
 	void										Resize(int width, int height);
 	void										GoFront(float d);
 	void										GoRight(float d);
-	void										Turn(float x, float y);
+	void										TurnX(float x);
+	void										TurnY(float y);
 	const XMFLOAT4X4&							GetView() const;
 	const XMFLOAT4X4&							GetProjection() const;
 	const XMFLOAT4X4&							GetInvVIewProjection() const;
-	XMFLOAT3									GetFront() const;
+	const XMFLOAT3&								GetFront() const;
 
 	virtual void								Draw() override;
 
@@ -22,6 +23,10 @@ protected:
 
 	void										UpdateViewMatrix();
 	void										UpdateProjectionMatrix();
+
+	XMFLOAT3									mUp;
+	XMFLOAT3									mFront;
+	XMFLOAT3									mRight;
 
 	float										mNear;
 	float										mFar;
@@ -35,4 +40,7 @@ protected:
 
 	bool										mViewDirty = true;
 	bool										mProjectionDirty = true;
+
+	PrevMousePosition							mPrevMousePosition;
+	bool										mMouseDown = false;
 };

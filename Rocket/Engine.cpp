@@ -261,7 +261,12 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_LBUTTONDOWN:
-		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
+		if (!mInputManager->GetMouseLeftDown())
+		{
+			mInputManager->SetMouseLeftDown(true);
+			mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
+			//SetCapture(hwnd);
+		}
 		if (mScenes[mCurrentScene]->mIsModelSelected == false)
 		{
 			SelectObject(LOWORD(lParam), HIWORD(lParam));
@@ -269,7 +274,9 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_LBUTTONUP:
-		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
+		mInputManager->SetMouseLeftDown(false);
+		mInputManager->Push(msg);
+		//ReleaseCapture();
 		if (mIsInventorySelected == true)
 		{
 			mIsInventorySelected = false;
@@ -292,7 +299,10 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_MOUSEMOVE:
-		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
+		if (mInputManager->GetMouseLeftDown())
+		{
+			mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
+		}
 		if (mScenes[mCurrentScene]->mIsModelSelected == true)
 		{
 			MoveObject(LOWORD(lParam), HIWORD(lParam));
@@ -658,6 +668,7 @@ void Engine::Update()
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	Input();
 	//mScenes[mCurrentScene]->Update();
+	/*
 	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
 	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;
 	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
@@ -665,7 +676,7 @@ void Engine::Update()
 	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
 	mScenes[mCurrentScene]->envFeature.currentTime = mTimer.GetTime();
 	mResourceManager->Upload(mFrames[mCurrentFrame]->mEnvConstantBufferIdx, &mScenes[mCurrentScene]->envFeature, sizeof(env), 0);
-	
+	*/
 	/*
 	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
 	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)

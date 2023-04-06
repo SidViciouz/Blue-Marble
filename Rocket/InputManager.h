@@ -9,12 +9,19 @@ class InputManager
 public:
 												InputManager();
 	void										Push(Message msg);
-	void										Push(UINT msgType,UINT param1 = 0, UINT param2 = 0, UINT param3 = 0, UINT param4 = 0);
+	void										Push(UINT msgType,int param1 = 0, int param2 = 0, int param3 = 0, int param4 = 0);
 	Message										Pop();
+	void										Clear();
+
 	void										SetKeys(int idx,bool value);
 	const bool&									GetKeys(int idx) const;
+	void										SetMouseLeftDown(bool value);
+	bool										GetMouseLeftDown() const;
 
 protected:
 	queue<Message>								mMessageQueue;
-	bool										keys[256] = { false, };
+	bool										mKeys[256] = { false, };
+	bool										mMouseLeftDown = false;
+	PrevMousePosition							mPrevMousePosition;
 };
+

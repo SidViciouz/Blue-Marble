@@ -4,12 +4,17 @@
 CameraNode::CameraNode(int width, int height)
 	: SceneNode()
 {
+	mUp = { 0.0f,1.0f,0.0f };
+	mFront = { 0.0f,0.0f,1.0f };
+	mRight = { 1.0f,0.0f,0.0f };
+
 	mNear = 1.0f;
 	mFar = 1000.0f;
 	mAngle = XMConvertToRadians(45.0f);
 	mRatio = static_cast<float>(width) / height;
 
-	SetRelativeQuaternion(0.0f,cosf(XMConvertToRadians(-45.0f)),0.0f,sinf(XMConvertToRadians(-45.0f)));
+	SetRelativePosition(0.0f, 0.0f, -15.0f);
+	SetRelativeQuaternion(0.0f,cosf(XMConvertToRadians(0.0f)),0.0f,sinf(XMConvertToRadians(0.0f)));
 	UpdateViewMatrix();
 	UpdateProjectionMatrix();
 }
@@ -19,7 +24,26 @@ void CameraNode::Update()
 	/*
 	* 여기에 추가로 필요한 것들을 작성한다.
 	*/
-	
+
+	for (Message msg = Engine::mInputManager->Pop(); msg.msgType != 0; msg = Engine::mInputManager->Pop())
+	{
+		if (msg.msgType == WM_LBUTTONDOWN)
+		{
+			mMouseDown = true;
+			mPrevMousePosition = { msg.param1,msg.param2 };
+		}
+		else if (msg.msgType == WM_LBUTTONUP)
+		{
+			mMouseDown = false;
+		}
+		else if (msg.msgType == WM_MOUSEMOVE && mMouseDown)
+		{
+			TurnX(XMConvertToRadians(0.25f * static_cast<float>(msg.param2 - mPrevMousePosition.y)));
+			TurnY(XMConvertToRadians(0.25f * static_cast<float>(msg.param1 - mPrevMousePosition.x)));
+			mPrevMousePosition = { msg.param1 ,msg.param2 };
+		}
+	}
+
 	//deltaTime 추가해야한다.
 	if (Engine::mInputManager->GetKeys(0x57))
 	{
@@ -31,11 +55,11 @@ void CameraNode::Update()
 	}
 	if (Engine::mInputManager->GetKeys(0x41))
 	{
-		GoRight(0.1f);
+		GoRight(-0.1f);
 	}
 	if (Engine::mInputManager->GetKeys(0x44))
 	{
-		GoRight(-0.1f);
+		GoRight(0.1f);
 	}
 
 	UpdateViewMatrix();
@@ -55,74 +79,50 @@ void CameraNode::GoFront(float d)
 {
 	mViewDirty = true;
 
-	float angle;
-	XMVECTOR axis;
-	XMVECTOR quat = XMLoadFloat4(&mRelativeQuaternion.Get());
-
-	XMQuaternionToAxisAngle(&axis, &angle, quat);
-	XMVECTOR perp = XMVector3Orthogonal(axis);
-
-	XMVECTOR front = XMVector3Normalize(XMVector3Rotate(perp, quat));
-
-	XMFLOAT3 frontDir;
-	XMStoreFloat3(&frontDir, front);
-
-	printf("front : %f %f %f\n", frontDir.x, frontDir.y, frontDir.z);
-
-	MulAddRelativePosition(d, frontDir);
+	MulAddRelativePosition(d, mFront);
 }
+
 
 void CameraNode::GoRight(float d)
 {
 	mViewDirty = true;
 
-	float angle;
-	XMVECTOR axis;
-	XMVECTOR quat = XMLoadFloat4(&mRelativeQuaternion.Get());
-
-	XMQuaternionToAxisAngle(&axis, &angle, quat);
-	XMVECTOR perp = XMVector3Orthogonal(axis);
-
-	XMVECTOR quatRight = XMQuaternionRotationAxis(axis, XMConvertToRadians(90.0f));
-
-	quat = XMQuaternionMultiply(quat, quatRight);
-
-	XMVECTOR right = XMVector3Normalize(XMVector3Rotate(perp, quat));
-
-	XMFLOAT3 rightDir;
-	XMStoreFloat3(&rightDir, right);
-
-	MulAddRelativePosition(d, rightDir);
+	MulAddRelativePosition(d, mRight);
 }
 
-void CameraNode::Turn(float x, float y)
+void CameraNode::TurnX(float x)
 {
 	mViewDirty = true;
 
-	XMVECTOR xAxis = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR yAxis = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	XMVECTOR rightAxis = XMLoadFloat3(&mRight);
 
-	float xAngle = XMConvertToRadians(-y/10.0f);
-	float yAngle = XMConvertToRadians(x/10.0f);
+	XMMATRIX R = XMMatrixRotationAxis(rightAxis, x);
 
-	XMVECTOR xRotation = XMQuaternionRotationAxis(xAxis, xAngle);
-	XMVECTOR yRotation = XMQuaternionRotationAxis(yAxis, yAngle);
+	XMStoreFloat3(&mUp, XMVector3TransformNormal(XMLoadFloat3(&mUp), R));
+	XMStoreFloat3(&mFront, XMVector3TransformNormal(XMLoadFloat3(&mFront), R));
 
-	XMVECTOR finalRotation = XMQuaternionMultiply(xRotation, yRotation);
-	XMFLOAT4 dQuatDir;
-	XMStoreFloat4(&dQuatDir, finalRotation);
+	XMFLOAT4 quat;
+	XMStoreFloat4(&quat,XMQuaternionMultiply(XMLoadFloat4(&mRelativeQuaternion.Get()), XMQuaternionRotationAxis(rightAxis,x)));
+	SetRelativeQuaternion(quat);
+}
 
-	float angle;
-	XMVECTOR axis;
-	XMVECTOR quat = XMLoadFloat4(&mRelativeQuaternion.Get());
-	XMQuaternionToAxisAngle(&axis, &angle, quat);
-	printf("axis : %f %f %f, angle : %f\n", XMVectorGetX(axis), XMVectorGetY(axis), XMVectorGetZ(axis), XMConvertToDegrees(angle));
+void CameraNode::TurnY(float y)
+{
+	mViewDirty = true;
 
-	MulRelativeQuaternion(dQuatDir);
+	XMVECTOR upAxis = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
-	quat = XMLoadFloat4(&mRelativeQuaternion.Get());
-	XMQuaternionToAxisAngle(&axis, &angle, quat);
-	printf("axis : %f %f %f, angle : %f\n", XMVectorGetX(axis), XMVectorGetY(axis), XMVectorGetZ(axis), XMConvertToDegrees(angle));
+	XMMATRIX R = XMMatrixRotationY(y);
+
+	XMStoreFloat3(&mRight, XMVector3TransformNormal(XMLoadFloat3(&mRight), R));
+	XMStoreFloat3(&mUp, XMVector3TransformNormal(XMLoadFloat3(&mUp), R));
+	XMStoreFloat3(&mFront, XMVector3TransformNormal(XMLoadFloat3(&mFront), R));
+
+	XMFLOAT4 quat;
+	XMStoreFloat4(&quat, XMQuaternionMultiply(XMLoadFloat4(&mRelativeQuaternion.Get()), XMQuaternionRotationAxis(upAxis, y)));
+	SetRelativeQuaternion(quat);
+
+	printf("%f %f %f %f\n", quat.x, quat.y, quat.z, quat.w);
 }
 
 const XMFLOAT4X4& CameraNode::GetView() const
@@ -140,21 +140,9 @@ const XMFLOAT4X4& CameraNode::GetInvVIewProjection() const
 	return mInvViewProjection;
 }
 
-XMFLOAT3 CameraNode::GetFront() const
+const XMFLOAT3& CameraNode::GetFront() const
 {
-	float angle;
-	XMVECTOR axis;
-	XMVECTOR quat = XMLoadFloat4(&mRelativeQuaternion.Get());
-
-	XMQuaternionToAxisAngle(&axis, &angle, quat);
-	XMVECTOR perp = XMVector3Orthogonal(axis);
-
-	XMVECTOR front = XMVector3Normalize(XMVector3Rotate(perp, quat));
-
-	XMFLOAT3 frontDir;
-	XMStoreFloat3(&frontDir, front);
-
-	return frontDir;
+	return mFront;
 }
 
 
@@ -169,13 +157,31 @@ void CameraNode::UpdateViewMatrix()
 		return;
 
 	mViewDirty = false;
+	
+	XMVECTOR right = XMLoadFloat3(&mRight);
+	XMVECTOR up = XMLoadFloat3(&mUp);
+	XMVECTOR front = XMVector3Normalize(XMLoadFloat3(&mFront));
+	XMVECTOR position = XMLoadFloat3(&GetRelativePosition().Get());
 
-	XMMATRIX rotationM =  XMMatrixRotationQuaternion(XMLoadFloat4(&mRelativeQuaternion.Get()));
-	XMMATRIX translationM = XMMatrixTranslationFromVector(XMLoadFloat3(&mRelativePosition.Get()));
+	up = XMVector3Normalize(XMVector3Cross(front, right));
+	right = XMVector3Cross(up, front);
 
-	XMStoreFloat4x4(&mView, XMMatrixMultiply(rotationM, translationM));
-	//XMStoreFloat4x4(&mView, translationM);
+	XMStoreFloat3(&mRight, right);
+	XMStoreFloat3(&mUp, up);
+	XMStoreFloat3(&mFront, front);
 
+	float x = -XMVectorGetX(XMVector3Dot(position, right));
+	float y = -XMVectorGetX(XMVector3Dot(position, up));
+	float z = -XMVectorGetX(XMVector3Dot(position, front));
+
+
+	mView = {
+		mRight.x, mUp.x, mFront.x, 0.0f,
+		mRight.y, mUp.y, mFront.y, 0.0f,
+		mRight.z, mUp.z, mFront.z, 0.0f,
+		x,y,z,1.0f
+	};
+	
 	XMMATRIX v = XMLoadFloat4x4(&mView);
 	XMMATRIX p = XMLoadFloat4x4(&mProjection);
 
