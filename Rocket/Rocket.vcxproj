@@ -145,6 +145,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="Clickable.h" />
+    <ClInclude Include="ClickableNode.h" />
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Constant.h" />
     <ClInclude Include="d3dx12.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CameraNode.cpp" />
     <ClCompile Include="Clickable.cpp" />
+    <ClCompile Include="ClickableNode.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DescriptorManager.cpp" />

@@ -14,7 +14,7 @@ CameraNode::CameraNode(int width, int height)
 	mRatio = static_cast<float>(width) / height;
 
 	SetRelativePosition(0.0f, 0.0f, -15.0f);
-	SetRelativeQuaternion(0.0f,cosf(XMConvertToRadians(0.0f)),0.0f,sinf(XMConvertToRadians(0.0f)));
+	//SetRelativeQuaternion(0.0f,cosf(XMConvertToRadians(0.0f)),0.0f,sinf(XMConvertToRadians(0.0f)));
 	UpdateViewMatrix();
 	UpdateProjectionMatrix();
 }
@@ -148,7 +148,7 @@ const XMFLOAT3& CameraNode::GetFront() const
 
 void CameraNode::Draw()
 {
-
+	SceneNode::Draw();
 }
 
 void CameraNode::UpdateViewMatrix()

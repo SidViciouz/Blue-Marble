@@ -37,10 +37,13 @@ void MainScene::Initialize()
 
 	shared_ptr<VolumeNode> cloudVolume = make_shared<VolumeNode>(50.0f, 5.0f, 50.0f);
 	cloudVolume->SetRelativePosition(9.0f, 30.0f, 0.0f);
-
 	
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
 	mCameraNode = camera;
+
+	shared_ptr<ClickableNode> clickable1 = make_shared<ClickableNode>("my");
+	clickable1->SetRelativePosition(3.0f,3.0f,10.0f);
+	camera->AddChild(clickable1);
 	
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(ballMesh);

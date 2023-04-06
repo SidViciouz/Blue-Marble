@@ -4,6 +4,7 @@
 #include "MeshNode.h"
 #include "VolumeNode.h"
 #include "CameraNode.h"
+#include "ClickableNode.h"
 
 class MainScene : public Scene
 {
