@@ -5,7 +5,7 @@
 class Mesh
 {
 public:
-												Mesh(string name, const char* fileName, bool hasRigidBody);
+												Mesh(string name, const char* fileName);
 	void										Draw();
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
@@ -20,7 +20,6 @@ public:
 	D3D12_VERTEX_BUFFER_VIEW					mVertexBufferView;
 	D3D12_INDEX_BUFFER_VIEW						mIndexBufferView;
 	BoundingOrientedBox							mBound;
-	bool										mHasRigidBody;
 
 private:
 	string										getToken(string& aLine, bool isFirst);

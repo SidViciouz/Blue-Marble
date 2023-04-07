@@ -3,8 +3,7 @@
 #include "Engine.h"
 #include <fstream>
 
-Mesh::Mesh(string name, const char* fileName, bool hasRigidBody) : 
-	mHasRigidBody{hasRigidBody}
+Mesh::Mesh(string name, const char* fileName)
 {
 	ifstream ifs;
 	ifs.open(fileName, ios_base::in);

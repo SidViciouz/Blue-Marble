@@ -2,11 +2,11 @@
 
 #include "InputComponent.h"
 
-class ClickableInputComponent : public InputComponent<ClickableInputComponent>
+class CameraInputComponent : public InputComponent<CameraInputComponent>
 {
 public:
-												ClickableInputComponent(shared_ptr<SceneNode> NodeAttachedTo)
-													: InputComponent<ClickableInputComponent>(NodeAttachedTo)
+												CameraInputComponent(shared_ptr<SceneNode> NodeAttachedTo)
+													: InputComponent<CameraInputComponent>(NodeAttachedTo)
 	{
 
 	}

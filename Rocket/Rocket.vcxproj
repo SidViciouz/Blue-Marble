@@ -145,7 +145,8 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="Clickable.h" />
-    <ClInclude Include="ClickableInputComponent.h" />
+    <ClInclude Include="CameraInputComponent.h" />
+    <ClInclude Include="UIInputComponent.h" />
     <ClInclude Include="ClickableNode.h" />
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Constant.h" />

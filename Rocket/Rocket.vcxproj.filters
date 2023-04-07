@@ -168,7 +168,10 @@
     <ClInclude Include="InputComponentBase.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ClickableInputComponent.h">
+    <ClInclude Include="CameraInputComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="UIInputComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

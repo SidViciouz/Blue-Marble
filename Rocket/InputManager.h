@@ -38,6 +38,9 @@ public:
 	void										Dispatch();
 
 protected:
+
+	void										Select(int x, int y);
+
 	queue<Message>								mMessageQueue;
 	bool										mKeys[256] = { false, };
 	bool										mMouseLeftDown = false;

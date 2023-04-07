@@ -68,6 +68,9 @@ public:
 	static int									mCurrentFrame;
 	static Timer								mTimer;
 
+	static int									mWidth;
+	static int									mHeight;
+
 	//Engine 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
 	//윈도우 관련 메서드
@@ -92,9 +95,6 @@ private:
 	HINSTANCE									mInstance;
 	HWND										mWindowHandle = nullptr;
 	std::wstring								mWindowCaption = L"Rocket Game";
-
-	int											mWidth = 800;
-	int											mHeight = 600;
 
 	bool										mIsInventorySelected = false;
 	
@@ -151,7 +151,8 @@ public:
 
 	static unique_ptr<MeshManager>				mMeshManager;
 
-	unordered_map<string,shared_ptr<Scene>>		mAllScenes;
+	static unordered_map<string,shared_ptr<Scene>>	mAllScenes;
+	static string								mCurrentSceneName;
 
 	static shared_ptr<InputManager>				mInputManager;
 };

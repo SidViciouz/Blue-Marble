@@ -25,6 +25,12 @@ shared_ptr<InputManager> Engine::mInputManager;
 
 Timer Engine::mTimer;
 
+unordered_map<string, shared_ptr<Scene>>	Engine::mAllScenes;
+string Engine::mCurrentSceneName;
+
+int Engine::mWidth = 800;
+int	Engine::mHeight = 600;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -57,9 +63,10 @@ void Engine::Initialize()
 	mInputManager = make_shared <InputManager>();
 
 	mMeshManager = make_unique<MeshManager>();
-	mMeshManager->Load("ball", "../Model/ball.obj", true);
-	mMeshManager->Load("box", "../Model/box.obj", true);
-	mMeshManager->Load("my", "../Model/my.obj", true);
+	mMeshManager->Load("ball", "../Model/ball.obj");
+	mMeshManager->Load("box", "../Model/box.obj");
+	mMeshManager->Load("my", "../Model/my.obj");
+	mMeshManager->Load("inventory", "../Model/inventory.obj");
 
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	/*
@@ -68,8 +75,9 @@ void Engine::Initialize()
 		scene->get()->CreateModelSrv(MAX_OBJECT);
 	}
 	*/
+	mCurrentSceneName = "MainScene";
 
-	mAllScenes["MainScene"] = (make_shared<MainScene>());
+	mAllScenes[mCurrentSceneName] = (make_shared<MainScene>());
 
 	/*
 	mRigidBodySystem = make_unique<RigidBodySystem>();
@@ -700,7 +708,7 @@ void Engine::Update()
 	*/
 	mInputManager->Dispatch();
 
-	mAllScenes["MainScene"]->UpdateScene(mTimer);
+	mAllScenes[mCurrentSceneName]->UpdateScene(mTimer);
 }
 
 void Engine::Draw()
@@ -774,7 +782,7 @@ void Engine::Draw()
 	//mScenes[mCurrentScene]->Draw();
 
 	//mScenes[mCurrentScene]->mSceneRoot->Draw();
-	mAllScenes["MainScene"]->mSceneRoot->Draw();
+	mAllScenes[mCurrentSceneName]->mSceneRoot->Draw();
 	/*
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
