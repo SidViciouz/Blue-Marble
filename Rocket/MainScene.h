@@ -1,10 +1,7 @@
 #pragma once
 
-#include "Scene.h"
-#include "MeshNode.h"
-#include "VolumeNode.h"
-#include "CameraNode.h"
 #include "ClickableNode.h"
+#include "Engine.h"
 
 class MainScene : public Scene
 {

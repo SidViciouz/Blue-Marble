@@ -1,5 +1,6 @@
 #include "MainScene.h"
-#include "BoxCollisionComponent.h"
+#include "Engine.h"
+#include "ClickableInputComponent.h"
 
 MainScene::MainScene()
 	: Scene()
@@ -39,6 +40,7 @@ void MainScene::Initialize()
 	cloudVolume->SetRelativePosition(9.0f, 30.0f, 0.0f);
 	
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
+	camera->mInputComponent = Engine::mInputManager->Build<ClickableInputComponent>(camera);
 	mCameraNode = camera;
 
 	shared_ptr<ClickableNode> clickable1 = make_shared<ClickableNode>("my");

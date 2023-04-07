@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "MainScene.h"
 
 vector<unique_ptr<Scene>> Engine::mScenes;
 ComPtr<ID3D12GraphicsCommandList> Engine::mCommandList;
@@ -23,6 +22,8 @@ unique_ptr<PerlinMap> Engine::mPerlinMap;
 unique_ptr<MeshManager> Engine::mMeshManager;
 
 shared_ptr<InputManager> Engine::mInputManager;
+
+Timer Engine::mTimer;
 
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
@@ -666,7 +667,7 @@ void Engine::Update()
 
 
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
-	Input();
+	//Input();
 	//mScenes[mCurrentScene]->Update();
 	/*
 	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
@@ -697,6 +698,7 @@ void Engine::Update()
 			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
 	}
 	*/
+	mInputManager->Dispatch();
 
 	mAllScenes["MainScene"]->UpdateScene(mTimer);
 }

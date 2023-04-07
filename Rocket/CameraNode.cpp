@@ -24,42 +24,23 @@ void CameraNode::Update()
 	/*
 	* 여기에 추가로 필요한 것들을 작성한다.
 	*/
-
-	for (Message msg = Engine::mInputManager->Pop(); msg.msgType != 0; msg = Engine::mInputManager->Pop())
-	{
-		if (msg.msgType == WM_LBUTTONDOWN)
-		{
-			mMouseDown = true;
-			mPrevMousePosition = { msg.param1,msg.param2 };
-		}
-		else if (msg.msgType == WM_LBUTTONUP)
-		{
-			mMouseDown = false;
-		}
-		else if (msg.msgType == WM_MOUSEMOVE && mMouseDown)
-		{
-			TurnX(XMConvertToRadians(0.25f * static_cast<float>(msg.param2 - mPrevMousePosition.y)));
-			TurnY(XMConvertToRadians(0.25f * static_cast<float>(msg.param1 - mPrevMousePosition.x)));
-			mPrevMousePosition = { msg.param1 ,msg.param2 };
-		}
-	}
-
+	float deltatime = Engine::mTimer.GetDeltaTime();
 	//deltaTime 추가해야한다.
 	if (Engine::mInputManager->GetKeys(0x57))
 	{
-		GoFront(0.1f);
+		GoFront(10.0f * deltatime);
 	}
 	if (Engine::mInputManager->GetKeys(0x53))
 	{
-		GoFront(-0.1f);
+		GoFront(-10.0f * deltatime);
 	}
 	if (Engine::mInputManager->GetKeys(0x41))
 	{
-		GoRight(-0.1f);
+		GoRight(10.0f * deltatime);
 	}
 	if (Engine::mInputManager->GetKeys(0x44))
 	{
-		GoRight(0.1f);
+		GoRight(-10.0f * deltatime);
 	}
 
 	UpdateViewMatrix();

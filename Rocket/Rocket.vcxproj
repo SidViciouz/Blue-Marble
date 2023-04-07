@@ -145,6 +145,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="Clickable.h" />
+    <ClInclude Include="ClickableInputComponent.h" />
     <ClInclude Include="ClickableNode.h" />
     <ClInclude Include="CollisionComponent.h" />
     <ClInclude Include="Constant.h" />
@@ -155,6 +156,8 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="IfError.h" />
+    <ClInclude Include="InputComponent.h" />
+    <ClInclude Include="InputComponentBase.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="Light.h" />

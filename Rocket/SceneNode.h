@@ -6,6 +6,7 @@
 #include "Constant.h"
 #include "CollisionComponent.h"
 #include "RigidBodyComponent.h"
+#include "InputComponentBase.h"
 
 class SceneNode
 {
@@ -50,6 +51,7 @@ public:
 
 	shared_ptr<CollisionComponent>				mCollisionComponent;
 	shared_ptr<RigidBodyComponent>				mRigidBodyComponent;
+	shared_ptr<InputComponentBase>				mInputComponent;
 
 	obj											mObjFeature;
 

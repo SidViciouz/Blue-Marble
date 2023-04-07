@@ -1,4 +1,5 @@
 #include "InputManager.h"
+#include "InputComponent.h"
 
 InputManager::InputManager()
 {
@@ -56,4 +57,43 @@ Message InputManager::Pop()
 	mMessageQueue.pop();
 
 	return front;
+}
+
+void InputManager::Dispatch()
+{
+	for (Message msg = Pop(); msg.msgType != 0; msg = Pop())
+	{
+		if (msg.msgType == WM_LBUTTONDOWN)
+		{
+			for (auto inputComponent : mInputComponents)
+			{
+				if (inputComponent->IsOnMouseDownOverriden())
+				{
+					inputComponent->OnMouseDown(msg.param1,msg.param2);
+				}
+			}
+		}
+		else if (msg.msgType == WM_LBUTTONUP)
+		{
+			for (auto inputComponent : mInputComponents)
+			{
+				if (inputComponent->IsOnMouseUpOverriden())
+				{
+					inputComponent->OnMouseUp();
+				}
+			}
+		}
+		else if (msg.msgType == WM_MOUSEMOVE)
+		{
+			for (auto inputComponent : mInputComponents)
+			{
+				if (inputComponent->IsOnMouseMoveOverriden())
+				{
+					inputComponent->OnMouseMove(msg.param1, msg.param2);
+				}
+			}
+		}
+	}
+
+	
 }

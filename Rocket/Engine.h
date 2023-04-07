@@ -26,6 +26,7 @@
 #include "VolumeNode.h"
 #include "BoxCollisionComponent.h"
 #include "InputManager.h"
+#include "MainScene.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -65,7 +66,7 @@ public:
 	static vector<unique_ptr<Frame>>			mFrames;
 	int											mNumberOfFrames = 3;
 	static int									mCurrentFrame;
-
+	static Timer								mTimer;
 
 	//Engine 객체 내부적으로 사용되는 메서드와 멤버 변수
 private:
@@ -94,8 +95,6 @@ private:
 
 	int											mWidth = 800;
 	int											mHeight = 600;
-
-	Timer										mTimer;
 
 	bool										mIsInventorySelected = false;
 	
