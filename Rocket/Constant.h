@@ -187,3 +187,11 @@ struct PrevMousePosition
 	int x;
 	int y;
 };
+
+struct TextInfo
+{
+	int											offsetX;
+	int											offsetY;
+	int											width;
+	int											height;
+};

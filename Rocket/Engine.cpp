@@ -28,6 +28,8 @@ Timer Engine::mTimer;
 unordered_map<string, shared_ptr<Scene>>	Engine::mAllScenes;
 string Engine::mCurrentSceneName;
 
+shared_ptr<TextManager>	Engine::mTextManager;
+
 int Engine::mWidth = 800;
 int	Engine::mHeight = 600;
 
@@ -68,6 +70,8 @@ void Engine::Initialize()
 	mMeshManager->Load("my", "../Model/my.obj");
 	mMeshManager->Load("inventory", "../Model/inventory.obj");
 
+	mTextManager = make_shared<TextManager>();
+
 	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
 	/*
 	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
@@ -76,7 +80,6 @@ void Engine::Initialize()
 	}
 	*/
 	mCurrentSceneName = "MainScene";
-
 	mAllScenes[mCurrentSceneName] = (make_shared<MainScene>());
 
 	/*
@@ -1031,6 +1034,14 @@ void Engine::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["ColliderShapePS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"TextShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["TextShaderVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"TextShader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["TextShaderPS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 
@@ -1260,6 +1271,63 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 	mRootSignatures["ColliderShape"] = move(rs);
+
+
+	D3D12_DESCRIPTOR_RANGE textRange[3];
+	textRange[0].BaseShaderRegister = 0;
+	textRange[0].NumDescriptors = 1;
+	textRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	textRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	textRange[0].RegisterSpace = 0;
+	textRange[1].BaseShaderRegister = 1;
+	textRange[1].NumDescriptors = 1;
+	textRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	textRange[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	textRange[1].RegisterSpace = 0;
+	textRange[2].BaseShaderRegister = 2;
+	textRange[2].NumDescriptors = 1;
+	textRange[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	textRange[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	textRange[2].RegisterSpace = 0;
+
+	D3D12_ROOT_PARAMETER rootParameterText[6];
+	rootParameterText[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterText[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameterText[0].Descriptor.RegisterSpace = 0;
+	rootParameterText[0].Descriptor.ShaderRegister = 0;
+	rootParameterText[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterText[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameterText[1].Descriptor.RegisterSpace = 0;
+	rootParameterText[1].Descriptor.ShaderRegister = 1;
+	rootParameterText[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameterText[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
+	rootParameterText[2].Constants.Num32BitValues = 1;
+	rootParameterText[2].Constants.RegisterSpace = 0;
+	rootParameterText[2].Constants.ShaderRegister = 2;
+	rootParameterText[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterText[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterText[3].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterText[3].DescriptorTable.pDescriptorRanges = &textRange[0];
+	rootParameterText[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterText[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterText[4].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterText[4].DescriptorTable.pDescriptorRanges = &textRange[1];
+	rootParameterText[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterText[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterText[5].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterText[5].DescriptorTable.pDescriptorRanges = &textRange[2];
+
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	rsDesc.NumParameters = 6;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &samplerDesc;
+	rsDesc.pParameters = rootParameterText;
+
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["Text"] = move(rs);
 }
 
 void Engine::CreatePso()
@@ -1589,6 +1657,32 @@ void Engine::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["planet"] = move(pso);
+
+	psoDesc.InputLayout.NumElements = 0;
+	psoDesc.InputLayout.pInputElementDescs = nullptr;
+	psoDesc.pRootSignature = mRootSignatures["Text"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["TextShaderVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["TextShaderVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["TextShaderPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["TextShaderPS"]->GetBufferSize();
+	psoDesc.HS.pShaderBytecode = nullptr;
+	psoDesc.HS.BytecodeLength = 0;
+	psoDesc.DS.pShaderBytecode = nullptr;
+	psoDesc.DS.BytecodeLength = 0;
+	psoDesc.GS.pShaderBytecode = nullptr;
+	psoDesc.GS.BytecodeLength = 0;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	psoDesc.RasterizerState.DepthClipEnable = true;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["Text"] = move(pso);
 
 }
 

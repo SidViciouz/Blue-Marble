@@ -41,7 +41,7 @@ public:
 	/*
 	* srv를 생성하고, descriptor heap내에서의 위치를 나타내는 인덱스를 반환한다.
 	*/
-	int											CreateSrv(ID3D12Resource* resource, DXGI_FORMAT format, D3D12_SRV_DIMENSION dimension, int ArraySize = 1);
+	int											CreateSrv(ID3D12Resource* resource, DXGI_FORMAT format, D3D12_SRV_DIMENSION dimension, int ArraySize = 1,int numElement = 0,int byteStride = 0);
 	/*
 	* uav를 생성하고, descriptor heap내에서의 위치를 나타내는 인덱스를 반환한다.
 	*/

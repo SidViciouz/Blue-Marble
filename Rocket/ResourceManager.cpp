@@ -121,6 +121,10 @@ int	ResourceManager::CreateTexture2D(int width, int height, DXGI_FORMAT format, 
 		clearValue.DepthStencil.Stencil = 0;
 		state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 	}
+	else if (format == DXGI_FORMAT_A8_UNORM || format == DXGI_FORMAT_R8_UNORM)
+	{
+		state = D3D12_RESOURCE_STATE_GENERIC_READ;
+	}
 	else
 	{
 		for(int i=0; i<4; ++i)
@@ -131,11 +135,22 @@ int	ResourceManager::CreateTexture2D(int width, int height, DXGI_FORMAT format, 
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 	}
 
-	IfError::Throw(Engine::mDevice->CreateCommittedResource(
-		&hp, D3D12_HEAP_FLAG_NONE,
-		&rd, state,
-		&clearValue, IID_PPV_ARGS(mResourceTable[mNextResourceIdx++].GetAddressOf())
-	), L"create texture2d fails!");
+	if (format == DXGI_FORMAT_A8_UNORM || format == DXGI_FORMAT_R8_UNORM)
+	{
+		IfError::Throw(Engine::mDevice->CreateCommittedResource(
+			&hp, D3D12_HEAP_FLAG_NONE,
+			&rd, state,
+			nullptr, IID_PPV_ARGS(mResourceTable[mNextResourceIdx++].GetAddressOf())
+		), L"create texture2d fails!");
+	}
+	else
+	{
+		IfError::Throw(Engine::mDevice->CreateCommittedResource(
+			&hp, D3D12_HEAP_FLAG_NONE,
+			&rd, state,
+			&clearValue, IID_PPV_ARGS(mResourceTable[mNextResourceIdx++].GetAddressOf())
+		), L"create texture2d fails!");
+	}
 
 	return mNextResourceIdx - 1;
 }
@@ -223,6 +238,20 @@ void ResourceManager::Upload(int index, const void* data, int byteSize,int offse
 	mResourceTable[index]->Map(0, nullptr, reinterpret_cast<void**>(&memory));
 
 	memcpy(&memory[offset], data, byteSize);
+
+	mResourceTable[index]->Unmap(0, nullptr);
+}
+
+void ResourceManager::UploadTexture2D(int index, const void* data, int width, int height, int offsetX,int offsetY)
+{
+	BYTE* memory;
+	mResourceTable[index]->Map(0, nullptr, reinterpret_cast<void**>(&memory));
+
+	int rowPitch = CalculateAlignment(width, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	for (int i = 0; i < height; ++i)
+	{
+		memcpy(&memory[offsetY*rowPitch + offsetX + i*rowPitch], (reinterpret_cast<const BYTE*>(data) + i*width), width);
+	}
 
 	mResourceTable[index]->Unmap(0, nullptr);
 }

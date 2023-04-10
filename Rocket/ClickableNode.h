@@ -7,9 +7,6 @@ public:
 												ClickableNode(string name);
 	virtual void								Draw() override;
 	virtual void								Update() override;
-	virtual void								OnClick();
 
 protected:
-	bool										IsMouseOn(int x, int y) const;
-	bool										mMouseDown = false;
 };

@@ -29,9 +29,5 @@ void VolumeNode::Draw()
 	Engine::mCommandList->IASetIndexBuffer(nullptr);
 	Engine::mCommandList->DrawInstanced(36, 1, 0, 0);
 
-	//drawing child nodes
-	for (auto& childNode : mChildNodes)
-	{
-		childNode->Draw();
-	}
+	SceneNode::Draw();
 }

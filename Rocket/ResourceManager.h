@@ -25,6 +25,7 @@ public:
 	ID3D12Resource*								GetResource(int index);
 	void										SwapChainPresent();
 	void										Upload(int index, const void* data, int byteSize,int offset);
+	void										UploadTexture2D(int index, const void* data, int width, int height, int offsetX,int offsetY);
 
 private:
 	ResourceTable								mResourceTable;

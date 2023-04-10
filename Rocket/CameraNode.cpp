@@ -36,11 +36,11 @@ void CameraNode::Update()
 	}
 	if (Engine::mInputManager->GetKeys(0x41))
 	{
-		GoRight(10.0f * deltatime);
+		GoRight(-10.0f * deltatime);
 	}
 	if (Engine::mInputManager->GetKeys(0x44))
 	{
-		GoRight(-10.0f * deltatime);
+		GoRight(10.0f * deltatime);
 	}
 
 	UpdateViewMatrix();

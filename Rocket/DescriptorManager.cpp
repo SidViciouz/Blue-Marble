@@ -71,7 +71,7 @@ int	DescriptorManager::CreateCbv(D3D12_GPU_VIRTUAL_ADDRESS bufferLocation, UINT 
 	return index;
 }
 
-int	DescriptorManager::CreateSrv(ID3D12Resource* resource, DXGI_FORMAT format, D3D12_SRV_DIMENSION dimension, int ArraySize)
+int	DescriptorManager::CreateSrv(ID3D12Resource* resource, DXGI_FORMAT format, D3D12_SRV_DIMENSION dimension, int ArraySize, int numElement, int byteStride)
 {
 	int index = GetAvailableTableIndex(DescType::SRV);
 	if (index == -1)
@@ -116,6 +116,13 @@ int	DescriptorManager::CreateSrv(ID3D12Resource* resource, DXGI_FORMAT format, D
 		srvDesc.Texture1D.MipLevels = -1;
 		srvDesc.Texture1D.MostDetailedMip = 0;
 		srvDesc.Texture1D.ResourceMinLODClamp = 0.0f;
+	}
+	else if (dimension == D3D12_SRV_DIMENSION_BUFFER)
+	{
+		srvDesc.Buffer.FirstElement = 0;
+		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+		srvDesc.Buffer.NumElements = numElement;
+		srvDesc.Buffer.StructureByteStride = byteStride;
 	}
 
 	else

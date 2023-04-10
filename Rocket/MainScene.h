@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ClickableNode.h"
+#include "TextNode.h"
 #include "Engine.h"
 
 class MainScene : public Scene

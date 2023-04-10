@@ -27,6 +27,7 @@
 #include "BoxCollisionComponent.h"
 #include "InputManager.h"
 #include "MainScene.h"
+#include "TextManager.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -155,4 +156,5 @@ public:
 	static string								mCurrentSceneName;
 
 	static shared_ptr<InputManager>				mInputManager;
+	static shared_ptr<TextManager>				mTextManager;
 };

@@ -48,6 +48,12 @@ void MainScene::Initialize()
 	clickable1->SetRelativePosition(3.0f,3.0f,10.0f);
 	clickable1->mInputComponent = Engine::mInputManager->Build<UIInputComponent>(clickable1);
 	camera->AddChild(clickable1);
+
+	shared_ptr<TextNode> text1 = make_shared<TextNode>();
+	text1->SetText("12345 hello my name is sol!");
+	text1->SetScale(5.0f, 5.0f, 5.0f);
+	//text1->SetRelativePosition(-3.0f, 3.0f, 1.0f);
+	camera->AddChild(text1);
 	
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(ballMesh);
