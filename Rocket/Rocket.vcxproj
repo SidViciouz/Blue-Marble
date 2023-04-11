@@ -149,6 +149,7 @@
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="Clickable.h" />
     <ClInclude Include="CameraInputComponent.h" />
+    <ClInclude Include="LightNode.h" />
     <ClInclude Include="TextManager.h" />
     <ClInclude Include="TextNode.h" />
     <ClInclude Include="UIInputComponent.h" />
@@ -214,6 +215,7 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="Light.cpp" />
+    <ClCompile Include="LightNode.cpp" />
     <ClCompile Include="MainScene.cpp" />
     <ClCompile Include="Math\Position.cpp" />
     <ClCompile Include="Math\Quaternion.cpp" />

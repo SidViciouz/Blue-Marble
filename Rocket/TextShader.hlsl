@@ -84,14 +84,10 @@ VertexOut VS(uint vertexId : SV_VertexID)
 
 	float4 posW = mul(float4(coord[vertexId % 6], 0.0f,1.0f), transpose(world));
 
-	float4 posH = mul(mul(posW, transpose(view)), transpose(projection));
-
-	vout.pos = posH;
+	vout.pos = mul(mul(posW, transpose(view)), transpose(projection));
 
 	vout.tex = tex[vertexId % 6];
-	//
-	vout.pos = float4(coord[vertexId % 6], 0.0f, 1.0f);
-	//
+
 	return vout;
 }
 

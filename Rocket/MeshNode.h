@@ -9,6 +9,8 @@ public:
 
 	virtual void								Draw() override;
 	virtual void								Update() override;
+	const string&								GetMeshName() const;
 
+protected:
 	string										mMeshName;
 };

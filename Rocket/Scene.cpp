@@ -102,6 +102,12 @@ void Scene::Draw()
 
 void Scene::UpdateScene(const Timer& timer)
 {
+	//envFeature.lights[0].mColor = { 1.0f,0.0f,0.0 };
+	for (int i = 0; i < mLightNodes.size(); ++i)
+	{
+		envFeature.lights[i] = mLightNodes[i]->GetLight();
+		envFeature.lights[i].mPosition = mLightNodes[i]->GetAccumulatedPosition().Get();
+	}
 	envFeature.view = mCameraNode->GetView();
 	envFeature.projection = mCameraNode->GetProjection();
 	envFeature.cameraPosition = mCameraNode->GetAccumulatedPosition().Get();

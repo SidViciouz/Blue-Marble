@@ -46,3 +46,8 @@ void MeshNode::Update()
 
 	SceneNode::Update();
 }
+
+const string& MeshNode::GetMeshName() const
+{
+	return mMeshName;
+}

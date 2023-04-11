@@ -140,7 +140,7 @@ void InputManager::Select(int x,int y)
 		MeshNode* node = dynamic_cast<MeshNode*>(inputComponent->mNodeAttachedTo.get());
 
 		//Mesh node여야한다.
-		Engine::mMeshManager->mMeshes[node->mMeshName]->mBound.Transform(
+		Engine::mMeshManager->mMeshes[node->GetMeshName()]->mBound.Transform(
 			boundingBox, XMLoadFloat4x4(&node->mObjFeature.world));
 
 		if (boundingBox.Intersects(rayOrigin, rayVector, dist))

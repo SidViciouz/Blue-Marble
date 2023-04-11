@@ -9,6 +9,7 @@
 #include "SceneNode.h"
 #include "Timer.h"
 #include "CameraNode.h"
+#include "LightNode.h"
 
 using namespace std;
 
@@ -56,6 +57,7 @@ public:
 	shared_ptr<SceneNode>						mSceneRoot;
 
 	shared_ptr<CameraNode>						mCameraNode;
+	vector<shared_ptr<LightNode>>				mLightNodes;
 
 	virtual void								UpdateScene(const Timer& timer);
 };

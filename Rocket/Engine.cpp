@@ -645,15 +645,15 @@ env Engine::SetLight()
 		
 	envs.lights[0].mPosition = { 10.0f,10.0f,10.0f };
 	envs.lights[0].mDirection = { -1.0f,0.0f,0.0f };
-	envs.lights[0].mColor = {1.0f,1.0f,1.0f };
+	envs.lights[0].mColor = {1.0f,0.0f,0.0f };
 	envs.lights[0].mType = Point;
 	envs.lights[1].mPosition = { 9.0f,3.0f,0.0f };
 	envs.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
-	envs.lights[1].mColor = { 1.0f,1.0f,0.0f };
+	envs.lights[1].mColor = { 1.0f,0.0f,0.0f };
 	envs.lights[1].mType = Spot;
 	envs.lights[2].mPosition = { 0.0f, 0.0f,0.0f };
 	envs.lights[2].mDirection = { -1.0f,0.0f,0.0f };
-	envs.lights[2].mColor = { 1.0f,0.0f,1.0f };
+	envs.lights[2].mColor = { 1.0f,0.0f,0.0f };
 	envs.lights[2].mType = Spot;
 
 	return envs;

@@ -33,7 +33,7 @@ void MainScene::Initialize()
 
 	groundMesh = make_shared<MeshNode>("box");
 	groundMesh->SetRelativePosition(0.0f, -5.0f, 0.0f);
-	groundMesh->SetScale(1.0f, 1.0f, 1.0f);
+	//groundMesh->SetScale(10.0f, 1.0f, 10.0f);
 	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 1.0f, 20.0f);
 	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
 
@@ -52,8 +52,25 @@ void MainScene::Initialize()
 	shared_ptr<TextNode> text1 = make_shared<TextNode>();
 	text1->SetText("12345 hello my name is sol!");
 	text1->SetScale(5.0f, 5.0f, 5.0f);
-	//text1->SetRelativePosition(-3.0f, 3.0f, 1.0f);
+	text1->SetRelativePosition(-3.0, 0.0f, 10.0f);
 	camera->AddChild(text1);
+
+	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
+	light1->SetColor( 1.0f,0.0f,0.0f );
+	light1->SetRelativePosition(0.0, 10.0f, 0.0f);
+	mLightNodes.push_back(light1);
+
+	shared_ptr<LightNode> light2 = make_shared<LightNode>("ball", Directional);
+	light2->SetColor(0.0f, 0.0f, 1.0f);
+	light2->SetRelativePosition(5.0, 5.0f, 0.0f);
+	light2->SetDirection(-1.0f, -1.0f, 0.0f);
+	mLightNodes.push_back(light2);
+
+	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
+	light3->SetColor(0.0f, 1.0f, 0.0f);
+	light3->SetRelativePosition(-5.0, -5.0f, 0.0f);
+	light3->SetDirection(0.0f, 1.0f, 0.0f);
+	mLightNodes.push_back(light3);
 	
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(ballMesh);
