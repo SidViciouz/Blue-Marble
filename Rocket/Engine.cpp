@@ -62,7 +62,7 @@ void Engine::Initialize()
 	CreateObjects();
 
 	//각 Scene들에 모델, 카메라, 조명 생성
-	LoadScene();
+	//LoadScene();
 
 	mInputManager = make_shared <InputManager>();
 
@@ -74,21 +74,10 @@ void Engine::Initialize()
 
 	mTextManager = make_shared<TextManager>();
 
-	//texture가 로드된 후에 srv를 생성할 수 있기 때문에 다른 오브젝트들과 따로 생성한다.
-	/*
-	for (auto scene = mScenes.begin(); scene != mScenes.end(); scene++)
-	{
-		scene->get()->CreateModelSrv(MAX_OBJECT);
-	}
-	*/
 	mCurrentSceneName = "MainScene";
 	mAllScenes[mCurrentSceneName] = (make_shared<MainScene>());
 
-	/*
-	mRigidBodySystem = make_unique<RigidBodySystem>();
-	mRigidBodySystem->Load();
-	mRigidBodySystem->GenerateParticle();
-	*/
+
 	mPerlinMap = make_unique<PerlinMap>();
 
 	IfError::Throw(mCommandList->Close(),
@@ -129,125 +118,6 @@ void Engine::DebugEnable()
 	}
 }
 
-void Engine::ChangeScene(int dstScene)
-{
-	mCurrentScene = dstScene;
-}
-
-void Engine::SelectObject(int x, int y)
-{
-	XMFLOAT3 newPos;
-	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
-	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
-	
-	//viewport에서 view coordinate으로 변환, z = 1
-	newPos.x = (2.0f * x / (float)mWidth - 1.0f)/p00;
-	newPos.y = (-2.0f * y / (float)mHeight + 1.0f)/p11;
-	newPos.z = 1.0f;
-	
-	//newPos를 VC에서 WC로 변환한다.
-	XMMATRIX inverseViewMatrix = XMLoadFloat4x4(&mScenes[mCurrentScene]->mCamera->view);
-	XMVECTOR det = XMMatrixDeterminant(inverseViewMatrix);
-	inverseViewMatrix = XMMatrixInverse(&det,inverseViewMatrix);
-
-	XMVECTOR rayVector = XMLoadFloat3(&newPos);
-	XMVECTOR rayOrigin = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-	//XMVector3TransformCoord는 일반적인 변환이고
-	//XMVector3TransformNormal은 행렬의 0~3행 중 3행을 무시한다. 따라서 translation은 할 수 없다.
-	rayVector = XMVector3Normalize(XMVector3TransformNormal(rayVector, inverseViewMatrix));
-	rayOrigin = XMVector3TransformCoord(rayOrigin, inverseViewMatrix);
-
-	//clickable에서 모델을 선택한다.
-	float prevDist = 1000.0f;
-	float dist = 1000.0f;
-	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
-	{
-		BoundingOrientedBox boundingBox;
-
-		model->second->mBound.Transform(boundingBox, XMLoadFloat4x4(&model->second->mObjFeature.world));
-
-		if (boundingBox.Intersects(rayOrigin, rayVector, dist))
-		{
-			if (dist < prevDist)
-			{
-				mScenes[mCurrentScene]->mIsModelSelected = true;
-				mScenes[mCurrentScene]->mSelectedModel = model->second;
-				mScenes[mCurrentScene]->mSelectedModelName = model->first;
-				prevDist = dist;
-			}
-		}
-	}
-}
-
-void Engine::MoveObject(int x, int y)
-{
-	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
-	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
-	XMFLOAT3 newPos;
-
-	//viewport에서 view coordinate으로 변환
-	newPos.x = (2.0f * x / (float)mWidth - 1.0f) / p00*10.0f;
-	newPos.y = (-2.0f * y / (float)mHeight + 1.0f) / p11*10.0f;
-	newPos.z = 10.0f;
-
-	//newPos를 VC에서 WC로 변환한다.
-	XMMATRIX inverseViewMatrix = XMLoadFloat4x4(&mScenes[mCurrentScene]->mCamera->view);
-	XMVECTOR det = XMMatrixDeterminant(inverseViewMatrix);
-	inverseViewMatrix = XMMatrixInverse(&det, inverseViewMatrix);
-
-	XMVECTOR rayVector = XMLoadFloat3(&newPos);
-
-	rayVector = XMVector3TransformCoord(rayVector, inverseViewMatrix);
-
-	XMStoreFloat3(&newPos, rayVector);
-
-	mScenes[mCurrentScene]->mSelectedModel->SetPosition(newPos);
-}
-
-void Engine::SelectInventory(int x, int y)
-{
-	XMFLOAT3 newPos;
-	float p00 = mScenes[mCurrentScene]->envFeature.projection._11;
-	float p11 = mScenes[mCurrentScene]->envFeature.projection._22;
-
-	//viewport에서 view coordinate으로 변환, z = 1
-	newPos.x = (2.0f * x / (float)mWidth - 1.0f) / p00;
-	newPos.y = (-2.0f * y / (float)mHeight + 1.0f) / p11;
-	newPos.z = 1.0f;
-
-	//newPos를 VC에서 WC로 변환한다.
-	XMMATRIX inverseViewMatrix = XMLoadFloat4x4(&mScenes[mCurrentScene]->mCamera->view);
-	XMVECTOR det = XMMatrixDeterminant(inverseViewMatrix);
-	inverseViewMatrix = XMMatrixInverse(&det, inverseViewMatrix);
-
-	XMVECTOR rayVector = XMLoadFloat3(&newPos);
-	XMVECTOR rayOrigin = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-	//XMVector3TransformCoord는 일반적인 변환이고
-	//XMVector3TransformNormal은 행렬의 0~3행 중 3행을 무시한다. 따라서 translation은 할 수 없다.
-	rayVector = XMVector3Normalize(XMVector3TransformNormal(rayVector, inverseViewMatrix));
-	rayOrigin = XMVector3TransformCoord(rayOrigin, inverseViewMatrix);
-
-	float dist = 1000.0f;
-	BoundingOrientedBox boundingBox;
-
-	if (mScenes[mCurrentScene]->mModels->count("inventory") != 0)
-	{
-		auto inventory = mScenes[mCurrentScene]->mModels->at("inventory");
-
-		inventory->mBound.Transform(boundingBox, XMLoadFloat4x4(&inventory->mObjFeature.world));
-
-		if (boundingBox.Intersects(rayOrigin, rayVector, dist))
-		{
-			mIsInventorySelected = true;
-		}
-		else
-		{
-			mIsInventorySelected = false;
-		}
-	}
-}
 
 void Engine::WaitUntilPrevFrameComplete()
 {
@@ -281,34 +151,12 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
 			//SetCapture(hwnd);
 		}
-		if (mScenes[mCurrentScene]->mIsModelSelected == false)
-		{
-			SelectObject(LOWORD(lParam), HIWORD(lParam));
-		}
 		return 0;
 
 	case WM_LBUTTONUP:
 		mInputManager->SetMouseLeftDown(false);
 		mInputManager->Push(msg);
 		//ReleaseCapture();
-		if (mIsInventorySelected == true)
-		{
-			mIsInventorySelected = false;
-
-			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
-			invtry->Store(mScenes[mCurrentScene]->mSelectedModelName, move(mScenes[mCurrentScene]->mModels->at(mScenes[mCurrentScene]->mSelectedModelName)));
-			mScenes[mCurrentScene]->mModels->at(mScenes[mCurrentScene]->mSelectedModelName).reset();
-			mScenes[mCurrentScene]->mModels->erase(mScenes[mCurrentScene]->mSelectedModelName);
-			// mModels의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
-		}
-		//임시
-		if (mScenes[mCurrentScene]->mSelectedModelName.compare("button") == 0)
-		{
-			Button* b = static_cast<Button*>(mScenes[mCurrentScene]->mSelectedModel.get());
-			b->Click();
-		}
-		mScenes[mCurrentScene]->mIsModelSelected = false;
-		mScenes[mCurrentScene]->mSelectedModel = nullptr;
 
 		return 0;
 
@@ -317,35 +165,10 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
 		}
-		if (mScenes[mCurrentScene]->mIsModelSelected == true)
-		{
-			MoveObject(LOWORD(lParam), HIWORD(lParam));
-			if(mScenes[mCurrentScene]->mSelectedModelName.compare("inventory") != 0)
-				SelectInventory(LOWORD(lParam), HIWORD(lParam));
-		}
 		return 0;
 
 	case WM_KEYDOWN :
 		mInputManager->SetKeys(wParam, true);
-		if (wParam == 0x54)
-		{
-			Inventory* invtry = static_cast<Inventory*>(mScenes[mCurrentScene]->mModels->at("inventory").get());
-			mScenes[mCurrentScene]->mModels->insert({ "earth",invtry->Release("earth") });
-			invtry->mInventory.erase("earth");
-
-			mScenes[mCurrentScene]->mModels->insert({ "rifle",invtry->Release("rifle") });
-			invtry->mInventory.erase("rifle");
-
-			// mInventory의 목록에서 완전히 제거해야하기 때문에 erase를 한다.
-		}
-		else if (wParam == 0x45)
-		{
-			mScenes[mCurrentScene]->mSpawnSystem->SpawnPush({"Clickable","../Model/ball.obj",L"../Model/textures/bricks1.dds",{0.3f,3.0f,1.0f} });
-		}
-		else if (wParam == 0x52)
-		{
-			mScenes[mCurrentScene]->mSpawnSystem->DestroyPush({ "Clickable","0"});
-		}
 		return 0;
 
 	case WM_KEYUP:
@@ -397,40 +220,6 @@ Engine* Engine::Get()
 	return mLatestWindow;
 }
 
-
-void Engine::LoadScene()
-{
-	//scene 0
-	mScenes.push_back(make_unique<Scene>());
-
-	//모델 로드 (버텍스, 인덱스)
-	mScenes[mCurrentScene]->mModels = CreateModel(0);
-
-	mScenes[mCurrentScene]->mWorld = CreateWorld(0);
-
-	mScenes[mCurrentScene]->mVolume = CreateVolume(0);
-
-	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
-
-	mScenes[mCurrentScene]->envFeature = SetLight();
-	
-
-	//scene 1
-	mCurrentScene++;
-	mScenes.push_back(make_unique<Scene>());
-	
-	//모델 로드 (버텍스, 인덱스)
-	mScenes[mCurrentScene]->mModels = CreateModel(1);
-
-	mScenes[mCurrentScene]->mWorld = CreateWorld(1);
-
-	mScenes[mCurrentScene]->mVolume = CreateVolume(1);
-
-	mScenes[mCurrentScene]->mCamera = make_unique<Camera>(mWidth, mHeight);
-
-	mScenes[mCurrentScene]->envFeature = SetLight();
-}
-
 void Engine::CreateFrames()
 {
 	//효율성을 위해 cpu에서 미리 프레임을 계산해 놓기위해서 여러개의 프레임 자원을 생성.
@@ -458,207 +247,6 @@ void Engine::CreateCommandObjects()
 		0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(),
 		nullptr, IID_PPV_ARGS(mCommandList.GetAddressOf())),
 		L"create command list error!");
-}
-
-
-/*
-* model의 vertex,index offset이 scene 내에서 존재하기 buffer가 존재하기 때문에 어떤 scene내에 로드할 건지를 명시해준다.
-*/
-unique_ptr<Clickables> Engine::CreateModel(int sceneIndex)
-{
-	unique_ptr<Clickables> model = make_unique<Clickables>();
-
-	shared_ptr<Clickable> m;
-
-	if (sceneIndex == 0)
-	{
-		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/bricks1.dds");
-		m->SetPosition(15.0f, 3.0f, 3.0f);
-		(*model)["table"] = move(m);
-
-		//m = make_shared<Clickable>("../Model/sword.obj", L"../Model/textures/bricks2.dds");
-		//m->SetPosition(2.0f, 0.0f, 0.0f);
-		//m->mScale = { 0.1f,0.1f,0.1f };
-		//(*model)["sword"] = move(m);
-
-		//m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/checkboard.dds");
-		//(*model)["my"] = move(m);
-
-		//shared_ptr<Button> b = make_shared<Button>("../Model/inventory.obj", L"../Model/textures/earth.dds");
-		//b->SetPosition(0.0f, -3.0f, 5.0f);
-		//b->Set([&]() {
-		//	ChangeScene(1);
-		//});
-		//(*model)["button"] = move(b);
-	}
-	else if (sceneIndex == 1)
-	{
-		/*
-		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
-		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		m->mRootSignature = "planet";
-		m->mPso = "planet";
-		m->SetPosition(13.0f, 3.0f, 13.0f);
-		m->mId = "rifie0";
-		(*model)[m->mId] = move(m);
-		*/
-		m = make_shared<Clickable>("../Model/ball.obj", L"../Model/textures/earth.dds");
-		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		m->mRootSignature = "planet";
-		m->mPso = "planet";
-		m->SetPosition(10.0f,3.0f,10.0f);
-		m->mScale = { 10.0f,10.0f,10.0f };
-		m->mRigidBody->SetLinearMomentum(0.0f, 0.0f, 0.0f);
-		m->mRigidBody->SetAngularMomentum(1.0f, 10.0f, 1.0f);
-		m->mId = "earth";
-		(*model)[m->mId] = move(m);
-		/*
-		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
-		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		m->mRootSignature = "planet";
-		m->mPso = "planet";
-		m->SetPosition(11.0f, 2.5f, 13.0f);
-		m->mRigidBody->SetAngularMomentum(1000.0f, 10.0f, 10.0f);
-		m->mId = "lamp";
-		(*model)[m->mId] = move(m);
-
-		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
-		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		m->mRootSignature = "planet";
-		m->mPso = "planet";
-		m->SetPosition(15.0f, 2.5f, 13.0f);
-		m->mId = "lamp0";
-		(*model)[m->mId] = move(m);
-
-		m = make_shared<Clickable>("../Model/box.obj", L"../Model/textures/bricks3.dds");
-		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		m->mRootSignature = "planet";
-		m->mPso = "planet";
-		m->SetPosition(19.0f, 2.5f, 13.0f);
-		m->mId = "lamp1";
-		(*model)[m->mId] = move(m);
-
-		m = make_shared<Inventory>("../Model/inventory.obj", L"../Model/textures/inventory.dds");
-		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		m->mRootSignature = "planet";
-		m->mPso = "planet";
-		m->SetPosition(0.0f, -1.5f, 5.0f);
-		m->mId = "inventory";
-		(*model)[m->mId] = move(m);
-		
-		shared_ptr<Button> b = make_shared<Button>("../Model/inventory.obj", L"../Model/textures/earth.dds");
-		b->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		b->mRootSignature = "planet";
-		b->mPso = "planet";
-		b->SetPosition(0.0f, -3.0f, 5.0f);
-		b->Set([&](){
-			ChangeScene(0);
-		});
-		b->mId = "button";
-		(*model)[b->mId] = move(b);
-
-		m = make_shared<Clickable>("../Model/my.obj", L"../Model/textures/bricks3.dds");
-		m->mTopology = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
-		m->mRootSignature = "planet";
-		m->mPso = "planet";
-		m->SetPosition(5.0f, 3.0f, 3.0f);
-		m->mId = "rifle";
-		(*model)[m->mId] = move(m);
-		*/
-	}
-
-	return move(model);
-}
-
-unique_ptr<Unclickables> Engine::CreateWorld(int sceneIndex)
-{
-	unique_ptr<Unclickables> model = make_unique<Unclickables>();
-
-	shared_ptr<Unclickable> m;
-
-	if (sceneIndex == 0)
-	{
-		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
-		m->mPso = "World";
-		m->mId = "space";
-		(*model)[m->mId] = move(m);
-	}
-	else if (sceneIndex == 1)
-	{
-		
-		m = make_shared<Unclickable>("../Model/space.obj", L"../Model/textures/stars.dds");
-		m->mPso = "World";
-		m->mId = "space";
-		(*model)[m->mId] = move(m);
-		
-	}
-
-	return move(model);
-}
-
-unique_ptr<Volumes> Engine::CreateVolume(int sceneIndex)
-{
-	unique_ptr<Volumes> volumes = make_unique<Volumes>();
-
-	shared_ptr<Volume> v;
-
-	if (sceneIndex == 0)
-	{
-		v = make_shared<VolumeSphere>();
-		v->mRootSignature = "Volume";
-		v->mPso = "VolumeSphere";
-		v->mId = "sphere";
-		(*volumes)[v->mId] = move(v);
-
-		v = make_shared<VolumeCube>();
-		v->mRootSignature = "Volume";
-		v->mPso = "VolumeCube";
-		v->mId = "cube";
-		v->SetPosition(9.0f, 0.0f, 0.0f);
-		(*volumes)[v->mId] = move(v);
-	}
-	else if (sceneIndex == 1)
-	{
-		/*
-		v = make_shared<VolumeSphere>();
-		v->mRootSignature = "Volume";
-		v->mPso = "VolumeSphere";
-		v->mId = "sphere";
-		(*volumes)[v->mId] = move(v);
-		*/
-
-		v = make_shared<VolumeCube>();
-		v->mRootSignature = "Volume";
-		v->mPso = "VolumeCube";
-		v->mId = "cube";
-		v->SetPosition(9.0f, 10.0f, 0.0f);
-		v->mScale = { 20.0f,5.0f,20.0f };
-		(*volumes)[v->mId] = move(v);
-		
-	}
-
-	return move(volumes);
-
-}
-
-env Engine::SetLight()
-{
-	env envs;
-		
-	envs.lights[0].mPosition = { 10.0f,10.0f,10.0f };
-	envs.lights[0].mDirection = { -1.0f,0.0f,0.0f };
-	envs.lights[0].mColor = {1.0f,0.0f,0.0f };
-	envs.lights[0].mType = Point;
-	envs.lights[1].mPosition = { 9.0f,3.0f,0.0f };
-	envs.lights[1].mDirection = { 0.0f,-1.0f,0.0f };
-	envs.lights[1].mColor = { 1.0f,0.0f,0.0f };
-	envs.lights[1].mType = Spot;
-	envs.lights[2].mPosition = { 0.0f, 0.0f,0.0f };
-	envs.lights[2].mDirection = { -1.0f,0.0f,0.0f };
-	envs.lights[2].mColor = { 1.0f,0.0f,0.0f };
-	envs.lights[2].mType = Spot;
-
-	return envs;
 }
 
 
@@ -699,36 +287,6 @@ void Engine::Draw()
 		L"frame command allocator reset error!");
 
 	mCommandList->Reset(mFrames[mCurrentFrame]->Get(), mPSOs["default"].Get());
-	//
-	
-	//texture 초기화 해야함.
-	//첫번째 draw인 경우에는 제외해야함.
-	/*
-	mRigidBodySystem->UploadRigidBody();
-	mRigidBodySystem->CalculateRigidInertia(RigidBodySystem::mRigidBodies.size());
-	mRigidBodySystem->CalculateParticlePosition(RigidBodySystem::mRigidBodies.size());
-	mRigidBodySystem->CalculateParticleVelocity(RigidBodySystem::mRigidBodies.size());
-	mRigidBodySystem->PutParticleOnGrid(RigidBodySystem::mRigidBodies.size());
-	mRigidBodySystem->ParticleCollision(RigidBodySystem::mRigidBodies.size());
-	mRigidBodySystem->NextRigidMomentum(mTimer.GetDeltaTime());
-	mRigidBodySystem->NextRigidPosQuat(RigidBodySystem::mRigidBodies.size(), mTimer.GetDeltaTime());
-
-	mRigidBodySystem->CopyRigidBody();
-	
-	if (mFenceValue > 0)
-	{
-		WaitUntilPrevFrameComplete();
-		mRigidBodySystem->UpdateRigidBody();
-	}
-	*/
-	//
-	mScenes[mCurrentScene]->Spawn();
-
-	if (!mScenes[mCurrentScene]->IsDestroyQueueEmpty())
-	{
-		WaitUntilPrevFrameComplete();
-		mScenes[mCurrentScene]->Destroy();
-	}
 
 	mCommandList->ResourceBarrier(1, &barrier);
 
@@ -755,24 +313,8 @@ void Engine::Draw()
 	/*
 	* scene의 object들을 draw한다.
 	*/
-	//mScenes[mCurrentScene]->Draw();
 
-	//mScenes[mCurrentScene]->mSceneRoot->Draw();
-	
 	mAllScenes[mCurrentSceneName]->DrawScene();
-	/*
-	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
-	{
-		mCommandList->SetGraphicsRootConstantBufferView(0,
-			mResourceManager->GetResource(mFrames[mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-			+ (*rigid)->mModel->mObjIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
-
-		mCommandList->SetGraphicsRootConstantBufferView(1,
-			mResourceManager->GetResource(mFrames[mCurrentFrame]->mEnvConstantBufferIdx)->GetGPUVirtualAddress());
-
-		(*rigid)->DrawParticles();
-	}
-	*/
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -794,41 +336,6 @@ void Engine::Draw()
 	mCurrentBackBuffer = (mCurrentBackBuffer + 1) % 2;
 	mFrames[mCurrentFrame]->mFenceValue = ++mFenceValue;
 	mCommandQueue->Signal(mFence.Get(), mFenceValue);
-}
-
-void Engine::Input()
-{
-	float deltaTime = mTimer.GetDeltaTime();
-	bool dirty = false;
-
-	if (GetAsyncKeyState('W') & 0x8000)
-	{
-		dirty = true;
-		mScenes[mCurrentScene]->mCamera->GoFront(10.0f * deltaTime);
-	}
-
-	if (GetAsyncKeyState('S') & 0x8000)
-	{
-		dirty = true;
-		mScenes[mCurrentScene]->mCamera->GoFront(-10.0f * deltaTime);
-	}
-
-	if (GetAsyncKeyState('D') & 0x8000)
-	{
-		dirty = true;
-		mScenes[mCurrentScene]->mCamera->GoRight(10.0f * deltaTime);
-	}
-
-	if (GetAsyncKeyState('A') & 0x8000)
-	{
-		dirty = true;
-		mScenes[mCurrentScene]->mCamera->GoRight(-10.0f * deltaTime);
-	}
-	
-	if (dirty) {
-		mScenes[mCurrentScene]->mCamera->UpdateView();
-		mScenes[mCurrentScene]->mCamera->UpdateInvViewProjection();
-	}
 }
 
 

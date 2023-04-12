@@ -50,10 +50,7 @@ public:
 
 	void										Initialize();
 	void										Run();
-	void										ChangeScene(int dstScene);
-	void										MoveObject(int x, int y);
-	void										SelectObject(int x,int y);
-	void										SelectInventory(int x, int y);
+
 	/*
 	* 현재 프레임 전까지의 프레임에서 GPU가 모든 연산을 마칠 때까지 기다린다.
 	*/
@@ -77,19 +74,13 @@ private:
 	//윈도우 관련 메서드
 	void										InitializeWindow();
 	void										DebugEnable();
-	void										LoadScene();
 	/*
 	* numObjConstant의 수만큼 obj constant buffer의 크기를 만든다.
 	*/
 	void										CreateFrames();
 	void										CreateCommandObjects();
-	unique_ptr<Clickables>						CreateModel(int sceneIndex);
-	unique_ptr<Unclickables>					CreateWorld(int sceneIndex);
-	unique_ptr<Volumes>							CreateVolume(int sceneIndex);
-	env											SetLight();
 	void										Update();
 	void										Draw();
-	void										Input();
 
 	//윈도우 관련 데이터
 	static Engine*								mLatestWindow;
@@ -97,16 +88,7 @@ private:
 	HWND										mWindowHandle = nullptr;
 	std::wstring								mWindowCaption = L"Rocket Game";
 
-	bool										mIsInventorySelected = false;
-	
 	ComPtr<ID3D12Debug>							debugController;
-
-	unique_ptr<RigidBodySystem>					mRigidBodySystem;
-
-
-
-
-
 
 	//--------------------------------pipeline에 있던 멤버들------------------------------
 public:
