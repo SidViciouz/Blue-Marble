@@ -43,7 +43,9 @@ cbuffer lightNum : register(b2)
 Texture1D<float4> gradients : register(t0);
 Texture1D<int> permutation : register(t1);
 
-texture2D shadowMap : register(t2);
+texture2D<float> shadowMap : register(t2);
+
+SamplerState textureSampler : register(s0);
 
 struct PatchTess
 {
@@ -308,6 +310,12 @@ float4 PS(GeoOut pin) : SV_Target
 
 		color += float4(rambertTerm * lights[i].color * (diffuseAlbedo + fresnelTerm * roughnessTerm), 0.0f);
 	}
+
+	float4 lightNDCPixel = mul(mul(float4(pin.posW, 1.0f), transpose(lights[lightIdx].lightView)),
+		transpose(lights[lightIdx].lightProjection));
+
+	if (shadowMap.Sample(textureSampler, pin.lightTex) < lightNDCPixel.z)
+		color = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	return color;
 }

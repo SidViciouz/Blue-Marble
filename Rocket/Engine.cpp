@@ -740,7 +740,8 @@ void Engine::CreateShaderAndRootSignature()
 
 	rsDesc.NumParameters = 6;
 	rsDesc.pParameters = rootParameterPlanet;
-	rsDesc.NumStaticSamplers = 0;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &samplerDesc;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
 		L"serialize root signature error!");
