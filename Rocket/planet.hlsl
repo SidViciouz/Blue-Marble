@@ -34,9 +34,16 @@ cbuffer env : register(b1)
 	int pad5;
 }
 
+cbuffer lightNum : register(b2)
+{
+	int lightIdx;
+}
+
 
 Texture1D<float4> gradients : register(t0);
 Texture1D<int> permutation : register(t1);
+
+texture2D shadowMap : register(t2);
 
 struct PatchTess
 {
@@ -226,12 +233,21 @@ struct GeoOut
 	float3 posW : POSITION;
 	float3 posL : POSITIONL;
 	uint id : SV_PrimitiveID;
+	float4 lightTex : LIGHTTEX;
 };
 
 [maxvertexcount(3)]
 void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStream<GeoOut> triStream)
 {
 	GeoOut gout;
+
+	float4x4 toTexCoord = {
+	0.5f, 0, 0, 0,
+	0, -0.5f, 0, 0,
+	0, 0, 1.0f, 0,
+	0.5f, 0.5f, 0, 1.0f
+	};
+
 	for (int i = 0; i < 3; ++i)
 	{
 		float height = max(noise(float3(gin[i].tex*256, 0.0f)),0);
@@ -240,6 +256,10 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 		gout.pos = mul(mul(float4(gout.posW,1.0f), transpose(view)), transpose(projection));
 		gout.normal = gin[i].normal;
 		gout.id = id;
+		gout.lightTex = mul(mul(float4(gout.posW, 1.0f), transpose(lights[lightIdx].lightView)),
+			transpose(lights[lightIdx].lightProjection));
+		gout.lightTex = mul(gout.lightTex, toTexCoord);
+
 		triStream.Append(gout);
 	}
 }

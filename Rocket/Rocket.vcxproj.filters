@@ -39,9 +39,6 @@
     <ClInclude Include="Frame.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Buffer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -49,9 +46,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Constant.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
@@ -78,40 +72,10 @@
     <ClInclude Include="Math\Position.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Clickable.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Unclickable.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Inventory.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Button.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Volume.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="VolumeSphere.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="VolumeCube.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="TextureResource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Defines.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="SpawnSystem.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="RigidBody.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="RigidBodySystem.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="DescriptorManager.h">
@@ -197,13 +161,7 @@
     <ClCompile Include="Frame.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Model.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Buffer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
@@ -227,37 +185,7 @@
     <ClCompile Include="Entity.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Clickable.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Unclickable.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Inventory.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Volume.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="VolumeSphere.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="VolumeCube.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="TextureResource.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="SpawnSystem.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="RigidBody.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="RigidBodySystem.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorManager.cpp">

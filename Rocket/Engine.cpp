@@ -313,7 +313,6 @@ void Engine::Draw()
 	/*
 	* scene의 object들을 draw한다.
 	*/
-
 	mAllScenes[mCurrentSceneName]->DrawScene();
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -693,7 +692,7 @@ void Engine::CreateShaderAndRootSignature()
 	mRootSignatures["CreateParticles"] = move(rs);
 
 
-	D3D12_DESCRIPTOR_RANGE rangePlanet[2];
+	D3D12_DESCRIPTOR_RANGE rangePlanet[3];
 	rangePlanet[0].BaseShaderRegister = 0;
 	rangePlanet[0].NumDescriptors = 1;
 	rangePlanet[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -704,27 +703,43 @@ void Engine::CreateShaderAndRootSignature()
 	rangePlanet[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangePlanet[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangePlanet[1].RegisterSpace = 0;
-
-	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameter[0].Descriptor.RegisterSpace = 0;
-	rootParameter[0].Descriptor.ShaderRegister = 0;
-	rootParameter[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameter[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameter[1].Descriptor.RegisterSpace = 0;
-	rootParameter[1].Descriptor.ShaderRegister = 1;
-	rootParameter[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameter[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameter[2].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameter[2].DescriptorTable.pDescriptorRanges = &rangePlanet[0];
-	rootParameter[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameter[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameter[3].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameter[3].DescriptorTable.pDescriptorRanges = &rangePlanet[1];
+	rangePlanet[2].BaseShaderRegister = 2;
+	rangePlanet[2].NumDescriptors = 1;
+	rangePlanet[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangePlanet[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangePlanet[2].RegisterSpace = 0;
 
 
-	rsDesc.NumParameters = 4;
-	rsDesc.pParameters = rootParameter;
+	D3D12_ROOT_PARAMETER rootParameterPlanet[6];
+	rootParameterPlanet[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterPlanet[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterPlanet[0].Descriptor.RegisterSpace = 0;
+	rootParameterPlanet[0].Descriptor.ShaderRegister = 0;
+	rootParameterPlanet[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterPlanet[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterPlanet[1].Descriptor.RegisterSpace = 0;
+	rootParameterPlanet[1].Descriptor.ShaderRegister = 1;
+	rootParameterPlanet[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterPlanet[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterPlanet[2].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterPlanet[2].DescriptorTable.pDescriptorRanges = &rangePlanet[0];
+	rootParameterPlanet[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterPlanet[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterPlanet[3].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterPlanet[3].DescriptorTable.pDescriptorRanges = &rangePlanet[1];
+	rootParameterPlanet[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameterPlanet[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterPlanet[4].Constants.Num32BitValues = 1;
+	rootParameterPlanet[4].Constants.RegisterSpace = 0;
+	rootParameterPlanet[4].Constants.ShaderRegister = 2;
+	rootParameterPlanet[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterPlanet[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterPlanet[5].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterPlanet[5].DescriptorTable.pDescriptorRanges = &rangePlanet[2];
+
+
+	rsDesc.NumParameters = 6;
+	rsDesc.pParameters = rootParameterPlanet;
 	rsDesc.NumStaticSamplers = 0;
 	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),

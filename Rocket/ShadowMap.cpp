@@ -55,3 +55,8 @@ void ShadowMap::PipelineSetting()
 
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(2, 1, 0);
 }
+
+int ShadowMap::GetTextureSrvIdx() const
+{
+	return mTextureSrvIdx;
+}

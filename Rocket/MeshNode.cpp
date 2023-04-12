@@ -19,7 +19,12 @@ void MeshNode::Draw()
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mGradientsDescriptorIdx, DescType::SRV));
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mPermutationDescriptorIdx, DescType::SRV));
-	
+
+	Engine::mCommandList->SetGraphicsRoot32BitConstant(4, 1, 0);
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(5, Engine::mDescriptorManager->GetGpuHandle(
+		Engine::mAllScenes[Engine::mCurrentSceneName]->mShadowMap->GetTextureSrvIdx(), DescType::SRV));
+
+
 	Engine::mMeshManager->Draw(mMeshName);
 
 	if (mCollisionComponent != nullptr)

@@ -7,6 +7,7 @@ class ShadowMap
 public:
 												ShadowMap(int width,int height);
 	void										PipelineSetting();
+	int											GetTextureSrvIdx() const;
 
 protected:
 
