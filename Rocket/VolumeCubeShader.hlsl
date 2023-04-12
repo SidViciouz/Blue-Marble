@@ -19,6 +19,8 @@ struct Light
 	int pad1;
 	float3 color;
 	int pad2;
+	float4x4 lightView;
+	float4x4 lightProjection;
 };
 
 cbuffer obj : register(b0)
@@ -292,6 +294,7 @@ float3 pf(float3 x)
 	float g = 0.25f;
 	float stepSize = 0.5f;
 	float density = 1.0f;
+	int steps = 10;
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -308,8 +311,9 @@ float3 pf(float3 x)
 			continue;
 
 		float att = 1.0f;
-		int steps = (length(lightToPos) - tMin) / stepSize;
+		//int steps = (length(lightToPos) - tMin) / stepSize;
 		float result = 0.0f;
+		float stepSize = (length(lightToPos) - tMin) / (float)steps;
 
 		for (int j = 0; j < steps; ++j)
 		{
@@ -334,18 +338,20 @@ float4 PS(VertexOut pin) : SV_Target
 	float3 rayDir = normalize(pin.posW.xyz - cameraPosition);
 	float tMin = 0.0f;
 	float tMax = 100.0f;
-	float stepSize = 0.5f;
+	//float stepSize = 0.5f;
 	float sigmaT = 0.2f;
 	float sigmaS = 0.1f;
 	float att = 1.0f;
 	float3 result = 0.0f;
 	float density = 1.0f;
+	int steps = 10;
 
 
 	if (CubeIntersect(rayOrigin, rayDir, tMin, tMax) == false)
 		clip(-1);
 	
-	float steps = (tMax - tMin) / stepSize;
+	//float steps = (tMax - tMin) / stepSize;
+	float stepSize = (tMax - tMin) / (float)steps;
 
 	for (int i = 0; i < steps; ++i)
 	{

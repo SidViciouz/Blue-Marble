@@ -16,8 +16,26 @@ void LightNode::Draw()
 
 void LightNode::Update()
 {
-
 	MeshNode::Update();
+
+	mLight.mPosition = mAccumulatedPosition.Get();
+
+	/*
+	XMStoreFloat4x4(&mLight.mLightView, XMMatrixLookToLH(
+		XMVectorSet(0.0f, 0.0f, -10.0f, 1.0f),
+		XMVectorSet(0.0f, 0.0f, 10.0f, 1.0f),
+		XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f)
+	));
+	*/
+	
+	XMStoreFloat4x4(&mLight.mLightView, XMMatrixLookToLH(
+		XMLoadFloat3(&mLight.mPosition),
+		XMLoadFloat3(&mLight.mDirection),
+		XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f)
+	));
+
+	XMStoreFloat4x4(&mLight.mLightProjection,
+		XMMatrixOrthographicLH(20, 20, 1, 1000));
 }
 
 void LightNode::SetDirection(const XMFLOAT3& direction)

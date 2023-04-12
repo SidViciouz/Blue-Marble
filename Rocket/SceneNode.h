@@ -14,6 +14,7 @@ public:
 												SceneNode();
 
 	virtual void								Draw();
+	virtual void								DrawWithoutSetting();
 	virtual void								Update();
 	bool										IsColliding(SceneNode* counterPart, CollisionInfo& collisionInfo);
 

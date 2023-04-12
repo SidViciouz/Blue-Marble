@@ -6,8 +6,9 @@ struct Light
 	int pad1;
 	float3 color;
 	int pad2;
+	float4x4 lightView;
+	float4x4 lightProjection;
 };
-
 cbuffer obj : register(b0)
 {
 	float4x4 world;

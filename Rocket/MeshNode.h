@@ -8,6 +8,7 @@ public:
 												MeshNode(string name);
 
 	virtual void								Draw() override;
+	virtual void								DrawWithoutSetting() override;
 	virtual void								Update() override;
 	const string&								GetMeshName() const;
 

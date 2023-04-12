@@ -69,7 +69,7 @@ void MainScene::Initialize()
 	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
 	light3->SetColor(0.0f, 1.0f, 0.0f);
 	light3->SetRelativePosition(-5.0, -5.0f, 0.0f);
-	light3->SetDirection(0.0f, 1.0f, 0.0f);
+	light3->SetDirection(1.0f, 0.0f, 0.0f);
 	mLightNodes.push_back(light3);
 	
 	mSceneRoot->AddChild(boxMesh);
@@ -77,6 +77,9 @@ void MainScene::Initialize()
 	mSceneRoot->AddChild(groundMesh);
 	mSceneRoot->AddChild(cloudVolume);
 	mSceneRoot->AddChild(camera);
+	mSceneRoot->AddChild(light1);
+	mSceneRoot->AddChild(light2);
+	mSceneRoot->AddChild(light3);
 	mSceneRoot->Update();
 }
 

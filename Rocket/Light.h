@@ -18,5 +18,7 @@ public:
 	int											pad1 = 0;
 	XMFLOAT3									mColor = { 1.0f,1.0f,1.0f };
 	int											pad2 = 0;
+	XMFLOAT4X4									mLightView;
+	XMFLOAT4X4									mLightProjection;
 };
 

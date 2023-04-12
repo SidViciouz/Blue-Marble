@@ -30,12 +30,19 @@ void MeshNode::Draw()
 		mCollisionComponent->Draw();
 	}
 
-	//drawing child nodes
-	for (auto& childNode : mChildNodes)
-	{
-		childNode->Draw();
-	}
 
+	SceneNode::Draw();
+}
+
+void MeshNode::DrawWithoutSetting()
+{
+	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
+		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
+		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+
+	Engine::mMeshManager->Draw(mMeshName);
+
+	SceneNode::DrawWithoutSetting();
 }
 
 void MeshNode::Update()

@@ -33,6 +33,15 @@ void SceneNode::Draw()
 	}
 }
 
+void SceneNode::DrawWithoutSetting()
+{
+	//drawing child nodes
+	for (auto& childNode : mChildNodes)
+	{
+		childNode->DrawWithoutSetting();
+	}
+}
+
 void SceneNode::Update()
 {
 	if (mParentNode == nullptr)

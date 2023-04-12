@@ -117,7 +117,7 @@ public:
 	UINT64										mFenceValue = 0;
 	ComPtr<IDXGISwapChain>						mSwapChain;
 	//ComPtr<ID3D12Resource>						mBackBuffers[2];
-	int											mCurrentBackBuffer = 0;
+	static int									mCurrentBackBuffer;
 	static PSOs									mPSOs;
 	D3D12_VIEWPORT								mViewport;
 	D3D12_RECT									mScissor;

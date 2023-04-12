@@ -33,6 +33,8 @@ shared_ptr<TextManager>	Engine::mTextManager;
 int Engine::mWidth = 800;
 int	Engine::mHeight = 600;
 
+int	Engine::mCurrentBackBuffer = 0;
+
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
 {
@@ -678,37 +680,6 @@ void Engine::Update()
 
 
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
-	//Input();
-	//mScenes[mCurrentScene]->Update();
-	/*
-	mScenes[mCurrentScene]->envFeature.view = mScenes[mCurrentScene]->mCamera->view;
-	mScenes[mCurrentScene]->envFeature.projection = mScenes[mCurrentScene]->mCamera->projection;
-	mScenes[mCurrentScene]->envFeature.cameraPosition = mScenes[mCurrentScene]->mCamera->GetPosition();
-	mScenes[mCurrentScene]->envFeature.cameraFront = mScenes[mCurrentScene]->mCamera->mFront;
-	mScenes[mCurrentScene]->envFeature.invViewProjection = mScenes[mCurrentScene]->mCamera->invViewProjection;
-	mScenes[mCurrentScene]->envFeature.currentTime = mTimer.GetTime();
-	mResourceManager->Upload(mFrames[mCurrentFrame]->mEnvConstantBufferIdx, &mScenes[mCurrentScene]->envFeature, sizeof(env), 0);
-	*/
-	/*
-	//각 모델별로 obj constant를 constant buffer의 해당위치에 로드함.
-	for (auto model = mScenes[mCurrentScene]->mModels->begin(); model != mScenes[mCurrentScene]->mModels->end(); model++)
-	{
-		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &model->second->mObjFeature, sizeof(obj),
-			model->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
-	}
-
-	for (auto world = mScenes[mCurrentScene]->mWorld->begin(); world != mScenes[mCurrentScene]->mWorld->end(); world++)
-	{
-		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &world->second->mObjFeature, sizeof(obj),
-			world->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
-	}
-
-	for (auto volume = mScenes[mCurrentScene]->mVolume->begin(); volume != mScenes[mCurrentScene]->mVolume->end(); volume++)
-	{
-		mResourceManager->Upload(mFrames[mCurrentFrame]->mObjConstantBufferIdx, &volume->second->mObjFeature, sizeof(obj),
-			volume->second->mObjIndex * constantBufferAlignment(sizeof(obj)));
-	}
-	*/
 	mInputManager->Dispatch();
 
 	mAllScenes[mCurrentSceneName]->UpdateScene(mTimer);
@@ -759,10 +730,12 @@ void Engine::Draw()
 		mScenes[mCurrentScene]->Destroy();
 	}
 
+	mCommandList->ResourceBarrier(1, &barrier);
+
+	mAllScenes[mCurrentSceneName]->RenderShadowMap();
+
 	mCommandList->RSSetScissorRects(1, &mScissor);
 	mCommandList->RSSetViewports(1, &mViewport);
-
-	mCommandList->ResourceBarrier(1, &barrier);
 
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mDescriptorManager->GetCpuHandle(mCurrentBackBuffer, DescType::RTV);
@@ -785,7 +758,8 @@ void Engine::Draw()
 	//mScenes[mCurrentScene]->Draw();
 
 	//mScenes[mCurrentScene]->mSceneRoot->Draw();
-	mAllScenes[mCurrentSceneName]->mSceneRoot->Draw();
+	
+	mAllScenes[mCurrentSceneName]->DrawScene();
 	/*
 	for (auto rigid = RigidBodySystem::mRigidBodies.begin(); rigid != RigidBodySystem::mRigidBodies.end(); rigid++)
 	{
@@ -1041,6 +1015,14 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(D3DCompileFromFile(L"TextShader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
 	mShaders["TextShaderPS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"ShadowMap.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ShadowMapVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"ShadowMap.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ShadowMapPS"] = move(blob);
 
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
@@ -1328,6 +1310,35 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 	mRootSignatures["Text"] = move(rs);
+
+
+	D3D12_ROOT_PARAMETER rootParameterShadowMap[3];
+	rootParameterShadowMap[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterShadowMap[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterShadowMap[0].Descriptor.RegisterSpace = 0;
+	rootParameterShadowMap[0].Descriptor.ShaderRegister = 0;
+	rootParameterShadowMap[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterShadowMap[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; 
+	rootParameterShadowMap[1].Descriptor.RegisterSpace = 0;
+	rootParameterShadowMap[1].Descriptor.ShaderRegister = 1;
+	rootParameterShadowMap[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameterShadowMap[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; 
+	rootParameterShadowMap[2].Constants.Num32BitValues = 1;
+	rootParameterShadowMap[2].Constants.RegisterSpace = 0;
+	rootParameterShadowMap[2].Constants.ShaderRegister = 2;
+
+
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	rsDesc.NumParameters = 3;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &samplerDesc;
+	rsDesc.pParameters = rootParameterShadowMap;
+
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["ShadowMap"] = move(rs);
 }
 
 void Engine::CreatePso()
@@ -1683,6 +1694,36 @@ void Engine::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["Text"] = move(pso);
+
+
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 3;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+	psoDesc.pRootSignature = mRootSignatures["ShadowMap"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["ShadowMapVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["ShadowMapVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["ShadowMapPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["ShadowMapPS"]->GetBufferSize();
+	psoDesc.HS.pShaderBytecode = nullptr;
+	psoDesc.HS.BytecodeLength = 0;
+	psoDesc.DS.pShaderBytecode = nullptr;
+	psoDesc.DS.BytecodeLength = 0;
+	psoDesc.GS.pShaderBytecode = nullptr;
+	psoDesc.GS.BytecodeLength = 0;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	psoDesc.RasterizerState.DepthClipEnable = true;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["ShadowMap"] = move(pso);
 
 }
 
