@@ -1,8 +1,6 @@
 #include "Engine.h"
 
-vector<unique_ptr<Scene>> Engine::mScenes;
 ComPtr<ID3D12GraphicsCommandList> Engine::mCommandList;
-int Engine::mCurrentScene;
 
 ComPtr<ID3D12Device> Engine::mDevice = nullptr;
 PSOs Engine::mPSOs;
@@ -71,11 +69,14 @@ void Engine::Initialize()
 	mMeshManager->Load("box", "../Model/box.obj");
 	mMeshManager->Load("my", "../Model/my.obj");
 	mMeshManager->Load("inventory", "../Model/inventory.obj");
+	mMeshManager->Load("menu", "../Model/menu.obj");
 
 	mTextManager = make_shared<TextManager>();
 
-	mCurrentSceneName = "MainScene";
-	mAllScenes[mCurrentSceneName] = (make_shared<MainScene>());
+	mCurrentSceneName = "MenuScene";
+	//mCurrentSceneName = "MainScene";
+	mAllScenes["MenuScene"] = (make_shared<MenuScene>());
+	mAllScenes["MainScene"] = (make_shared<MainScene>());
 
 
 	mPerlinMap = make_unique<PerlinMap>();
@@ -1263,4 +1264,9 @@ void Engine::SetViewportAndScissor()
 	mScissor.top = 0;
 	mScissor.right = mWidth;
 	mScissor.bottom = mHeight;
+}
+
+void Engine::ChangeScene(const string& sceneName)
+{
+	mCurrentSceneName = sceneName;
 }

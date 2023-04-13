@@ -19,6 +19,7 @@
 #include "InputManager.h"
 #include "MainScene.h"
 #include "TextManager.h"
+#include "MenuScene.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -47,8 +48,6 @@ public:
 	*/
 	void										WaitUntilPrevFrameComplete();
 
-	static vector<unique_ptr<Scene>>			mScenes;
-	static int									mCurrentScene;
 	static ComPtr<ID3D12GraphicsCommandList>	mCommandList;
 	ComPtr<ID3D12CommandAllocator>				mCommandAllocator;
 
@@ -98,8 +97,6 @@ public:
 
 	void										InitializePipeline();
 	void										CreateObjects();
-
-
 	void										CreateShaderAndRootSignature();
 	void										CreatePso();
 	void										SetViewportAndScissor();
@@ -130,4 +127,6 @@ public:
 
 	static shared_ptr<InputManager>				mInputManager;
 	static shared_ptr<TextManager>				mTextManager;
+
+	static void									ChangeScene(const string& sceneName);
 };
