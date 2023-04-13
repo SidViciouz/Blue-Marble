@@ -15,11 +15,30 @@ public:
 	{
 		if (key == 0x45) //E key
 		{
-			ClickableNode* node = dynamic_cast<ClickableNode*>(mNodeAttachedTo.get());
+			InventoryNode* node = dynamic_cast<InventoryNode*>(mNodeAttachedTo.get());
 			node->ToggleIsShowUp();
 
 			Engine::mAllScenes[Engine::mCurrentSceneName]->mCameraNode->ToggleActivate();
 		}
 	}
 
+	virtual void								OnClick() override
+	{
+		InventoryNode* node = dynamic_cast<InventoryNode*>(mNodeAttachedTo.get());
+		if (node->GetIsShowUp())
+		{
+			//node->StoreItem(node->GetClickedMeshIndex());
+		}
+	}
+
+
+	virtual void								OnMouseHover() override
+	{
+		InventoryNode* node = dynamic_cast<InventoryNode*>(mNodeAttachedTo.get());
+		if (node->GetIsShowUp())
+		{
+			printf("hover on ui input component\n");
+
+		}
+	}
 };

@@ -42,6 +42,7 @@ public:
 protected:
 
 	void										Select(int x, int y);
+	void										Hover(int x, int y);
 
 	queue<Message>								mMessageQueue;
 	bool										mKeys[256] = { false, };

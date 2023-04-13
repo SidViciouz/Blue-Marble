@@ -296,7 +296,7 @@ float3 pf(float3 x)
 	float density = 1.0f;
 	int steps = 10;
 
-	for (int i = 0; i < 3; ++i)
+	for (int i = 1; i < 2; ++i)
 	{
 		float tMin = 0.0f;
 		float tMax = 100.0f;
@@ -317,8 +317,8 @@ float3 pf(float3 x)
 
 		for (int j = 0; j < steps; ++j)
 		{
-			float3 coord = 10.0f*( x + posToLight * (tMin + stepSize * j));
-			coord -= float3(40, -50, -50);
+			float3 coord = ( x + posToLight * (tMin + stepSize * j));
+			//coord -= float3(40, -50, -50);
 			density = noise(coord);
 			att *= exp(-stepSize * sigmaT * density);
 		}
@@ -355,8 +355,8 @@ float4 PS(VertexOut pin) : SV_Target
 
 	for (int i = 0; i < steps; ++i)
 	{
-		float3 coord =10.0f*( rayOrigin + rayDir * (tMin+ stepSize*i));
-		coord -= float3(40, -40, -50);
+		float3 coord = ( rayOrigin + rayDir * (tMin+ stepSize*i));
+		//coord -= float3(40, -40, -50);
 		density = noise(coord);
 		att *= exp(-sigmaT * stepSize * density);
 		if(density > 1.0f)

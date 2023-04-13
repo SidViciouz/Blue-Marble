@@ -13,7 +13,7 @@ void MenuScene::Initialize()
 
 	shared_ptr<ClickableNode> menu = make_shared<ClickableNode>("menu");
 	menu->SetRelativePosition(0.0f, 0.0f, 15.0f);
-	menu->SetScale(10.0f, 10.0f, 10.0f);
+	menu->SetScale(12.0f, 12.0f, 12.0f);
 	camera->AddChild(menu);
 
 	shared_ptr<ClickableNode> startButton = make_shared<ClickableNode>("inventory");
@@ -23,7 +23,7 @@ void MenuScene::Initialize()
 	camera->AddChild(startButton);
 
 	shared_ptr<TextNode> text1 = make_shared<TextNode>();
-	text1->SetText("start");
+	text1->SetText(" start");
 	text1->SetScale(5.0f, 5.0f, 5.0f);
 	text1->SetRelativePosition(1.0f, -2.3f, -1.0f);
 	startButton->AddChild(text1);

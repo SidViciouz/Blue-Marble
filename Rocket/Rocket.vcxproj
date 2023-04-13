@@ -146,14 +146,16 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="CameraInputComponent.h" />
-    <ClInclude Include="IconInputComponent.h" />
-    <ClInclude Include="IconNode.h" />
+    <ClInclude Include="ItemInputComponent.h" />
+    <ClInclude Include="ItemNode.h" />
+    <ClInclude Include="InventoryNode.h" />
     <ClInclude Include="LightNode.h" />
     <ClInclude Include="MenuScene.h" />
     <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="StartButtonInputComponent.h" />
     <ClInclude Include="TextManager.h" />
     <ClInclude Include="TextNode.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="UIInputComponent.h" />
     <ClInclude Include="ClickableNode.h" />
     <ClInclude Include="CollisionComponent.h" />
@@ -202,8 +204,9 @@
     <ClCompile Include="DescriptorManager.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Frame.cpp" />
-    <ClCompile Include="IconNode.cpp" />
+    <ClCompile Include="ItemNode.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="InventoryNode.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightNode.cpp" />
     <ClCompile Include="MainScene.cpp" />
@@ -224,6 +227,7 @@
     <ClCompile Include="ShadowMap.cpp" />
     <ClCompile Include="TextManager.cpp" />
     <ClCompile Include="TextNode.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="TextureResource.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="VolumeNode.cpp" />

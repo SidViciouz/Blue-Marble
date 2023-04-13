@@ -18,7 +18,7 @@ void ClickableNode::Draw()
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
-		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mGradientsDescriptorIdx, DescType::SRV));
+		Engine::mDescriptorManager->GetGpuHandle(Engine::mTextureManager->GetTextureIndex("canvas"), DescType::SRV));
 
 	Engine::mMeshManager->Draw(mMeshName);
 

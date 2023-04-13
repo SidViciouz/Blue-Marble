@@ -10,7 +10,7 @@ TextManager::TextManager()
 		printf("FT_Init_FreeType Error!\n");
 	}
 
-	error = FT_New_Face(mLibrary, "../Font/Bitmap Regular.ttf", 0, &mFace);
+	error = FT_New_Face(mLibrary, "../Font/ChrustyRock-ORLA.ttf", 0, &mFace);
 
 	if (error == FT_Err_Unknown_File_Format)
 	{
@@ -21,7 +21,7 @@ TextManager::TextManager()
 		printf("FT_New_Face Error!\n");
 	}
 
-	error = FT_Set_Pixel_Sizes(mFace, 16, 16);
+	error = FT_Set_Pixel_Sizes(mFace, 32, 32);
 	if (error)
 	{
 		printf("FT_Set_Pixel_Sizes error!\n");
@@ -65,7 +65,7 @@ TextManager::TextManager()
 		if (offsetX + width >= 256)
 		{
 			offsetX = 0;
-			offsetY += 20;
+			offsetY += 22;
 		}
 
 		Engine::mResourceManager->UploadTexture2D(

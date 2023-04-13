@@ -156,10 +156,16 @@
     <ClInclude Include="StartButtonInputComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="IconNode.h">
+    <ClInclude Include="ItemNode.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="IconInputComponent.h">
+    <ClInclude Include="ItemInputComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InventoryNode.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
@@ -263,7 +269,13 @@
     <ClCompile Include="MenuScene.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="IconNode.cpp">
+    <ClCompile Include="ItemNode.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="InventoryNode.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

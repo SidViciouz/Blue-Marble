@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ClickableNode.h"
+#include "InventoryNode.h"
 #include "TextNode.h"
 #include "Engine.h"
-#include "IconNode.h"
+#include "ItemNode.h"
 
 class MainScene : public Scene
 {
@@ -15,6 +15,5 @@ public:
 	shared_ptr<MeshNode>						boxMesh;
 	shared_ptr<MeshNode>						ballMesh;
 	shared_ptr<MeshNode>						groundMesh;
-	shared_ptr<ClickableNode>					inventory;
-	shared_ptr<IconNode>						icon1;
+	shared_ptr<InventoryNode>					inventory;
 };

@@ -20,6 +20,7 @@
 #include "MainScene.h"
 #include "TextManager.h"
 #include "MenuScene.h"
+#include "TextureManager.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;
 using RootSigs = unordered_map<string, ComPtr<ID3D12RootSignature>>;
@@ -127,6 +128,8 @@ public:
 
 	static shared_ptr<InputManager>				mInputManager;
 	static shared_ptr<TextManager>				mTextManager;
+
+	static shared_ptr<TextureManager>			mTextureManager;
 
 	static void									ChangeScene(const string& sceneName);
 };

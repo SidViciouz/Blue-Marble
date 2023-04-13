@@ -28,6 +28,8 @@ string Engine::mCurrentSceneName;
 
 shared_ptr<TextManager>	Engine::mTextManager;
 
+shared_ptr<TextureManager> Engine::mTextureManager;
+
 int Engine::mWidth = 800;
 int	Engine::mHeight = 600;
 
@@ -70,6 +72,11 @@ void Engine::Initialize()
 	mMeshManager->Load("my", "../Model/my.obj");
 	mMeshManager->Load("inventory", "../Model/inventory.obj");
 	mMeshManager->Load("menu", "../Model/menu.obj");
+
+	mTextureManager = make_shared<TextureManager>();
+	mTextureManager->Load("brick", L"../Texture/bricks3.dds");
+	mTextureManager->Load("canvas", L"../Texture/canvas.dds");
+	mTextureManager->Load("backPack", L"../Texture/backpack.dds");
 
 	mTextManager = make_shared<TextManager>();
 
@@ -918,6 +925,11 @@ void Engine::CreatePso()
 	for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
 		psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
 
+	psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
+	psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+	psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+
 	psoDesc.DepthStencilState.DepthEnable = TRUE;
 	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -945,28 +957,6 @@ void Engine::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["Default"] = move(pso);
-
-	psoDesc.VS.pShaderBytecode = mShaders["SelectedVS"]->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = mShaders["SelectedVS"]->GetBufferSize();
-	psoDesc.PS.pShaderBytecode = mShaders["SelectedPS"]->GetBufferPointer();
-	psoDesc.PS.BytecodeLength = mShaders["SelectedPS"]->GetBufferSize();
-	psoDesc.DepthStencilState.DepthEnable = false;
-
-	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
-		L"create graphics pso error!");
-	mPSOs["Selected"] = move(pso);
-
-	psoDesc.VS.pShaderBytecode = mShaders["WorldVS"]->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = mShaders["WorldVS"]->GetBufferSize();
-	psoDesc.PS.pShaderBytecode = mShaders["WorldPS"]->GetBufferPointer();
-	psoDesc.PS.BytecodeLength = mShaders["WorldPS"]->GetBufferSize();
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
-	psoDesc.DepthStencilState.DepthEnable = true;
-	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-
-	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
-		L"create graphics pso error!");
-	mPSOs["World"] = move(pso);
 
 	psoDesc.InputLayout.NumElements = 0;
 	psoDesc.InputLayout.pInputElementDescs = nullptr;

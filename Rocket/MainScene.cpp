@@ -2,7 +2,7 @@
 #include "Engine.h"
 #include "CameraInputComponent.h"
 #include "UIInputComponent.h"
-#include "IconInputComponent.h"
+#include "ItemInputComponent.h"
 
 MainScene::MainScene()
 	: Scene()
@@ -34,7 +34,7 @@ void MainScene::Initialize()
 
 	groundMesh = make_shared<MeshNode>("box");
 	groundMesh->SetRelativePosition(0.0f, -5.0f, 0.0f);
-	groundMesh->SetScale(10.0f, 0.1f, 10.0f);
+	groundMesh->SetScale(20.0f, 0.1f, 20.0f);
 	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 1.0f, 20.0f);
 	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
 
@@ -46,38 +46,31 @@ void MainScene::Initialize()
 	camera->mCollisionComponent = make_shared<BoxCollisionComponent>(camera, 5.0f, 5.0f, 5.0f);
 	mCameraNode = camera;
 
-	inventory = make_shared<ClickableNode>("inventory");
-	inventory->SetRelativePosition(-3.0f,0.0f,10.0f);
-	inventory->SetScale(0.2f, 5.0f, 1.0f);
+	inventory = make_shared<InventoryNode>("menu");
+	inventory->SetRelativePosition(0.0f,0.0f,5.0f);
 	inventory->mInputComponent = Engine::mInputManager->Build<UIInputComponent>(inventory,"MainScene");
 	inventory->SetIsShowUp(false);
 	camera->AddChild(inventory);
 
-	icon1 = make_shared<IconNode>("box");
-	icon1->mInputComponent = Engine::mInputManager->Build<IconInputComponent>(icon1, "MainScene");
-	icon1->SetScale(0.5f, 0.5f, 0.5f);
-	icon1->SetRelativePosition(0.0f, 0.0f, -1.0f);
-	inventory->AddChild(icon1);
-
 	shared_ptr<TextNode> text1 = make_shared<TextNode>();
-	text1->SetText("12345 hello my name is sol!");
+	text1->SetText("inventory E");
 	text1->SetScale(5.0f, 5.0f, 5.0f);
-	text1->SetRelativePosition(-3.0, 0.0f, 11.0f);
+	text1->SetRelativePosition(-3.5, 3.5f, 11.0f);
 	camera->AddChild(text1);
 
 	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
-	light1->SetColor( 1.0f,0.0f,0.0f );
+	light1->SetColor( 1.0f,1.0f,0.0f );
 	light1->SetRelativePosition(0.0, 10.0f, 0.0f);
 	mLightNodes.push_back(light1);
 
 	shared_ptr<LightNode> light2 = make_shared<LightNode>("ball", Directional);
-	light2->SetColor(1.0f, 1.0f, 1.0f);
+	light2->SetColor(0.0f, 0.0f, 1.0f);
 	light2->SetRelativePosition(5.0, 5.0f, 0.0f);
 	light2->SetDirection(-1.0f, -1.0f, 0.0f);
 	mLightNodes.push_back(light2);
 
 	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
-	light3->SetColor(1.0f, 1.0f, 1.0f);
+	light3->SetColor(0.0f, 1.0f, 0.0f);
 	light3->SetRelativePosition(-5.0, -5.0f, 0.0f);
 	light3->SetDirection(1.0f, 0.0f, 0.0f);
 	mLightNodes.push_back(light3);
@@ -130,17 +123,27 @@ void MainScene::UpdateScene(const Timer& timer)
 
 	if (mCameraNode->IsColliding(ballMesh.get(), collisionInfo))
 	{
-		//printf("camera and ball is colliding\n");
-		icon1->SetMeshName("ball");
-		icon1->SetDraw(true);
+		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[10].get());
+		child->SetMeshName("ball");
+		child->SetDraw(true);
 	}
 	else
 	{
-		icon1->SetDraw(false);
+		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[10].get());
+		child->SetMeshName("ball");
+		child->SetDraw(false);
 	}
 
 	if (mCameraNode->IsColliding(boxMesh.get(), collisionInfo))
 	{
-		//printf("camera and box is colliding\n");
+		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[11].get());
+		child->SetMeshName("box");
+		child->SetDraw(true);
+	}
+	else
+	{
+		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[11].get());
+		child->SetMeshName("box");
+		child->SetDraw(false);
 	}
 }

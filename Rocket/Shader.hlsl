@@ -149,7 +149,7 @@ float4 PS(VertexOut pin) : SV_Target
 	float4 color = float4(diffuseAlbedo * float3(0.1f, 0.1f, 0.1f), 1.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
-
+	/*
 	pin.normal = normalize(pin.normal);
 
 	for (int i = 0; i < 3; ++i)
@@ -188,6 +188,8 @@ float4 PS(VertexOut pin) : SV_Target
 
 		color += float4(rambertTerm * lights[i].color * (diffuse + fresnelTerm*roughnessTerm), 1.0f);
 	}
+	*/
+	color = textureMap.Sample(textureSampler, pin.tex);
 
 	return color;
 }

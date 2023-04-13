@@ -96,8 +96,8 @@ float4 PS(VertexOut pin) : SV_Target
 {
 	// 몇번째 문자를 출력할지 index를 tex를 통해서 계산한다
 
-	float nX = pin.tex.x * 10.0f;
-	float nY = pin.tex.y * 10.0f;
+	float nX = pin.tex.x * 15.0f;
+	float nY = pin.tex.y * 15.0f;
 
 	int indexX = (int)nX;
 	int indexY = (int)nY;
@@ -105,7 +105,7 @@ float4 PS(VertexOut pin) : SV_Target
 	float xf = nX - (float)indexX;
 	float yf = nY - (float)indexY;
 
-	int index = indexX + indexY * 10;
+	int index = indexX + indexY * 15;
 
 	if (index >= charNum)
 	{
