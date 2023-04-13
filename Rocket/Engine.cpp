@@ -170,10 +170,16 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	case WM_KEYDOWN :
 		mInputManager->SetKeys(wParam, true);
+		if (!mInputManager->GetKeyDown())
+		{
+			mInputManager->SetKeyDown(true);
+			mInputManager->Push(msg, wParam);
+		}
 		return 0;
 
 	case WM_KEYUP:
 		mInputManager->SetKeys(wParam, false);
+		mInputManager->SetKeyDown(false);
 	}
 	
 	return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -1184,6 +1190,9 @@ void Engine::CreatePso()
 	psoDesc.GS.BytecodeLength = mShaders["planetGS"]->GetBufferSize();
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	psoDesc.RasterizerState.DepthClipEnable = true;
+	psoDesc.RasterizerState.DepthBias = 100;
+	psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
+	psoDesc.RasterizerState.SlopeScaledDepthBias = 1.0f;
 	psoDesc.DepthStencilState.DepthEnable = true;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 	psoDesc.DepthStencilState.StencilEnable = false;

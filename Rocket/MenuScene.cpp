@@ -13,13 +13,13 @@ void MenuScene::Initialize()
 
 	shared_ptr<ClickableNode> menu = make_shared<ClickableNode>("menu");
 	menu->SetRelativePosition(0.0f, 0.0f, 15.0f);
-	menu->SetScale(8.0f, 8.0f, 8.0f);
+	menu->SetScale(10.0f, 10.0f, 10.0f);
 	camera->AddChild(menu);
 
 	shared_ptr<ClickableNode> startButton = make_shared<ClickableNode>("inventory");
 	startButton->SetRelativePosition(0.0f, 0.0f, 11.0f);
 	startButton->SetScale(0.5f, 0.5f, 0.5f);
-	startButton->mInputComponent = Engine::mInputManager->Build<StartButtonInputComponent>(startButton);
+	startButton->mInputComponent = Engine::mInputManager->Build<StartButtonInputComponent>(startButton,"MenuScene");
 	camera->AddChild(startButton);
 
 	shared_ptr<TextNode> text1 = make_shared<TextNode>();

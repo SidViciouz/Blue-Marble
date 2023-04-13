@@ -16,6 +16,8 @@ public:
 	const XMFLOAT4X4&							GetProjection() const;
 	const XMFLOAT4X4&							GetInvVIewProjection() const;
 	const XMFLOAT3&								GetFront() const;
+	void										ToggleActivate();
+	const bool&									GetActivate() const;
 
 	virtual void								Draw() override;
 
@@ -43,4 +45,6 @@ protected:
 
 	PrevMousePosition							mPrevMousePosition;
 	bool										mMouseDown = false;
+
+	bool										mActivate = true;
 };

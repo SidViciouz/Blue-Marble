@@ -28,6 +28,9 @@ public:
 		{
 			SceneNode* node = mNodeAttachedTo.get();
 			CameraNode* camera = dynamic_cast<CameraNode*>(node);
+			
+			if (!camera->GetActivate())
+				return;
 
 			camera->TurnX(XMConvertToRadians(0.25f * static_cast<float>(y - mPrevMousePosition.y)));
 			camera->TurnY(XMConvertToRadians(0.25f * static_cast<float>(x - mPrevMousePosition.x)));

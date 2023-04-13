@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "CameraInputComponent.h"
 #include "UIInputComponent.h"
+#include "IconInputComponent.h"
 
 MainScene::MainScene()
 	: Scene()
@@ -33,7 +34,7 @@ void MainScene::Initialize()
 
 	groundMesh = make_shared<MeshNode>("box");
 	groundMesh->SetRelativePosition(0.0f, -5.0f, 0.0f);
-	//groundMesh->SetScale(10.0f, 1.0f, 10.0f);
+	groundMesh->SetScale(10.0f, 0.1f, 10.0f);
 	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 1.0f, 20.0f);
 	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
 
@@ -41,18 +42,27 @@ void MainScene::Initialize()
 	cloudVolume->SetRelativePosition(9.0f, 30.0f, 0.0f);
 	
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
-	camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera);
+	camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera,"MainScene");
+	camera->mCollisionComponent = make_shared<BoxCollisionComponent>(camera, 5.0f, 5.0f, 5.0f);
 	mCameraNode = camera;
 
-	shared_ptr<ClickableNode> clickable1 = make_shared<ClickableNode>("inventory");
-	clickable1->SetRelativePosition(3.0f,3.0f,10.0f);
-	clickable1->mInputComponent = Engine::mInputManager->Build<UIInputComponent>(clickable1);
-	camera->AddChild(clickable1);
+	inventory = make_shared<ClickableNode>("inventory");
+	inventory->SetRelativePosition(-3.0f,0.0f,10.0f);
+	inventory->SetScale(0.2f, 5.0f, 1.0f);
+	inventory->mInputComponent = Engine::mInputManager->Build<UIInputComponent>(inventory,"MainScene");
+	inventory->SetIsShowUp(false);
+	camera->AddChild(inventory);
+
+	icon1 = make_shared<IconNode>("box");
+	icon1->mInputComponent = Engine::mInputManager->Build<IconInputComponent>(icon1, "MainScene");
+	icon1->SetScale(0.5f, 0.5f, 0.5f);
+	icon1->SetRelativePosition(0.0f, 0.0f, -1.0f);
+	inventory->AddChild(icon1);
 
 	shared_ptr<TextNode> text1 = make_shared<TextNode>();
 	text1->SetText("12345 hello my name is sol!");
 	text1->SetScale(5.0f, 5.0f, 5.0f);
-	text1->SetRelativePosition(-3.0, 0.0f, 10.0f);
+	text1->SetRelativePosition(-3.0, 0.0f, 11.0f);
 	camera->AddChild(text1);
 
 	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
@@ -61,13 +71,13 @@ void MainScene::Initialize()
 	mLightNodes.push_back(light1);
 
 	shared_ptr<LightNode> light2 = make_shared<LightNode>("ball", Directional);
-	light2->SetColor(0.0f, 0.0f, 1.0f);
+	light2->SetColor(1.0f, 1.0f, 1.0f);
 	light2->SetRelativePosition(5.0, 5.0f, 0.0f);
 	light2->SetDirection(-1.0f, -1.0f, 0.0f);
 	mLightNodes.push_back(light2);
 
 	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
-	light3->SetColor(0.0f, 1.0f, 0.0f);
+	light3->SetColor(1.0f, 1.0f, 1.0f);
 	light3->SetRelativePosition(-5.0, -5.0f, 0.0f);
 	light3->SetDirection(1.0f, 0.0f, 0.0f);
 	mLightNodes.push_back(light3);
@@ -117,5 +127,20 @@ void MainScene::UpdateScene(const Timer& timer)
 		ballMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
 		ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
 	}
-	
+
+	if (mCameraNode->IsColliding(ballMesh.get(), collisionInfo))
+	{
+		//printf("camera and ball is colliding\n");
+		icon1->SetMeshName("ball");
+		icon1->SetDraw(true);
+	}
+	else
+	{
+		icon1->SetDraw(false);
+	}
+
+	if (mCameraNode->IsColliding(boxMesh.get(), collisionInfo))
+	{
+		//printf("camera and box is colliding\n");
+	}
 }

@@ -10,7 +10,7 @@ CameraNode::CameraNode(int width, int height)
 
 	mNear = 1.0f;
 	mFar = 1000.0f;
-	mAngle = XMConvertToRadians(45.0f);
+	mAngle = XMConvertToRadians(60.0f);
 	mRatio = static_cast<float>(width) / height;
 
 	SetRelativePosition(0.0f, 0.0f, -15.0f);
@@ -24,23 +24,27 @@ void CameraNode::Update()
 	/*
 	* 여기에 추가로 필요한 것들을 작성한다.
 	*/
-	float deltatime = Engine::mTimer.GetDeltaTime();
-	//deltaTime 추가해야한다.
-	if (Engine::mInputManager->GetKeys(0x57))
+	if (mActivate)
 	{
-		GoFront(10.0f * deltatime);
-	}
-	if (Engine::mInputManager->GetKeys(0x53))
-	{
-		GoFront(-10.0f * deltatime);
-	}
-	if (Engine::mInputManager->GetKeys(0x41))
-	{
-		GoRight(-10.0f * deltatime);
-	}
-	if (Engine::mInputManager->GetKeys(0x44))
-	{
-		GoRight(10.0f * deltatime);
+		float deltatime = Engine::mTimer.GetDeltaTime();
+		//deltaTime 추가해야한다.
+		if (Engine::mInputManager->GetKeys(0x57))
+		{
+			GoFront(10.0f * deltatime);
+		}
+		if (Engine::mInputManager->GetKeys(0x53))
+		{
+			GoFront(-10.0f * deltatime);
+		}
+		if (Engine::mInputManager->GetKeys(0x41))
+		{
+			GoRight(-10.0f * deltatime);
+		}
+		if (Engine::mInputManager->GetKeys(0x44))
+		{
+			GoRight(10.0f * deltatime);
+		}
+
 	}
 
 	UpdateViewMatrix();
@@ -103,7 +107,7 @@ void CameraNode::TurnY(float y)
 	XMStoreFloat4(&quat, XMQuaternionMultiply(XMLoadFloat4(&mRelativeQuaternion.Get()), XMQuaternionRotationAxis(upAxis, y)));
 	SetRelativeQuaternion(quat);
 
-	printf("%f %f %f %f\n", quat.x, quat.y, quat.z, quat.w);
+	//printf("%f %f %f %f\n", quat.x, quat.y, quat.z, quat.w);
 }
 
 const XMFLOAT4X4& CameraNode::GetView() const
@@ -186,4 +190,17 @@ void CameraNode::UpdateProjectionMatrix()
 	XMMATRIX vp = XMMatrixMultiply(v, p);
 	XMStoreFloat4x4(&mViewProjection, vp);
 	XMStoreFloat4x4(&mInvViewProjection, XMMatrixInverse(nullptr, vp));
+}
+
+void CameraNode::ToggleActivate()
+{
+	if (mActivate)
+		mActivate = false;
+	else
+		mActivate = true;
+}
+
+const bool& CameraNode::GetActivate() const
+{
+	return mActivate;
 }

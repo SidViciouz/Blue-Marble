@@ -7,6 +7,11 @@ public:
 												ClickableNode(string name);
 	virtual void								Draw() override;
 	virtual void								Update() override;
+	void										SetIsShowUp(bool value);
+	const bool&									GetIsShowUp() const;
+	void										ToggleIsShowUp();
 
 protected:
+
+	bool										mIsShowUp = true;
 };

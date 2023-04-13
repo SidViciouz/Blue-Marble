@@ -16,11 +16,13 @@ public:
 	virtual void								OnMouseDown(const int& x,const int& y) = 0;
 	virtual void								OnMouseUp() = 0;
 	virtual void								OnMouseMove(const int& x, const int& y) = 0;
+	virtual void								OnKeyDown(const int& key) = 0;
 
 	virtual bool								IsOnClickOverriden() const = 0;
 	virtual bool								IsOnMouseDownOverriden() const = 0;
 	virtual bool								IsOnMouseUpOverriden() const = 0;
 	virtual bool								IsOnMouseMoveOverriden() const = 0;
+	virtual bool								IsOnKeyDownOverriden() const = 0;
 
 	shared_ptr<SceneNode>						mNodeAttachedTo;
 };

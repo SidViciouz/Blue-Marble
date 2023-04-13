@@ -11,8 +11,15 @@ public:
 
 	}
 
-	virtual void								OnClick() override
+	virtual void								OnKeyDown(const int& key) override
 	{
-		printf("UI is clicked\n");
+		if (key == 0x45) //E key
+		{
+			ClickableNode* node = dynamic_cast<ClickableNode*>(mNodeAttachedTo.get());
+			node->ToggleIsShowUp();
+
+			Engine::mAllScenes[Engine::mCurrentSceneName]->mCameraNode->ToggleActivate();
+		}
 	}
+
 };

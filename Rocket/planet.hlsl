@@ -252,7 +252,7 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 
 	for (int i = 0; i < 3; ++i)
 	{
-		float height = max(noise(float3(gin[i].tex*256, 0.0f)),0);
+		float height = noise(float3(gin[i].tex*256, 0.0f))/10.0f;
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
 		gout.pos = mul(mul(float4(gout.posW,1.0f), transpose(view)), transpose(projection));

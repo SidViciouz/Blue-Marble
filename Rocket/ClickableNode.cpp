@@ -8,6 +8,9 @@ ClickableNode::ClickableNode(string name)
 
 void ClickableNode::Draw()
 {
+	if (!mIsShowUp)
+		return;
+
 	Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["Default"].Get());
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs["Default"].Get());
@@ -27,4 +30,22 @@ void ClickableNode::Update()
 {
 
 	MeshNode::Update();
+}
+
+void ClickableNode::SetIsShowUp(bool value)
+{
+	mIsShowUp = value;
+}
+
+const bool& ClickableNode::GetIsShowUp() const
+{
+	return mIsShowUp;
+}
+
+void ClickableNode::ToggleIsShowUp()
+{
+	if (mIsShowUp)
+		mIsShowUp = false;
+	else
+		mIsShowUp = true;
 }

@@ -48,6 +48,16 @@ bool InputManager::GetMouseLeftDown() const
 	return mMouseLeftDown;
 }
 
+void InputManager::SetKeyDown(bool value)
+{
+	mkeyDown = value;
+}
+
+bool InputManager::GetKeyDown() const
+{
+	return mkeyDown;
+}
+
 Message InputManager::Pop()
 {
 	if (mMessageQueue.empty())
@@ -69,9 +79,12 @@ void InputManager::Dispatch()
 		{
 			for (auto inputComponent : mInputComponents)
 			{
-				if (inputComponent->IsOnMouseDownOverriden())
+				if (inputComponent.second.compare(Engine::mCurrentSceneName) == 0)
 				{
-					inputComponent->OnMouseDown(msg.param1,msg.param2);
+					if (inputComponent.first->IsOnMouseDownOverriden())
+					{
+						inputComponent.first->OnMouseDown(msg.param1,msg.param2);
+					}
 				}
 			}
 			Select(msg.param1, msg.param2);
@@ -80,9 +93,12 @@ void InputManager::Dispatch()
 		{
 			for (auto inputComponent : mInputComponents)
 			{
-				if (inputComponent->IsOnMouseUpOverriden())
+				if (inputComponent.second.compare(Engine::mCurrentSceneName) == 0)
 				{
-					inputComponent->OnMouseUp();
+					if (inputComponent.first->IsOnMouseUpOverriden())
+					{
+						inputComponent.first->OnMouseUp();
+					}
 				}
 			}
 		}
@@ -90,9 +106,25 @@ void InputManager::Dispatch()
 		{
 			for (auto inputComponent : mInputComponents)
 			{
-				if (inputComponent->IsOnMouseMoveOverriden())
+				if (inputComponent.second.compare(Engine::mCurrentSceneName) == 0)
 				{
-					inputComponent->OnMouseMove(msg.param1, msg.param2);
+					if (inputComponent.first->IsOnMouseMoveOverriden())
+					{
+						inputComponent.first->OnMouseMove(msg.param1, msg.param2);
+					}
+				}
+			}
+		}
+		else if (msg.msgType == WM_KEYDOWN)
+		{
+			for (auto inputComponent : mInputComponents)
+			{
+				if (inputComponent.second.compare(Engine::mCurrentSceneName) == 0)
+				{
+					if (inputComponent.first->IsOnKeyDownOverriden())
+					{
+						inputComponent.first->OnKeyDown(msg.param1);
+					}
 				}
 			}
 		}
@@ -132,12 +164,15 @@ void InputManager::Select(int x,int y)
 
 	for (auto inputComponent : mInputComponents)
 	{
-		if (!inputComponent->IsOnClickOverriden())
+		if (inputComponent.second.compare(Engine::mCurrentSceneName) != 0)
+			continue;
+		
+		if (!inputComponent.first->IsOnClickOverriden())
 			continue;
 
 		BoundingOrientedBox boundingBox;
 
-		MeshNode* node = dynamic_cast<MeshNode*>(inputComponent->mNodeAttachedTo.get());
+		MeshNode* node = dynamic_cast<MeshNode*>(inputComponent.first->mNodeAttachedTo.get());
 
 		//Mesh node여야한다.
 		Engine::mMeshManager->mMeshes[node->GetMeshName()]->mBound.Transform(
@@ -148,10 +183,7 @@ void InputManager::Select(int x,int y)
 			if (dist < prevDist)
 			{
 				selected = true;
-				inputComponent->OnClick();
-				//mScenes[mCurrentScene]->mIsModelSelected = true;
-				//mScenes[mCurrentScene]->mSelectedModel = model->second;
-				//mScenes[mCurrentScene]->mSelectedModelName = model->first;
+				inputComponent.first->OnClick();
 				prevDist = dist;
 			}
 		}

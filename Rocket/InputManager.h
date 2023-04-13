@@ -16,11 +16,11 @@ public:
 	* InputComponentBase 생성자를 protected로 변경하고 friends로 설정하는 것이 좋을 것 같다.
 	*/
 	template<typename T>
-	shared_ptr<InputComponentBase>				Build(shared_ptr<SceneNode> NodeAttachedTo)
+	shared_ptr<InputComponentBase>				Build(shared_ptr<SceneNode> NodeAttachedTo,const string& sceneName)
 	{
 		shared_ptr<InputComponentBase> newInputComponentBase = make_shared<T>(NodeAttachedTo);
 
-		mInputComponents.push_back(newInputComponentBase);
+		mInputComponents.push_back({ newInputComponentBase,sceneName});
 
 		return newInputComponentBase;
 	}
@@ -34,6 +34,8 @@ public:
 	const bool&									GetKeys(int idx) const;
 	void										SetMouseLeftDown(bool value);
 	bool										GetMouseLeftDown() const;
+	void										SetKeyDown(bool value);
+	bool										GetKeyDown() const;
 
 	void										Dispatch();
 
@@ -44,11 +46,12 @@ protected:
 	queue<Message>								mMessageQueue;
 	bool										mKeys[256] = { false, };
 	bool										mMouseLeftDown = false;
+	bool										mkeyDown = false;
 	PrevMousePosition							mPrevMousePosition;
 	/*
 	* input component를 가진 노드가 여기에 모두 등록된다.
-	* 현재 scene에 존재한는 node가 아닌 경우 이를 제외하도록 해야한다.
+	* 현재 scene에 존재하는 node가 아닌 경우 이를 제외하도록 해야한다.
 	*/
-	vector<shared_ptr<InputComponentBase>>		mInputComponents;
+	vector<pair<shared_ptr<InputComponentBase>,string>>		mInputComponents;
 };
 

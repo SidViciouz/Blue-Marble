@@ -15,6 +15,7 @@ public:
 	virtual void								OnMouseDown(const int& x, const int& y) override {};
 	virtual void								OnMouseUp() override {};
 	virtual void								OnMouseMove(const int& x, const int& y) override {};
+	virtual void								OnKeyDown(const int& key) override {};
 
 	virtual bool								IsOnClickOverriden() const override
 	{
@@ -40,6 +41,13 @@ public:
 	virtual bool								IsOnMouseMoveOverriden() const override
 	{
 		if (&InputComponent::OnMouseMove != &Derived::OnMouseMove)
+			return true;
+		else
+			return false;
+	}
+	virtual bool								IsOnKeyDownOverriden() const override
+	{
+		if (&InputComponent::OnKeyDown != &Derived::OnKeyDown)
 			return true;
 		else
 			return false;
