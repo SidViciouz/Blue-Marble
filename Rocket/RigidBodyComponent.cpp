@@ -1,6 +1,7 @@
 #include "RigidBodyComponent.h"
 #include "SceneNode.h"
 #include "BoxCollisionComponent.h"
+#include "MeshNode.h"
 
 RigidBodyComponent::RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,float mass)
 	: mNodeAttachedTo{ NodeAttachedTo }, mMass{ mass }
@@ -28,6 +29,14 @@ RigidBodyComponent::RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,floa
 
 void RigidBodyComponent::Update(float deltaTime)
 {
+	MeshNode* node = dynamic_cast<MeshNode*>(mNodeAttachedTo.get());
+	if (!node->GetActivated())
+	{
+		mForce = Vector3();
+		mTorque = Vector3();
+		return;
+	}
+
 	// update linear properties
 	mPosition.v = mNodeAttachedTo->GetRelativePosition().Get();
 
@@ -90,7 +99,7 @@ void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<Rig
 	float denominator = invM1 + invM2 + ((( (r1 ^ n) * I1 )^ r1) + (((r2 ^ n) * I2 )^ r2)) * n;
 	float impulse =  (1 + e)*(vr*n)/denominator;
 
-	mVelocity = (-n * (vr*n) * e) / (invM1 + invM2);
+	mVelocity = (-n * (vr*n) * e) / (invM1 + invM2) * invM1;
 	//mVelocity = -n * (vr*n) * e;
 	//mVelocity = -mVelocity*e;
 	//mVelocity = mVelocity + (n * impulse) * invM1;

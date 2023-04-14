@@ -25,12 +25,6 @@ void MainScene::Initialize()
 	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 3.0f, 3.0f, 3.0f);
 	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
 	ballMesh->mRigidBodyComponent->mVelocity.v.x = 3.0f;
-	
-	shared_ptr<MeshNode> ballMesh2 = make_shared<MeshNode>("ball");
-	ballMesh2->SetRelativePosition(5.0f, 5.0f, 5.0f);
-	ballMesh2->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh2, 3.0f, 3.0f, 3.0f);
-	ballMesh2->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh2, 1.0f);
-	ballMesh->AddChild(ballMesh2);
 
 	groundMesh = make_shared<MeshNode>("box");
 	groundMesh->SetRelativePosition(0.0f, -5.0f, 0.0f);
@@ -123,27 +117,12 @@ void MainScene::UpdateScene(const Timer& timer)
 
 	if (mCameraNode->IsColliding(ballMesh.get(), collisionInfo))
 	{
-		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[10].get());
-		child->SetMeshName("ball");
-		child->SetDraw(true);
-	}
-	else
-	{
-		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[10].get());
-		child->SetMeshName("ball");
-		child->SetDraw(false);
+		inventory->OverlappedNode(ballMesh);
 	}
 
 	if (mCameraNode->IsColliding(boxMesh.get(), collisionInfo))
 	{
-		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[11].get());
-		child->SetMeshName("box");
-		child->SetDraw(true);
+		inventory->OverlappedNode(boxMesh);
 	}
-	else
-	{
-		ItemNode* child = dynamic_cast<ItemNode*>(inventory->mChildNodes[11].get());
-		child->SetMeshName("box");
-		child->SetDraw(false);
-	}
+
 }

@@ -9,20 +9,18 @@ InventoryNode::InventoryNode(string name)
 	{
 		mStoredItems[i] = make_shared<ItemNode>("box");
 		mStoredItems[i]->SetRelativePosition(-0.5f+i*0.1f,0.0f,-1.0f);
-		//mStoredItems[i]->SetDraw(true);
 		mStoredItems[i]->mInputComponent = Engine::mInputManager->Build<ItemInputComponent>(mStoredItems[i], "MainScene");
-		mStoredItems[i]->SetIndex(i);
 		AddChild(mStoredItems[i]);
+		mStoredItems[i]->SetIndex(i);
 	}
 
 	for (int i = 0; i < mDroppedItems.size(); ++i)
 	{
 		mDroppedItems[i] = make_shared<ItemNode>("box");
 		mDroppedItems[i]->SetRelativePosition(-1.0f + i*0.5f, -1.5f, -1.0f);
-		//mDroppedItems[i]->SetDraw(true);
 		mDroppedItems[i]->mInputComponent = Engine::mInputManager->Build<ItemInputComponent>(mDroppedItems[i], "MainScene");
-		mDroppedItems[i]->SetIndex(i);
 		AddChild(mDroppedItems[i]);
+		mDroppedItems[i]->SetIndex(i);
 	}
 }
 
@@ -42,13 +40,18 @@ void InventoryNode::Draw()
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mTextureManager->GetTextureIndex("backPack"), DescType::SRV));
 	Engine::mMeshManager->Draw(mMeshName);
 
-
 	//draw child nodes
 	SceneNode::Draw();
 }
 
 void InventoryNode::Update()
 {
+	for (int i = 0; i < mOverlappedMeshes.size(); ++i)
+	{
+		mOverlappedMeshes[i] = nullptr;
+		mDroppedItems[i]->SetDraw(false);
+	}
+
 
 	MeshNode::Update();
 }
@@ -71,39 +74,21 @@ void InventoryNode::ToggleIsShowUp()
 		mIsShowUp = true;
 }
 
-void InventoryNode::SetClickedMesh(const int& index)
-{
-	mClickedMeshIndex = index;
-	mHaveClickedMesh = true;
-}
-
-void InventoryNode::UnsetHaveClickedMesh()
-{
-	mHaveClickedMesh = false;
-}
-
-const int& InventoryNode::GetClickedMeshIndex() const
-{
-	return mClickedMeshIndex;
-}
-
-const bool& InventoryNode::HaveClickedMesh() const
-{
-	return mHaveClickedMesh;
-}
 
 bool InventoryNode::StoreItem(const int& index)
 {
 	if (index <= mDroppedItems.size() && mDroppedItems[index]->GetDraw())
 	{
-		mDroppedItems[index]->SetDraw(false);
-
 		for (int i = 0; i < mStoredItems.size(); ++i)
 		{
 			if (!mStoredItems[i]->GetDraw())
 			{
 				mStoredItems[i]->SetMeshName(mDroppedItems[index]->GetMeshName());
 				mStoredItems[i]->SetDraw(true);
+				mStoredItems[i]->SetIsStored(true);
+
+				mOverlappedMeshes[index]->SetActivated(false);
+				mStoredMeshes[i] = mOverlappedMeshes[index];
 				return true;
 			}
 		}
@@ -116,18 +101,50 @@ bool InventoryNode::DropItem(const int& index)
 {
 	if(index <= mStoredItems.size() && mStoredItems[index]->GetDraw())
 	{
-		mStoredItems[index]->SetDraw(false);
-
 		for (int i = 0; i < mDroppedItems.size(); ++i)
 		{
 			if (!mDroppedItems[i]->GetDraw())
 			{
+				XMFLOAT3 pos = Engine::mAllScenes[Engine::mCurrentSceneName]->mCameraNode->GetAccumulatedPosition().Get();
+
+				mStoredItems[index]->SetDraw(false);
+				mStoredMeshes[index]->SetActivated(true);
+				mStoredMeshes[index]->SetAccumulatedPosition(
+					pos.x,pos.y,pos.z
+				);
+				mStoredMeshes[index]->mRigidBodyComponent->mVelocity = { 0.0f,0.0f,0.0f };
+				mStoredMeshes[index]->mRigidBodyComponent->mAngularVel = { 0.0f,0.0f,0.0f };
+
 				mDroppedItems[i]->SetMeshName(mStoredItems[index]->GetMeshName());
 				mDroppedItems[i]->SetDraw(true);
+				mDroppedItems[i]->SetIsStored(false);
+
 				return true;
 			}
 		}
 	}
 
 	return false;
+}
+
+void InventoryNode::OverlappedNode(shared_ptr<MeshNode> overlapped)
+{
+	if (!overlapped->GetActivated())
+		return;
+
+	for (int i = 0; i < mOverlappedMeshes.size(); ++i)
+	{
+		if (mOverlappedMeshes[i] == nullptr)
+		{
+			mOverlappedMeshes[i] = overlapped;
+			mDroppedItems[i]->SetMeshName(overlapped->GetMeshName());
+			mDroppedItems[i]->SetDraw(true);
+			return;
+		}
+	}
+}
+
+void InventoryNode::UnOverlapped()
+{
+
 }

@@ -19,9 +19,14 @@ public:
 		{
 			mIsClicked = true;
 
-			InventoryNode* parentNode = dynamic_cast<InventoryNode*>(node->mParentNode);
-			parentNode->SetClickedMesh(node->GetIndex());
+			
+			InventoryNode* parentNode = dynamic_cast<InventoryNode*>(node->mParentNode);;
 			printf("clicked Mesh is %s\n", node->GetMeshName().c_str());
+			if (node->GetIsStored())
+				parentNode->DropItem(node->GetIndex());
+			else
+				parentNode->StoreItem(node->GetIndex());
+			
 		}
 	}
 
@@ -32,12 +37,7 @@ public:
 			ItemNode* node = dynamic_cast<ItemNode*>(mNodeAttachedTo.get());
 			if (node->GetDraw())
 			{
-				InventoryNode* parentNode = dynamic_cast<InventoryNode*>(node->mParentNode);
-				if (!parentNode->StoreItem(node->GetIndex()))
-				{
-					parentNode->DropItem(node->GetIndex());
-				}
-				parentNode->UnsetHaveClickedMesh();
+
 			}
 		}
 

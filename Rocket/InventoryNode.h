@@ -13,20 +13,19 @@ public:
 	void										SetIsShowUp(bool value);
 	const bool& GetIsShowUp() const;
 	void										ToggleIsShowUp();
-	void										SetClickedMesh(const int& index);
-	void										UnsetHaveClickedMesh();
-	const int&									GetClickedMeshIndex() const;
-	const bool&									HaveClickedMesh() const;
 	bool										StoreItem(const int& index);
 	bool										DropItem(const int& index);
+	void										OverlappedNode(shared_ptr<MeshNode> overlapped);
+	void										UnOverlapped();
 
 protected:
 
 	bool										mIsShowUp = true;
 	int											mWeight = 0;
-	bool										mHaveClickedMesh = false;
-	int											mClickedMeshIndex;
+
 	array<shared_ptr<ItemNode>, 10>				mStoredItems;
 	array<shared_ptr<ItemNode>, 10>				mDroppedItems;
+	array<shared_ptr<MeshNode>, 10>				mOverlappedMeshes;
+	array<shared_ptr<MeshNode>, 10>				mStoredMeshes;
 };
 

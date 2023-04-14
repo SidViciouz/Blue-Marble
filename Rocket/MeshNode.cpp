@@ -9,6 +9,9 @@ MeshNode::MeshNode(string name)
 
 void MeshNode::Draw()
 {
+	if (!mActivated)
+		return;
+
 	Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["planet"].Get());
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs["planet"].Get());
@@ -41,6 +44,9 @@ void MeshNode::Draw()
 
 void MeshNode::DrawWithoutSetting()
 {
+	if (!mActivated)
+		return;
+
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
@@ -55,11 +61,31 @@ void MeshNode::Update()
 	/*
 	* 여기에 추가로 필요한 것들을 작성한다.
 	*/
+	if (!mActivated)
+		return;
 
 	SceneNode::Update();
+}
+
+bool MeshNode::IsColliding(SceneNode* counterPart, CollisionInfo& collisionInfo)
+{
+	if (!mActivated)
+		return false;
+
+	return SceneNode::IsColliding(counterPart, collisionInfo);
 }
 
 const string& MeshNode::GetMeshName() const
 {
 	return mMeshName;
+}
+
+void MeshNode::SetActivated(const bool& value)
+{
+	mActivated = value;
+}
+
+const bool& MeshNode::GetActivated() const
+{
+	return mActivated;
 }

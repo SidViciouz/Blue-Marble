@@ -22,7 +22,6 @@ void ItemNode::Draw()
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mGradientsDescriptorIdx, DescType::SRV));
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->mPermutationDescriptorIdx, DescType::SRV));
-
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(4, 1, 0);
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(5, Engine::mDescriptorManager->GetGpuHandle(
 		Engine::mAllScenes[Engine::mCurrentSceneName]->mShadowMap->GetTextureSrvIdx(), DescType::SRV));
@@ -65,4 +64,14 @@ void ItemNode::SetIndex(const int& value)
 const int& ItemNode::GetIndex() const
 {
 	return mIndex;
+}
+
+void ItemNode::SetIsStored(const bool& value)
+{
+	mIsStored = value;
+}
+
+const bool& ItemNode::GetIsStored() const
+{
+	return mIsStored;
 }
