@@ -11,13 +11,13 @@ void MenuScene::Initialize()
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800, 600);
 	mCameraNode = camera;
 
-	shared_ptr<ClickableNode> menu = make_shared<ClickableNode>("menu");
+	shared_ptr<UINode> menu = make_shared<UINode>("menu");
 	menu->SetTextureName("canvas");
 	menu->SetRelativePosition(0.0f, 0.0f, 15.0f);
 	menu->SetScale(12.0f, 12.0f, 12.0f);
 	camera->AddChild(menu);
 
-	shared_ptr<ClickableNode> startButton = make_shared<ClickableNode>("inventory");
+	shared_ptr<UINode> startButton = make_shared<UINode>("inventory");
 	startButton->SetTextureName("brick");
 	startButton->SetRelativePosition(0.0f, 0.0f, 11.0f);
 	startButton->SetScale(0.5f, 0.5f, 0.5f);

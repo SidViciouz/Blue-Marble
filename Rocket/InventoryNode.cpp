@@ -8,7 +8,7 @@ InventoryNode::InventoryNode(string name)
 	for (int i = 0; i < mStoredItems.size(); ++i)
 	{
 		mStoredItems[i] = make_shared<ItemNode>("box");
-		mStoredItems[i]->SetRelativePosition(-0.5f+i*0.1f,0.0f,-1.0f);
+		mStoredItems[i]->SetRelativePosition(-0.5f+i*0.25f,0.0f,-1.0f);
 		mStoredItems[i]->mInputComponent = Engine::mInputManager->Build<ItemInputComponent>(mStoredItems[i], "MainScene");
 		AddChild(mStoredItems[i]);
 		mStoredItems[i]->SetIndex(i);
@@ -118,7 +118,7 @@ bool InventoryNode::DropItem(const int& index)
 					pos.x,pos.y,pos.z
 				);
 				mStoredMeshes[index]->mRigidBodyComponent->mVelocity = { 0.0f,0.0f,0.0f };
-				mStoredMeshes[index]->mRigidBodyComponent->mAngularVel = { 0.0f,0.0f,0.0f };
+				mStoredMeshes[index]->mRigidBodyComponent->mAngularVel = { 0.5f,0.5f,0.5f };
 
 				mDroppedItems[i]->SetMeshName(mStoredItems[index]->GetMeshName());
 				mDroppedItems[i]->SetDraw(true);
@@ -147,9 +147,4 @@ void InventoryNode::OverlappedNode(shared_ptr<MeshNode> overlapped)
 			return;
 		}
 	}
-}
-
-void InventoryNode::UnOverlapped()
-{
-
 }

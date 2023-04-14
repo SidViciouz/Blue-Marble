@@ -3,7 +3,7 @@
 
 Scene::Scene() :
 	mSceneRoot(make_shared<SceneNode>()),
-	mShadowMap(make_shared<ShadowMap>(400,400))
+	mShadowMap(make_shared<ShadowMap>(500,500))
 {
 
 }

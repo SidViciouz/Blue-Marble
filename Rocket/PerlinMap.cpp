@@ -63,3 +63,13 @@ PerlinMap::PerlinMap()
 	mPermutationDescriptorIdx = Engine::mDescriptorManager->CreateSrv(
 		Engine::mResourceManager->GetResource(mPermutationIdx), DXGI_FORMAT_R32_SINT, D3D12_SRV_DIMENSION_TEXTURE1D);
 }
+
+const int& PerlinMap::GetPermutationDescriptorIdx() const
+{
+	return mPermutationDescriptorIdx;
+}
+
+const int& PerlinMap::GetGradientsDescriptorIdx() const
+{
+	return mGradientsDescriptorIdx;
+}

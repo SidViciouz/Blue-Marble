@@ -34,15 +34,20 @@ public:
 												Engine(Engine&& engine) = delete;
 	Engine&										operator=(const Engine& engine) = delete;
 	Engine&										operator=(Engine&& engine) = delete;
-
 												Engine(HINSTANCE hInstance);
-
-												//윈도우 관련 메서드
-	static Engine*								Get();
-	LRESULT										WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	void										Initialize();
 	void										Run();
+
+	/*
+	* engine 인스턴스를 반환한다.
+	*/
+	static Engine*								Get();
+	/*
+	* 키 입력을 처리한다.
+	*/
+	LRESULT										WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 
 	/*
 	* 현재 프레임 전까지의 프레임에서 GPU가 모든 연산을 마칠 때까지 기다린다.
@@ -81,7 +86,6 @@ private:
 
 	ComPtr<ID3D12Debug>							debugController;
 
-	//--------------------------------pipeline에 있던 멤버들------------------------------
 public:
 
 	static ComPtr<ID3D12Device>					mDevice;
@@ -89,7 +93,6 @@ public:
 	ComPtr<ID3D12Fence>							mFence = nullptr;
 	UINT64										mFenceValue = 0;
 	ComPtr<IDXGISwapChain>						mSwapChain;
-	//ComPtr<ID3D12Resource>						mBackBuffers[2];
 	static int									mCurrentBackBuffer;
 	static PSOs									mPSOs;
 	D3D12_VIEWPORT								mViewport;
@@ -111,7 +114,8 @@ public:
 	UINT										mMsaaQuality = 0;
 
 	Shaders										mShaders;
-//-----------------------------pipeline 끝----------------------
+
+
 
 	static unique_ptr<DescriptorManager>		mDescriptorManager;
 	static unique_ptr<ResourceManager>			mResourceManager;

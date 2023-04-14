@@ -14,25 +14,25 @@ void MainScene::Initialize()
 {
 	boxMesh = make_shared<MeshNode>("box");
 	boxMesh->SetTextureName("stone");
-	boxMesh->SetRelativePosition(4.5f, 5.0f, 0.0f);
-	boxMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
-	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 3.0f, 3.0f, 3.0f);
+	boxMesh->SetRelativePosition(4.5f, 5.0f, 1.0f);
+	boxMesh->SetRelativeQuaternion(0.0f, sinf(2.0f), 0.0f, cosf(2.0f));
+	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 2.0f, 2.0f, 2.0f);
 	boxMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(boxMesh, 1.0f);
 	boxMesh->mRigidBodyComponent->mVelocity.v.x = -3.0f;
 
 	ballMesh = make_shared<MeshNode>("ball");
 	ballMesh->SetTextureName("stone");
-	ballMesh->SetRelativePosition(0.0f, 5.0f, 0.0f);
+	ballMesh->SetRelativePosition(0.0f, 6.0f, 0.0f);
 	ballMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
-	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 3.0f, 3.0f, 3.0f);
+	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 2.0f, 2.0f, 2.0f);
 	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
 	ballMesh->mRigidBodyComponent->mVelocity.v.x = 3.0f;
 
 	groundMesh = make_shared<MeshNode>("box");
 	groundMesh->SetTextureName("stone");
 	groundMesh->SetRelativePosition(0.0f, -5.0f, 0.0f);
-	groundMesh->SetScale(20.0f, 0.1f, 20.0f);
-	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 1.0f, 20.0f);
+	groundMesh->SetScale(10.0f, 1.0f, 10.0f);
+	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 2.0f, 20.0f);
 	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
 
 	shared_ptr<VolumeNode> cloudVolume = make_shared<VolumeNode>(50.0f, 5.0f, 50.0f);

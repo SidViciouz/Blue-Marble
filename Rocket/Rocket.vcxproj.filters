@@ -123,7 +123,7 @@
     <ClInclude Include="InputManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ClickableNode.h">
+    <ClInclude Include="UINode.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="InputComponent.h">
@@ -251,7 +251,7 @@
     <ClCompile Include="InputManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="ClickableNode.cpp">
+    <ClCompile Include="UINode.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="TextNode.cpp">
@@ -296,19 +296,6 @@
     <FxCompile Include="Shader.hlsl" />
     <FxCompile Include="VolumeSphereShader.hlsl" />
     <FxCompile Include="VolumeCubeShader.hlsl" />
-    <FxCompile Include="WorldShader.hlsl" />
-    <FxCompile Include="ParticleShader.hlsl" />
-    <FxCompile Include="RigidParticleShader.hlsl" />
-    <FxCompile Include="DepthPeelingShader.hlsl" />
-    <FxCompile Include="ParticleUploadShader.hlsl" />
-    <FxCompile Include="GridShader.hlsl" />
-    <FxCompile Include="CreateParticles.hlsl" />
-    <FxCompile Include="particlePosition.hlsl" />
-    <FxCompile Include="ParticleVelocity.hlsl" />
-    <FxCompile Include="RigidInertia.hlsl" />
-    <FxCompile Include="Collision.hlsl" />
-    <FxCompile Include="RigidMomentum.hlsl" />
-    <FxCompile Include="RigidPosQuat.hlsl" />
     <FxCompile Include="planet.hlsl" />
     <FxCompile Include="ColliderShape.hlsl" />
     <FxCompile Include="TextShader.hlsl" />

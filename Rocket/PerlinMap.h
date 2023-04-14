@@ -4,7 +4,10 @@ class PerlinMap
 {
 public:
 										PerlinMap();
+	const int&							GetPermutationDescriptorIdx() const;
+	const int&							GetGradientsDescriptorIdx() const;
 
+protected:
 	int									mPermutationIdx;
 	int									mGradientsIdx;
 	int									mPermutationDescriptorIdx;

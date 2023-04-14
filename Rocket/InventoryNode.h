@@ -17,7 +17,6 @@ public:
 	bool										StoreItem(const int& index);
 	bool										DropItem(const int& index);
 	void										OverlappedNode(shared_ptr<MeshNode> overlapped);
-	void										UnOverlapped();
 
 protected:
 

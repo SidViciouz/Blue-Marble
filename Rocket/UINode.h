@@ -1,10 +1,10 @@
 #pragma once
 #include "MeshNode.h"
 
-class ClickableNode : public MeshNode
+class UINode : public MeshNode
 {
 public:
-												ClickableNode(string name);
+												UINode(string name);
 	virtual void								Draw() override;
 	virtual void								Update() override;
 	void										SetIsShowUp(bool value);

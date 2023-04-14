@@ -495,7 +495,8 @@ void BoxCollisionComponent::Barycentric(const Vector3& a, const Vector3& b, cons
 
 void BoxCollisionComponent::Draw()
 {
-	int data[4] = { mWidth,mHeight,mDepth,mIsColliding };
+	XMFLOAT3 scale = mNodeAttachedTo->GetScale();
+	int data[4] = { mWidth/scale.x, mHeight/scale.y, mDepth/scale.z, mIsColliding };
 	Engine::mCommandList->SetGraphicsRoot32BitConstants(2, 4, data, 0);
 	Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
 	Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());

@@ -1,12 +1,12 @@
-#include "ClickableNode.h"
+#include "UINode.h"
 #include "Engine.h"
 
-ClickableNode::ClickableNode(string name)
+UINode::UINode(string name)
 	: MeshNode(name)
 {
 }
 
-void ClickableNode::Draw()
+void UINode::Draw()
 {
 	if (!mIsShowUp)
 		return;
@@ -28,23 +28,23 @@ void ClickableNode::Draw()
 	SceneNode::Draw();
 }
 
-void ClickableNode::Update()
+void UINode::Update()
 {
 
 	MeshNode::Update();
 }
 
-void ClickableNode::SetIsShowUp(bool value)
+void UINode::SetIsShowUp(bool value)
 {
 	mIsShowUp = value;
 }
 
-const bool& ClickableNode::GetIsShowUp() const
+const bool& UINode::GetIsShowUp() const
 {
 	return mIsShowUp;
 }
 
-void ClickableNode::ToggleIsShowUp()
+void UINode::ToggleIsShowUp()
 {
 	if (mIsShowUp)
 		mIsShowUp = false;

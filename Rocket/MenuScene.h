@@ -4,7 +4,7 @@
 #include "VolumeNode.h"
 #include "MeshNode.h"
 #include "CameraNode.h"
-#include "ClickableNode.h"
+#include "UINode.h"
 #include "TextNode.h"
 #include "LightNode.h"
 #include "Engine.h"
