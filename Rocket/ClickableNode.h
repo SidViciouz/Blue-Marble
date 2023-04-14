@@ -14,4 +14,5 @@ public:
 protected:
 
 	bool										mIsShowUp = true;
+
 };

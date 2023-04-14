@@ -37,11 +37,16 @@ void InventoryNode::Draw()
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
-		Engine::mDescriptorManager->GetGpuHandle(Engine::mTextureManager->GetTextureIndex("backPack"), DescType::SRV));
+		Engine::mDescriptorManager->GetGpuHandle(Engine::mTextureManager->GetTextureIndex(mTextureName), DescType::SRV));
 	Engine::mMeshManager->Draw(mMeshName);
 
 	//draw child nodes
 	SceneNode::Draw();
+}
+
+void InventoryNode::DrawWithoutSetting()
+{
+	SceneNode::DrawWithoutSetting();
 }
 
 void InventoryNode::Update()

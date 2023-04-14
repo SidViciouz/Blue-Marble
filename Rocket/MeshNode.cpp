@@ -27,6 +27,9 @@ void MeshNode::Draw()
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(5, Engine::mDescriptorManager->GetGpuHandle(
 		Engine::mAllScenes[Engine::mCurrentSceneName]->mShadowMap->GetTextureSrvIdx(), DescType::SRV));
 
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(6, Engine::mDescriptorManager->GetGpuHandle(
+		Engine::mTextureManager->GetTextureIndex(mTextureName), DescType::SRV));
+
 
 	Engine::mMeshManager->Draw(mMeshName);
 
@@ -88,4 +91,9 @@ void MeshNode::SetActivated(const bool& value)
 const bool& MeshNode::GetActivated() const
 {
 	return mActivated;
+}
+
+void MeshNode::SetTextureName(const string& name)
+{
+	mTextureName = name;
 }

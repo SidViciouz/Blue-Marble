@@ -77,6 +77,8 @@ void Engine::Initialize()
 	mTextureManager->Load("brick", L"../Texture/bricks3.dds");
 	mTextureManager->Load("canvas", L"../Texture/canvas.dds");
 	mTextureManager->Load("backPack", L"../Texture/backpack.dds");
+	mTextureManager->Load("stone", L"../Texture/stone.dds");
+	mTextureManager->Load("sun", L"../Texture/sun.dds");
 
 	mTextManager = make_shared<TextManager>();
 
@@ -706,7 +708,7 @@ void Engine::CreateShaderAndRootSignature()
 	mRootSignatures["CreateParticles"] = move(rs);
 
 
-	D3D12_DESCRIPTOR_RANGE rangePlanet[3];
+	D3D12_DESCRIPTOR_RANGE rangePlanet[4];
 	rangePlanet[0].BaseShaderRegister = 0;
 	rangePlanet[0].NumDescriptors = 1;
 	rangePlanet[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -722,9 +724,14 @@ void Engine::CreateShaderAndRootSignature()
 	rangePlanet[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangePlanet[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangePlanet[2].RegisterSpace = 0;
+	rangePlanet[3].BaseShaderRegister = 3;
+	rangePlanet[3].NumDescriptors = 1;
+	rangePlanet[3].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangePlanet[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangePlanet[3].RegisterSpace = 0;
 
 
-	D3D12_ROOT_PARAMETER rootParameterPlanet[6];
+	D3D12_ROOT_PARAMETER rootParameterPlanet[7];
 	rootParameterPlanet[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameterPlanet[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterPlanet[0].Descriptor.RegisterSpace = 0;
@@ -750,9 +757,14 @@ void Engine::CreateShaderAndRootSignature()
 	rootParameterPlanet[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterPlanet[5].DescriptorTable.NumDescriptorRanges = 1;
 	rootParameterPlanet[5].DescriptorTable.pDescriptorRanges = &rangePlanet[2];
+	rootParameterPlanet[6].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterPlanet[6].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterPlanet[6].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterPlanet[6].DescriptorTable.pDescriptorRanges = &rangePlanet[3];
 
 
-	rsDesc.NumParameters = 6;
+
+	rsDesc.NumParameters = 7;
 	rsDesc.pParameters = rootParameterPlanet;
 	rsDesc.NumStaticSamplers = 1;
 	rsDesc.pStaticSamplers = &samplerDesc;

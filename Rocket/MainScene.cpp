@@ -13,6 +13,7 @@ MainScene::MainScene()
 void MainScene::Initialize()
 {
 	boxMesh = make_shared<MeshNode>("box");
+	boxMesh->SetTextureName("stone");
 	boxMesh->SetRelativePosition(4.5f, 5.0f, 0.0f);
 	boxMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 3.0f, 3.0f, 3.0f);
@@ -20,6 +21,7 @@ void MainScene::Initialize()
 	boxMesh->mRigidBodyComponent->mVelocity.v.x = -3.0f;
 
 	ballMesh = make_shared<MeshNode>("ball");
+	ballMesh->SetTextureName("stone");
 	ballMesh->SetRelativePosition(0.0f, 5.0f, 0.0f);
 	ballMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 3.0f, 3.0f, 3.0f);
@@ -27,6 +29,7 @@ void MainScene::Initialize()
 	ballMesh->mRigidBodyComponent->mVelocity.v.x = 3.0f;
 
 	groundMesh = make_shared<MeshNode>("box");
+	groundMesh->SetTextureName("stone");
 	groundMesh->SetRelativePosition(0.0f, -5.0f, 0.0f);
 	groundMesh->SetScale(20.0f, 0.1f, 20.0f);
 	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 1.0f, 20.0f);
@@ -41,7 +44,8 @@ void MainScene::Initialize()
 	mCameraNode = camera;
 
 	inventory = make_shared<InventoryNode>("menu");
-	inventory->SetRelativePosition(0.0f,0.0f,5.0f);
+	inventory->SetTextureName("backPack");
+	inventory->SetRelativePosition(0.0f,2.0f,5.0f);
 	inventory->mInputComponent = Engine::mInputManager->Build<UIInputComponent>(inventory,"MainScene");
 	inventory->SetIsShowUp(false);
 	camera->AddChild(inventory);
@@ -53,18 +57,21 @@ void MainScene::Initialize()
 	camera->AddChild(text1);
 
 	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
-	light1->SetColor( 1.0f,1.0f,0.0f );
+	light1->SetTextureName("sun");
+	light1->SetColor( 1.0f,1.0f,1.0f );
 	light1->SetRelativePosition(0.0, 10.0f, 0.0f);
 	mLightNodes.push_back(light1);
 
 	shared_ptr<LightNode> light2 = make_shared<LightNode>("ball", Directional);
-	light2->SetColor(0.0f, 0.0f, 1.0f);
+	light2->SetTextureName("sun");
+	light2->SetColor(1.0f, 1.0f, 1.0f);
 	light2->SetRelativePosition(5.0, 5.0f, 0.0f);
 	light2->SetDirection(-1.0f, -1.0f, 0.0f);
 	mLightNodes.push_back(light2);
 
 	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
-	light3->SetColor(0.0f, 1.0f, 0.0f);
+	light3->SetTextureName("sun");
+	light3->SetColor(1.0f, 1.0f, 1.0f);
 	light3->SetRelativePosition(-5.0, -5.0f, 0.0f);
 	light3->SetDirection(1.0f, 0.0f, 0.0f);
 	mLightNodes.push_back(light3);

@@ -41,9 +41,13 @@ cbuffer lightNum : register(b2)
 
 
 Texture1D<float4> gradients : register(t0);
+
 Texture1D<int> permutation : register(t1);
 
 texture2D<float> shadowMap : register(t2);
+
+texture2D textureMap : register(t3);
+
 
 SamplerState textureSampler : register(s0);
 
@@ -236,6 +240,7 @@ struct GeoOut
 	float3 posL : POSITIONL;
 	uint id : SV_PrimitiveID;
 	float4 lightTex : LIGHTTEX;
+	float2 tex : TEXTURE;
 };
 
 [maxvertexcount(3)]
@@ -252,7 +257,7 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 
 	for (int i = 0; i < 3; ++i)
 	{
-		float height = noise(float3(gin[i].tex*256, 0.0f))/10.0f;
+		float height = noise(float3(gin[i].tex*256, 0.0f))/10.0f * world._22;
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
 		gout.pos = mul(mul(float4(gout.posW,1.0f), transpose(view)), transpose(projection));
@@ -261,6 +266,7 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 		gout.lightTex = mul(mul(float4(gout.posW, 1.0f), transpose(lights[lightIdx].lightView)),
 			transpose(lights[lightIdx].lightProjection));
 		gout.lightTex = mul(gout.lightTex, toTexCoord);
+		gout.tex = gin[i].tex;
 
 		triStream.Append(gout);
 	}
@@ -268,9 +274,10 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 
 float4 PS(GeoOut pin) : SV_Target
 {
+	float3 diffuse = diffuseAlbedo * textureMap.Sample(textureSampler, pin.tex);
 	float3 L = { 0.0f,0.0f,1.0f };
 	float rambertTerm = 0.0f;
-	float4 color = float4(diffuseAlbedo * float3(0.1f, 0.1f, 0.1f), 0.0f);
+	float4 color = float4(diffuse * float3(0.1f, 0.1f, 0.1f), 0.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
 
@@ -308,7 +315,7 @@ float4 PS(GeoOut pin) : SV_Target
 		float m = (1.0f - roughness) * 32.0f;
 		roughnessTerm = (m + 8.0f) * pow(max(dot(halfway, pin.normal), 0.0f), m) / 8.0f;
 
-		color += float4(rambertTerm * lights[i].color * (diffuseAlbedo + fresnelTerm * roughnessTerm), 0.0f);
+		color += float4(rambertTerm * lights[i].color * (diffuse + fresnelTerm * roughnessTerm), 0.0f);
 	}
 
 	float4 lightNDCPixel = mul(mul(float4(pin.posW, 1.0f), transpose(lights[lightIdx].lightView)),

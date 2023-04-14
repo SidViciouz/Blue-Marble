@@ -86,7 +86,7 @@ void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<Rig
 	XMFLOAT3 xmP2 = other->mNodeAttachedTo->GetRelativePosition().Get();
 	Vector3 p2(xmP2.x, xmP2.y, xmP2.z);
 
-	float e = 0.8f;
+	float e = 0.9f;
 	Vector3 n = collisionInfo.normal;
 	float invM1 = 1.0f/this->mMass;
 	float invM2 = 1.0f/other->mMass;

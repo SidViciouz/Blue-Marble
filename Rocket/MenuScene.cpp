@@ -12,11 +12,13 @@ void MenuScene::Initialize()
 	mCameraNode = camera;
 
 	shared_ptr<ClickableNode> menu = make_shared<ClickableNode>("menu");
+	menu->SetTextureName("canvas");
 	menu->SetRelativePosition(0.0f, 0.0f, 15.0f);
 	menu->SetScale(12.0f, 12.0f, 12.0f);
 	camera->AddChild(menu);
 
 	shared_ptr<ClickableNode> startButton = make_shared<ClickableNode>("inventory");
+	startButton->SetTextureName("brick");
 	startButton->SetRelativePosition(0.0f, 0.0f, 11.0f);
 	startButton->SetScale(0.5f, 0.5f, 0.5f);
 	startButton->mInputComponent = Engine::mInputManager->Build<StartButtonInputComponent>(startButton,"MenuScene");
@@ -29,6 +31,7 @@ void MenuScene::Initialize()
 	startButton->AddChild(text1);
 
 	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
+	light1->SetTextureName("stone");
 	light1->SetColor(1.0f, 1.0f, 1.0f);
 	light1->SetRelativePosition(0.0f, 0.0f, -20.0f);
 	light1->SetDirection(0.0f, 0.0f, 1.0f);

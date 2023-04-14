@@ -9,6 +9,7 @@ class InventoryNode : public MeshNode
 public:
 												InventoryNode(string name);
 	virtual void								Draw() override;
+	virtual void								DrawWithoutSetting() override;
 	virtual void								Update() override;
 	void										SetIsShowUp(bool value);
 	const bool& GetIsShowUp() const;

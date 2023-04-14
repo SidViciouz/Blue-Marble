@@ -16,7 +16,10 @@ public:
 	void										SetActivated(const bool& value);
 	const bool&									GetActivated() const;
 
+	void										SetTextureName(const string& name);
+
 protected:
 	string										mMeshName;
 	bool										mActivated = true;
+	string										mTextureName;
 };
