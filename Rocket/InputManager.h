@@ -48,7 +48,6 @@ protected:
 	bool										mKeys[256] = { false, };
 	bool										mMouseLeftDown = false;
 	bool										mkeyDown = false;
-	PrevMousePosition							mPrevMousePosition;
 	/*
 	* input component를 가진 노드가 여기에 모두 등록된다.
 	* 현재 scene에 존재하는 node가 아닌 경우 이를 제외하도록 해야한다.

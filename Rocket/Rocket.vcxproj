@@ -143,7 +143,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BoxCollisionComponent.h" />
-    <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="CameraInputComponent.h" />
     <ClInclude Include="ItemInputComponent.h" />
@@ -164,7 +163,6 @@
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="DescriptorManager.h" />
-    <ClInclude Include="Entity.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="IfError.h" />
     <ClInclude Include="InputComponent.h" />
@@ -196,13 +194,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BoxCollisionComponent.cpp" />
-    <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraNode.cpp" />
     <ClCompile Include="UINode.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DescriptorManager.cpp" />
-    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="ItemNode.cpp" />
     <ClCompile Include="InputManager.cpp" />

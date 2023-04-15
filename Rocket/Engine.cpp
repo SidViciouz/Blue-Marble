@@ -383,8 +383,6 @@ void Engine::InitializePipeline()
 	IfError::Throw(mDevice->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &qualityLevels, sizeof(qualityLevels)),
 		L"check feature support error!");
 
-	mMsaaQuality = qualityLevels.NumQualityLevels;
-
 }
 
 void Engine::CreateObjects()

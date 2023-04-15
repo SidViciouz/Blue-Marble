@@ -17,7 +17,7 @@ void TextNode::Draw()
 
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(2, mText.size(), 0);
 
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,

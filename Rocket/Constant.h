@@ -182,12 +182,6 @@ struct Message
 	int param4;
 };
 
-struct PrevMousePosition
-{
-	int x;
-	int y;
-};
-
 struct TextInfo
 {
 	int											offsetX;
