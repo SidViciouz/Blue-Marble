@@ -170,7 +170,7 @@ string Mesh::getToken(string& aLine, bool isFirst)
 	return aLine.substr(start, length);
 }
 
-// a/b/c와 같은 형태에서 '/'전까지 반환 끝이라면 " "를 반환
+// a/b/c와 같은 형태에서 '/'전까지 반환 끝이라면 0을 반환
 // 입력 문자열의 시작부터 token을 반환하려면 isFirst = true를 입력
 // 토큰을 반환한 적 있고, 그 다음부터 이어서 반환하려면 isFirst = false를 입력한다.
 int Mesh::getNumber(string& aWord, bool isFirst)

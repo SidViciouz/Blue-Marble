@@ -1,6 +1,5 @@
 #pragma once
 #include "Util.h"
-#include "TextureResource.h"
 
 using namespace Microsoft::WRL;
 using namespace std;

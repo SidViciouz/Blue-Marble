@@ -186,8 +186,6 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneNode.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="VolumeNode.h" />
@@ -224,7 +222,6 @@
     <ClCompile Include="TextManager.cpp" />
     <ClCompile Include="TextNode.cpp" />
     <ClCompile Include="TextureManager.cpp" />
-    <ClCompile Include="TextureResource.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="VolumeNode.cpp" />
   </ItemGroup>
