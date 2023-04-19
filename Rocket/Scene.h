@@ -5,6 +5,8 @@
 #include "CameraNode.h"
 #include "LightNode.h"
 #include "ShadowMap.h"
+#include "Blooming.h"
+
 
 using namespace std;
 
@@ -46,5 +48,8 @@ public:
 	* shadow map을 나타낸다.
 	*/
 	shared_ptr<ShadowMap>						mShadowMap;
-
+	/*
+	* blooming 효과를 처리하고 이에 필요한 데이터를 관리하는 객체이다.
+	*/
+	shared_ptr<Blooming>						mBlooming;
 };

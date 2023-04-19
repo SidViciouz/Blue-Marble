@@ -154,7 +154,7 @@ public:
 	/*
 	* back buffer의 format을 나타낸다.
 	*/
-	DXGI_FORMAT									mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	static DXGI_FORMAT							mBackBufferFormat;
 	/*
 	* depth stencil buffer의 format을 나타낸다.
 	*/
@@ -178,7 +178,7 @@ public:
 	/*
 	* 여러개의 back buffer중 가장 첫번째의 인덱스(handle)을 나타내는 객체이다.
 	*/
-	int											mBackBufferOffset;
+	static int									mBackBufferOffset;
 	/*
 	* noise를 표현하기 위한 perlin noise를 저장하고있는 객체이다.
 	*/
@@ -207,8 +207,6 @@ public:
 	* 물체에 입혀지는 texture만을 관리하는 객체이다.
 	*/
 	static shared_ptr<TextureManager>			mTextureManager;
-
-
 
 private:
 	/*

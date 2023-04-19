@@ -7,6 +7,7 @@
 MainScene::MainScene()
 	: Scene()
 {
+	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
 }
 
@@ -64,6 +65,7 @@ void MainScene::Initialize()
 
 	shared_ptr<LightNode> light2 = make_shared<LightNode>("ball", Directional);
 	light2->SetTextureName("sun");
+	light2->mObjFeature.diffuseAlbedo = { 10.0f,10.0f,10.0f };
 	light2->SetColor(1.0f, 1.0f, 1.0f);
 	light2->SetRelativePosition(5.0, 5.0f, 0.0f);
 	light2->SetDirection(-1.0f, -1.0f, 0.0f);
@@ -132,4 +134,13 @@ void MainScene::UpdateScene(const Timer& timer)
 		inventory->OverlappedNode(boxMesh);
 	}
 
+}
+
+void MainScene::DrawScene() const
+{
+	Scene::DrawScene();
+
+	mBlooming->DownScalePass();
+	mBlooming->BrightPass();
+	mBlooming->BlurPass();
 }

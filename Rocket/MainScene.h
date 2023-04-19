@@ -21,6 +21,7 @@ public:
 	*/
 	virtual void								UpdateScene(const Timer& timer) override;
 
+	virtual void								DrawScene() const override;
 	
 	/*
 	* 이 scene내의 몇몇 노드들을 임시로 가리키고 있는 포인터이다.
