@@ -57,5 +57,3 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
-Texture/world.dds filter=lfs diff=lfs merge=lfs -text
-Texture/earth.dds filter=lfs diff=lfs merge=lfs -text
