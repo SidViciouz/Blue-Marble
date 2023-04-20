@@ -39,9 +39,6 @@
     <ClInclude Include="Frame.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Buffer.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="d3dx12.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -60,19 +57,10 @@
     <ClInclude Include="DDSTextureLoader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Texture.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Entity.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Math\Quaternion.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Math\Position.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureResource.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Defines.h">
@@ -168,6 +156,15 @@
     <ClInclude Include="TextureManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Blooming.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldNode.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereCollisionComponent.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rocket.cpp">
@@ -177,9 +174,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Frame.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Buffer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
@@ -198,12 +192,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Math\Position.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Entity.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureResource.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DescriptorManager.cpp">
@@ -278,6 +266,15 @@
     <ClCompile Include="TextureManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Blooming.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldNode.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SphereCollisionComponent.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rocket.rc">
@@ -300,5 +297,10 @@
     <FxCompile Include="ColliderShape.hlsl" />
     <FxCompile Include="TextShader.hlsl" />
     <FxCompile Include="ShadowMap.hlsl" />
+    <FxCompile Include="DownSampling.hlsl" />
+    <FxCompile Include="Bright.hlsl" />
+    <FxCompile Include="Blur.hlsl" />
+    <FxCompile Include="Convolve.hlsl" />
+    <FxCompile Include="earth.hlsl" />
   </ItemGroup>
 </Project>

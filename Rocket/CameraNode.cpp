@@ -9,7 +9,7 @@ CameraNode::CameraNode(int width, int height)
 	mRight = { 1.0f,0.0f,0.0f };
 
 	mNear = 1.0f;
-	mFar = 1000.0f;
+	mFar = 3000.0f;
 	mAngle = XMConvertToRadians(60.0f);
 	mRatio = static_cast<float>(width) / height;
 

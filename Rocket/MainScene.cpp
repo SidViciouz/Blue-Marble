@@ -3,10 +3,12 @@
 #include "CameraInputComponent.h"
 #include "UIInputComponent.h"
 #include "ItemInputComponent.h"
+#include "SphereCollisionComponent.h"
 
 MainScene::MainScene()
 	: Scene()
 {
+	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
 }
 
@@ -36,7 +38,7 @@ void MainScene::Initialize()
 	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
 
 	shared_ptr<VolumeNode> cloudVolume = make_shared<VolumeNode>(50.0f, 5.0f, 50.0f);
-	cloudVolume->SetRelativePosition(9.0f, 30.0f, 0.0f);
+	cloudVolume->SetRelativePosition(9.0f, 50.0f, 0.0f);
 	
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
 	camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera,"MainScene");
@@ -58,12 +60,14 @@ void MainScene::Initialize()
 
 	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
 	light1->SetTextureName("sun");
+	light1->mObjFeature.diffuseAlbedo = { 10.0f,1.0f,1.0f };
 	light1->SetColor( 1.0f,1.0f,1.0f );
 	light1->SetRelativePosition(0.0, 10.0f, 0.0f);
 	mLightNodes.push_back(light1);
 
 	shared_ptr<LightNode> light2 = make_shared<LightNode>("ball", Directional);
 	light2->SetTextureName("sun");
+	light2->mObjFeature.diffuseAlbedo = { 10.0f,10.0f,10.0f };
 	light2->SetColor(1.0f, 1.0f, 1.0f);
 	light2->SetRelativePosition(5.0, 5.0f, 0.0f);
 	light2->SetDirection(-1.0f, -1.0f, 0.0f);
@@ -72,10 +76,18 @@ void MainScene::Initialize()
 	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
 	light3->SetTextureName("sun");
 	light3->SetColor(1.0f, 1.0f, 1.0f);
-	light3->SetRelativePosition(-5.0, -5.0f, 0.0f);
-	light3->SetDirection(1.0f, 0.0f, 0.0f);
+	light3->SetRelativePosition(0.0, 0.0f, 0.0f);
+	light3->SetDirection(0.0f, 0.0f, 1.0f);
 	mLightNodes.push_back(light3);
 	
+	worldMesh = make_shared<WorldNode>("ball");
+	worldMesh->SetTextureName("earth");
+	worldMesh->mObjFeature.diffuseAlbedo = { 1.0f,1.0f,1.0f };
+	worldMesh->SetRelativePosition(0.0f, 0.0f, 50.0f);
+	worldMesh->SetRelativeQuaternion(0.0f, 0.0f, sinf(XMConvertToRadians(90.0f)),cosf(XMConvertToRadians(90.0f)));
+	worldMesh->SetScale(50.0f, 50.0f, 50.0f);
+	worldMesh->mCollisionComponent = make_shared<SphereCollisionComponent>(worldMesh, 50.0f);
+
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(ballMesh);
 	mSceneRoot->AddChild(groundMesh);
@@ -84,6 +96,7 @@ void MainScene::Initialize()
 	mSceneRoot->AddChild(light1);
 	mSceneRoot->AddChild(light2);
 	mSceneRoot->AddChild(light3);
+	mSceneRoot->AddChild(worldMesh);
 	mSceneRoot->Update();
 }
 
@@ -132,4 +145,18 @@ void MainScene::UpdateScene(const Timer& timer)
 		inventory->OverlappedNode(boxMesh);
 	}
 
+	if (worldMesh->IsColliding(mCameraNode.get(), collisionInfo))
+	{
+		printf("world mesh collide with camera!\n");
+	}
+
+}
+
+void MainScene::DrawScene() const
+{
+	Scene::DrawScene();
+
+	mBlooming->DownScalePass();
+	mBlooming->BrightPass();
+	mBlooming->BlurPass();
 }

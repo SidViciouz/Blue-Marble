@@ -20,6 +20,8 @@ vector<unique_ptr<Frame>> Engine::mFrames;
 
 int	Engine::mCurrentFrame = 0;
 
+DXGI_FORMAT	Engine::mBackBufferFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
 unique_ptr<PerlinMap> Engine::mPerlinMap;
 
 unique_ptr<MeshManager> Engine::mMeshManager;
@@ -41,6 +43,8 @@ int Engine::mWidth = 800;
 int	Engine::mHeight = 600;
 
 int	Engine::mCurrentBackBuffer = 0;
+
+int Engine::mBackBufferOffset;
 
 Engine::Engine(HINSTANCE hInstance)
 	: mInstance(hInstance)
@@ -86,6 +90,8 @@ void Engine::Initialize()
 	mTextureManager->Load("backPack", L"../Texture/backpack.dds");
 	mTextureManager->Load("stone", L"../Texture/stone.dds");
 	mTextureManager->Load("sun", L"../Texture/sun.dds");
+	mTextureManager->Load("world", L"../Texture/world.dds");
+	mTextureManager->Load("earth", L"../Texture/earth.dds");
 
 	mTextManager = make_shared<TextManager>();
 
@@ -383,8 +389,6 @@ void Engine::InitializePipeline()
 	IfError::Throw(mDevice->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &qualityLevels, sizeof(qualityLevels)),
 		L"check feature support error!");
 
-	mMsaaQuality = qualityLevels.NumQualityLevels;
-
 }
 
 void Engine::CreateObjects()
@@ -466,7 +470,7 @@ void Engine::CreateShaderAndRootSignature()
 	mShaders["planetGS"] = move(blob);
 
 	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error4!");
+		L"compile shader error!");
 	mShaders["planetPS"] = move(blob);
 
 	IfError::Throw(D3DCompileFromFile(L"ColliderShape.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
@@ -492,6 +496,46 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(D3DCompileFromFile(L"ShadowMap.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
 	mShaders["ShadowMapPS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"DownSampling.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["DownSamplingCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"Bright.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["BrightCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"Blur.hlsl", nullptr, nullptr, "HorizontalBlurCS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["HorizontalBlurCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"Blur.hlsl", nullptr, nullptr, "VerticalBlurCS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["VerticalBlurCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"Convolve.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ConvolveCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"earth.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile VSshader error!");
+	mShaders["earthVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"earth.hlsl", nullptr, nullptr, "HS", "hs_5_1", 0, 0, &blob, nullptr),
+		L"compile HSshader error!");
+	mShaders["earthHS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"earth.hlsl", nullptr, nullptr, "DS", "ds_5_1", 0, 0, &blob, nullptr),
+		L"compile DSshader error!");
+	mShaders["earthDS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"earth.hlsl", nullptr, nullptr, "GS", "gs_5_1", 0, 0, &blob, nullptr),
+		L"compile GSshader error!");
+	mShaders["earthGS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"earth.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile PSshader error!");
+	mShaders["earthPS"] = move(blob);
 
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
@@ -739,6 +783,138 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 	mRootSignatures["ShadowMap"] = move(rs);
+
+	D3D12_DESCRIPTOR_RANGE downSamplingRange[2];
+	downSamplingRange[0].BaseShaderRegister = 0;
+	downSamplingRange[0].NumDescriptors = 1;
+	downSamplingRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	downSamplingRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	downSamplingRange[0].RegisterSpace = 0;
+	downSamplingRange[1].BaseShaderRegister = 0;
+	downSamplingRange[1].NumDescriptors = 1;
+	downSamplingRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	downSamplingRange[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	downSamplingRange[1].RegisterSpace = 0;
+
+	D3D12_ROOT_PARAMETER rootParameterDownSampling[2];
+	rootParameterDownSampling[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterDownSampling[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterDownSampling[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterDownSampling[0].DescriptorTable.pDescriptorRanges = &downSamplingRange[0];
+	rootParameterDownSampling[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterDownSampling[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterDownSampling[1].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterDownSampling[1].DescriptorTable.pDescriptorRanges = &downSamplingRange[1];
+
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	rsDesc.NumParameters = 2;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.pParameters = rootParameterDownSampling;
+
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["DownSampling"] = move(rs);
+
+	D3D12_DESCRIPTOR_RANGE convolveRange[3];
+	convolveRange[0].BaseShaderRegister = 0;
+	convolveRange[0].NumDescriptors = 1;
+	convolveRange[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	convolveRange[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	convolveRange[0].RegisterSpace = 0;
+	convolveRange[1].BaseShaderRegister = 1;
+	convolveRange[1].NumDescriptors = 1;
+	convolveRange[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	convolveRange[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	convolveRange[1].RegisterSpace = 0;
+	convolveRange[2].BaseShaderRegister = 0;
+	convolveRange[2].NumDescriptors = 1;
+	convolveRange[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	convolveRange[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	convolveRange[2].RegisterSpace = 0;
+
+	D3D12_ROOT_PARAMETER rootParameterConvolve[3];
+	rootParameterConvolve[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterConvolve[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterConvolve[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterConvolve[0].DescriptorTable.pDescriptorRanges = &convolveRange[0];
+	rootParameterConvolve[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterConvolve[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterConvolve[1].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterConvolve[1].DescriptorTable.pDescriptorRanges = &convolveRange[1];
+	rootParameterConvolve[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterConvolve[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterConvolve[2].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterConvolve[2].DescriptorTable.pDescriptorRanges = &convolveRange[2];
+
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	rsDesc.NumParameters = 3;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.pParameters = rootParameterConvolve;
+
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["Convolve"] = move(rs);
+
+
+	D3D12_DESCRIPTOR_RANGE rangeEarth[3];
+	rangeEarth[0].BaseShaderRegister = 0;
+	rangeEarth[0].NumDescriptors = 1;
+	rangeEarth[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeEarth[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeEarth[0].RegisterSpace = 0;
+	rangeEarth[1].BaseShaderRegister = 1;
+	rangeEarth[1].NumDescriptors = 1;
+	rangeEarth[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeEarth[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeEarth[1].RegisterSpace = 0;
+	rangeEarth[2].BaseShaderRegister = 2;
+	rangeEarth[2].NumDescriptors = 1;
+	rangeEarth[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeEarth[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeEarth[2].RegisterSpace = 0;
+
+
+	D3D12_ROOT_PARAMETER rootParameterEarth[6];
+	rootParameterEarth[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterEarth[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[0].Descriptor.RegisterSpace = 0;
+	rootParameterEarth[0].Descriptor.ShaderRegister = 0;
+	rootParameterEarth[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameterEarth[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[1].Descriptor.RegisterSpace = 0;
+	rootParameterEarth[1].Descriptor.ShaderRegister = 1;
+	rootParameterEarth[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterEarth[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[2].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterEarth[2].DescriptorTable.pDescriptorRanges = &rangeEarth[0];
+	rootParameterEarth[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterEarth[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[3].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterEarth[3].DescriptorTable.pDescriptorRanges = &rangeEarth[1];
+	rootParameterEarth[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameterEarth[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[4].Constants.Num32BitValues = 1;
+	rootParameterEarth[4].Constants.RegisterSpace = 0;
+	rootParameterEarth[4].Constants.ShaderRegister = 2;
+	rootParameterEarth[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterEarth[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[5].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterEarth[5].DescriptorTable.pDescriptorRanges = &rangeEarth[2];
+
+	rsDesc.NumParameters = 6;
+	rsDesc.pParameters = rootParameterEarth;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &samplerDesc;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["earth"] = move(rs);
 }
 
 void Engine::CreatePso()
@@ -958,6 +1134,98 @@ void Engine::CreatePso()
 		L"create graphics pso error!");
 	mPSOs["ShadowMap"] = move(pso);
 
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC downSamplingPsoDesc = {};
+	downSamplingPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	downSamplingPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	downSamplingPsoDesc.CS.BytecodeLength = mShaders["DownSamplingCS"]->GetBufferSize();
+	downSamplingPsoDesc.CS.pShaderBytecode = mShaders["DownSamplingCS"]->GetBufferPointer();
+	downSamplingPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	downSamplingPsoDesc.NodeMask = 0;
+	downSamplingPsoDesc.pRootSignature = mRootSignatures["DownSampling"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&downSamplingPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create compute pso error!");
+	mPSOs["DownSampling"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC brightPsoDesc = {};
+	brightPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	brightPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	brightPsoDesc.CS.BytecodeLength = mShaders["BrightCS"]->GetBufferSize();
+	brightPsoDesc.CS.pShaderBytecode = mShaders["BrightCS"]->GetBufferPointer();
+	brightPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	brightPsoDesc.NodeMask = 0;
+	brightPsoDesc.pRootSignature = mRootSignatures["DownSampling"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&brightPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create compute pso error!");
+	mPSOs["Bright"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC HorizontalBlurPsoDesc = {};
+	HorizontalBlurPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	HorizontalBlurPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	HorizontalBlurPsoDesc.CS.BytecodeLength = mShaders["HorizontalBlurCS"]->GetBufferSize();
+	HorizontalBlurPsoDesc.CS.pShaderBytecode = mShaders["HorizontalBlurCS"]->GetBufferPointer();
+	HorizontalBlurPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	HorizontalBlurPsoDesc.NodeMask = 0;
+	HorizontalBlurPsoDesc.pRootSignature = mRootSignatures["DownSampling"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&HorizontalBlurPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create compute pso error!");
+	mPSOs["HorizontalBlur"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC VerticalBlurPsoDesc = {};
+	VerticalBlurPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	VerticalBlurPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	VerticalBlurPsoDesc.CS.BytecodeLength = mShaders["VerticalBlurCS"]->GetBufferSize();
+	VerticalBlurPsoDesc.CS.pShaderBytecode = mShaders["VerticalBlurCS"]->GetBufferPointer();
+	VerticalBlurPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	VerticalBlurPsoDesc.NodeMask = 0;
+	VerticalBlurPsoDesc.pRootSignature = mRootSignatures["DownSampling"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&VerticalBlurPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create compute pso error!");
+	mPSOs["VerticalBlur"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC ConvolvePsoDesc = {};
+	ConvolvePsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	ConvolvePsoDesc.CachedPSO.pCachedBlob = nullptr;
+	ConvolvePsoDesc.CS.BytecodeLength = mShaders["ConvolveCS"]->GetBufferSize();
+	ConvolvePsoDesc.CS.pShaderBytecode = mShaders["ConvolveCS"]->GetBufferPointer();
+	ConvolvePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	ConvolvePsoDesc.NodeMask = 0;
+	ConvolvePsoDesc.pRootSignature = mRootSignatures["Convolve"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&ConvolvePsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create compute pso error!");
+	mPSOs["Convolve"] = move(pso);
+
+
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 3;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+	psoDesc.pRootSignature = mRootSignatures["earth"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["earthVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["earthVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["earthPS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["earthPS"]->GetBufferSize();
+	psoDesc.HS.pShaderBytecode = mShaders["earthHS"]->GetBufferPointer();
+	psoDesc.HS.BytecodeLength = mShaders["earthHS"]->GetBufferSize();
+	psoDesc.DS.pShaderBytecode = mShaders["earthDS"]->GetBufferPointer();
+	psoDesc.DS.BytecodeLength = mShaders["earthDS"]->GetBufferSize();
+	psoDesc.GS.pShaderBytecode = mShaders["earthGS"]->GetBufferPointer();
+	psoDesc.GS.BytecodeLength = mShaders["earthGS"]->GetBufferSize();
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.DepthClipEnable = true;
+	psoDesc.RasterizerState.DepthBias = 100;
+	psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
+	psoDesc.RasterizerState.SlopeScaledDepthBias = 1.0f;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["earth"] = move(pso);
 }
 
 void Engine::SetViewportAndScissor()

@@ -27,7 +27,7 @@ void LightNode::Update()
 	));
 
 	XMStoreFloat4x4(&mLight.mLightProjection,
-		XMMatrixOrthographicLH(80, 80, 1, 1000));
+		XMMatrixOrthographicLH(80, 80, 1, 3000));
 }
 
 void LightNode::SetDirection(const XMFLOAT3& direction)

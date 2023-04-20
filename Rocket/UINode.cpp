@@ -16,7 +16,7 @@ void UINode::Draw()
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs["Default"].Get());
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
 	if (!mTextureName.empty())
 	{
 		Engine::mCommandList->SetGraphicsRootDescriptorTable(2,

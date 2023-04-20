@@ -33,6 +33,7 @@ ID3D12Resource* TextureManager::GetResource(const string& name) const
 	return mTexture.at(name).Get();
 }
 
+
 int TextureManager::GetTextureIndex(const string& name) const
 {
 	return mTextureIdx.at(name);

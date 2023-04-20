@@ -14,7 +14,8 @@ public:
 	virtual void								OnMouseDown(const int& x, const int& y) override
 	{
 		mMouseDown = true;
-		mPrevMousePosition = { x, y };
+		prevX = x;
+		prevY = y;
 	}
 
 	virtual void								OnMouseUp() override
@@ -32,14 +33,16 @@ public:
 			if (!camera->GetActivate())
 				return;
 
-			camera->TurnX(XMConvertToRadians(0.25f * static_cast<float>(y - mPrevMousePosition.y)));
-			camera->TurnY(XMConvertToRadians(0.25f * static_cast<float>(x - mPrevMousePosition.x)));
+			camera->TurnX(XMConvertToRadians(0.25f * static_cast<float>(y - prevY)));
+			camera->TurnY(XMConvertToRadians(0.25f * static_cast<float>(x - prevX)));
 
-			mPrevMousePosition = { x, y};
+			prevX = x;
+			prevY = y;
 		}
 	}
 
 protected:
 	bool										mMouseDown = false;
-	PrevMousePosition							mPrevMousePosition;
+	int											prevX;
+	int											prevY;
 };

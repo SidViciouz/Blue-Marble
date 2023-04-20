@@ -54,6 +54,13 @@ struct Vector3
 		this->v.y = y;
 		this->v.z = z;
 	}
+												Vector3(const XMFLOAT3& value)
+	{
+		this->v.x = value.x;
+		this->v.y = value.y;
+		this->v.z = value.z;
+	}
+
 
 	XMFLOAT3									v;
 
@@ -180,12 +187,6 @@ struct Message
 	int param2;
 	int param3;
 	int param4;
-};
-
-struct PrevMousePosition
-{
-	int x;
-	int y;
 };
 
 struct TextInfo

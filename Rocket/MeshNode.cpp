@@ -17,7 +17,7 @@ void MeshNode::Draw()
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs["planet"].Get());
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->GetGradientsDescriptorIdx(), DescType::SRV));
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
@@ -35,9 +35,6 @@ void MeshNode::Draw()
 
 	if (mCollisionComponent != nullptr)
 	{
-		Engine::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-		Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["ColliderShape"].Get());
-		Engine::mCommandList->SetPipelineState(Engine::mPSOs["ColliderShape"].Get());
 		mCollisionComponent->Draw();
 	}
 
@@ -52,7 +49,7 @@ void MeshNode::DrawWithoutSetting()
 
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
 
 	Engine::mMeshManager->Draw(mMeshName);
 

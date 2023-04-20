@@ -296,7 +296,7 @@ float3 pf(float3 x)
 	float density = 1.0f;
 	int steps = 10;
 
-	for (int i = 1; i < 2; ++i)
+	for (int i = 1; i < 0; ++i)
 	{
 		float tMin = 0.0f;
 		float tMax = 100.0f;

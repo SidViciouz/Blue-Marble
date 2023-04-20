@@ -1,10 +1,7 @@
+#include "SphereCollisionComponent.h"
 #include "BoxCollisionComponent.h"
-#include "Constant.h"
 #include "SceneNode.h"
-#include "Engine.h"
 #include "Plane.h"
-#include <unordered_set>
-#include <set>
 
 #define GJK_MAX_NUM_ITERATIONS 64
 #define EPA_TOLERANCE 0.0001
@@ -12,117 +9,18 @@
 #define EPA_MAX_NUM_LOOSE_EDGES 32
 #define EPA_MAX_NUM_ITERATIONS 64
 
-BoxCollisionComponent::BoxCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo, float width, float height, float depth)
-	: CollisionComponent(NodeAttachedTo), mWidth{ width }, mHeight{ height }, mDepth{ depth }
+SphereCollisionComponent::SphereCollisionComponent(shared_ptr<SceneNode> NodeAttachedTo, float radius)
+	: CollisionComponent(NodeAttachedTo), mRadius{radius}
 {
-	assert(NodeAttachedTo != nullptr);
-	assert(mWidth != 0.0f);
-	assert(mHeight != 0.0f);
-	assert(mDepth != 0.0f);
 
-	mVertices.push_back(Vertex{ {-0.5f,-0.5f,-0.5f},{},{} });
-	mVertices.push_back(Vertex{ {-0.5f,-0.5f,0.5f},{},{} });
-	mVertices.push_back(Vertex{ {-0.5f,0.5f,-0.5f},{},{} });
-	mVertices.push_back(Vertex{ {-0.5f,0.5f,0.5f},{},{} });
-	mVertices.push_back(Vertex{ {0.5f,-0.5f,-0.5f},{},{} });
-	mVertices.push_back(Vertex{ {0.5f,-0.5f,0.5f},{},{} });
-	mVertices.push_back(Vertex{ {0.5f,0.5f,-0.5f},{},{} });
-	mVertices.push_back(Vertex{ {0.5f,0.5f,0.5f},{},{} });
-
-	mVertices.push_back(Vertex{ {0.0f,0.0f,0.0f},{},{} });
-	mVertices.push_back(Vertex{ {0.0f,0.0f,0.0f},{},{} });
-
-	mIndices.push_back(0);
-	mIndices.push_back(1);
-	mIndices.push_back(1);
-	mIndices.push_back(3);
-	mIndices.push_back(3);
-	mIndices.push_back(2);
-	mIndices.push_back(2);
-	mIndices.push_back(0);
-
-	mIndices.push_back(2);
-	mIndices.push_back(6);
-	mIndices.push_back(3);
-	mIndices.push_back(7);
-	mIndices.push_back(0);
-	mIndices.push_back(4);
-	mIndices.push_back(1);
-	mIndices.push_back(5);
-
-	mIndices.push_back(6);
-	mIndices.push_back(7);
-	mIndices.push_back(7);
-	mIndices.push_back(5);
-	mIndices.push_back(5);
-	mIndices.push_back(4);
-	mIndices.push_back(4);
-	mIndices.push_back(6);
-
-	mIndices.push_back(8);
-	mIndices.push_back(9);
-
-	mVertexBufferIdx = Engine::mResourceManager->CreateDefaultBuffer(sizeof(Vertex) * mVertices.size());
-	mIndexBufferIdx = Engine::mResourceManager->CreateDefaultBuffer(sizeof(uint16_t) * mIndices.size());
-
-	mVertexUploadBufferIdx = Engine::mResourceManager->CreateUploadBuffer(sizeof(Vertex) * mVertices.size());
-	mIndexUploadBufferIdx = Engine::mResourceManager->CreateUploadBuffer(sizeof(uint16_t) * mIndices.size());
-
-	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex)* mVertices.size(), 0);
-	Engine::mResourceManager->Upload(mIndexUploadBufferIdx, mIndices.data(), sizeof(uint16_t)* mIndices.size(), 0);
-
-	D3D12_RESOURCE_BARRIER barrier[2];
-	barrier[0] = CD3DX12_RESOURCE_BARRIER::Transition(Engine::mResourceManager->GetResource(mVertexBufferIdx),
-		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
-	barrier[1] = CD3DX12_RESOURCE_BARRIER::Transition(Engine::mResourceManager->GetResource(mIndexBufferIdx),
-		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
-
-	Engine::mCommandList->ResourceBarrier(2, barrier);
-
-	Engine::mResourceManager->CopyUploadToBuffer(mVertexUploadBufferIdx, mVertexBufferIdx);
-	Engine::mResourceManager->CopyUploadToBuffer(mIndexUploadBufferIdx, mIndexBufferIdx);
-
-	barrier[0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	barrier[0].Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
-	barrier[1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	barrier[1].Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
-
-	Engine::mCommandList->ResourceBarrier(2, barrier);
 }
 
-bool BoxCollisionComponent::IsColliding(CollisionComponent* other, CollisionInfo& collisionInfo)
+bool SphereCollisionComponent::IsColliding(CollisionComponent* other, CollisionInfo& collisionInfo)
 {
-	//두 collider에 대한 shape를 얻는다.
-	int selfW = mWidth * 0.5f;
-	int selfH = mHeight * 0.5f;
-	int selfD = mDepth * 0.5f;
-
-	vector<Vector3> selfPoints;
-	selfPoints.push_back(Vector3(-selfW, -selfH, -selfD));
-	selfPoints.push_back(Vector3(-selfW, -selfH, selfD));
-	selfPoints.push_back(Vector3(-selfW, selfH, -selfD));
-	selfPoints.push_back(Vector3(-selfW, selfH, selfD));
-	selfPoints.push_back(Vector3(selfW, -selfH, -selfD));
-	selfPoints.push_back(Vector3(selfW, -selfH, selfD));
-	selfPoints.push_back(Vector3(selfW, selfH, -selfD));
-	selfPoints.push_back(Vector3(selfW, selfH , selfD));
-
-	//rotate vector
-	Quaternion selfQ = mNodeAttachedTo->GetAccumulatedQuaternion();
-	XMMATRIX selfQm = XMMatrixRotationQuaternion(XMLoadFloat4(&selfQ.Get()));
-
-	Position selfP = mNodeAttachedTo->GetAccumulatedPosition();
-	XMMATRIX selfPm = XMMatrixTranslationFromVector(XMLoadFloat3(&selfP.Get()));
-
-	XMMATRIX selfQmpm = XMMatrixMultiply(selfQm, selfPm);
-
-	for (auto& point : selfPoints)
-	{
-		XMStoreFloat3(&point.v,XMVector3Transform(XMLoadFloat3(&point.v), selfQmpm));
-	}
-
-
 	BoxCollisionComponent* boxOther = dynamic_cast<BoxCollisionComponent*>(other);
+
+	if (boxOther == nullptr)
+		return false;
 
 	int otherW = boxOther->mWidth * 0.5f;
 	int otherH = boxOther->mHeight * 0.5f;
@@ -151,37 +49,34 @@ bool BoxCollisionComponent::IsColliding(CollisionComponent* other, CollisionInfo
 	{
 		XMStoreFloat3(&point.v, XMVector3Transform(XMLoadFloat3(&point.v), otherQmpm));
 	}
-	
 
-	//
-	mSelfPosition = Vector3(selfP.Get().x, selfP.Get().y, selfP.Get().z);
+	Vector3 self(mNodeAttachedTo->GetAccumulatedPosition().Get());
+
+	mSelfPosition = Vector3(self.v.x, self.v.y, self.v.z);
 	mOtherPosition = Vector3(otherP.Get().x, otherP.Get().y, otherP.Get().z);
-	//
 
-	bool retval = GJK(selfPoints, otherPoints, collisionInfo);
-
-	mVertices[8].position = collisionInfo.localA.v;
-	mVertices[9].position = collisionInfo.localB.v;
-	Engine::mResourceManager->Upload(mVertexUploadBufferIdx, mVertices.data(), sizeof(Vertex) * mVertices.size(), 0);
-
-	if (retval)
-		mIsColliding = 1;
-	else
-		mIsColliding = 0;
-
-	return retval;
+	return GJK(otherPoints, collisionInfo);
+	//return true;
 }
 
-bool BoxCollisionComponent::GJK(const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo)
+void SphereCollisionComponent::Draw()
 {
+
+}
+
+bool SphereCollisionComponent::GJK(const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo)
+{
+	Vector3 self(mNodeAttachedTo->GetAccumulatedPosition().Get());
+	Vector3 dir(1.0f*mRadius, 0.0f, 0.0f);
+
 	Vector3* mtv;
 	Points a, b, c, d;
-	Vector3 searchDir = selfPoints[0] - otherPoints[0];
-	
-	CalculateSearchPoint(c, searchDir, selfPoints, otherPoints);
+	Vector3 searchDir = (self + dir) - otherPoints[0];
+
+	CalculateSearchPoint(c, searchDir, otherPoints);
 	searchDir = -c.p;
 
-	CalculateSearchPoint(b, searchDir, selfPoints, otherPoints);
+	CalculateSearchPoint(b, searchDir, otherPoints);
 
 	if (b.p * searchDir < 0)
 		return false;
@@ -200,26 +95,26 @@ bool BoxCollisionComponent::GJK(const vector<Vector3>& selfPoints, const vector<
 
 	for (int iterations = 0; iterations < GJK_MAX_NUM_ITERATIONS; iterations++)
 	{
-		CalculateSearchPoint(a, searchDir, selfPoints, otherPoints);
+		CalculateSearchPoint(a, searchDir, otherPoints);
 
 		if (a.p * searchDir < 0)
 			return false;
-		
+
 		simpDim++;
 
 		if (simpDim == 3)
 			UpdateSimplex3(a, b, c, d, simpDim, searchDir);
 		else if (UpdateSimplex4(a, b, c, d, simpDim, searchDir))
 		{
-			EPA(a, b, c, d, selfPoints, otherPoints, collisionInfo);
+			EPA(a, b, c, d, otherPoints, collisionInfo);
 			return true;
 		}
 	}
-
+	
 	return false;
 }
 
-void BoxCollisionComponent::UpdateSimplex3(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir)
+void SphereCollisionComponent::UpdateSimplex3(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir)
 {
 	Vector3 n = (b.p - a.p) ^ (c.p - a.p);
 	Vector3 AO = -a.p;
@@ -254,17 +149,17 @@ void BoxCollisionComponent::UpdateSimplex3(Points& a, Points& b, Points& c, Poin
 	return;
 }
 
-bool BoxCollisionComponent::UpdateSimplex4(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir)
+bool SphereCollisionComponent::UpdateSimplex4(Points& a, Points& b, Points& c, Points& d, int& simpDim, Vector3& searchDir)
 {
-	Vector3 ABC = (b.p - a.p)^( c.p - a.p);
-	Vector3 ACD = (c.p - a.p)^(d.p - a.p);
-	Vector3 ADB = (d.p - a.p)^(b.p - a.p);
+	Vector3 ABC = (b.p - a.p) ^ (c.p - a.p);
+	Vector3 ACD = (c.p - a.p) ^ (d.p - a.p);
+	Vector3 ADB = (d.p - a.p) ^ (b.p - a.p);
 
 	Vector3 AO = -a.p;
 	simpDim = 3;
 
-	
-	if (ABC*AO > 0) { 
+
+	if (ABC * AO > 0) {
 		d = c;
 		c = b;
 		b = a;
@@ -272,12 +167,12 @@ bool BoxCollisionComponent::UpdateSimplex4(Points& a, Points& b, Points& c, Poin
 		return false;
 	}
 
-	if (ACD*AO > 0) { 
+	if (ACD * AO > 0) {
 		b = a;
 		searchDir = ACD;
 		return false;
 	}
-	if (ADB*AO > 0) { 
+	if (ADB * AO > 0) {
 		c = d;
 		d = b;
 		b = a;
@@ -288,7 +183,7 @@ bool BoxCollisionComponent::UpdateSimplex4(Points& a, Points& b, Points& c, Poin
 	return true;
 }
 
-void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo)
+void SphereCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, const vector<Vector3>& otherPoints, CollisionInfo& collisionInfo)
 {
 	Points faces[EPA_MAX_NUM_FACES][4];
 
@@ -302,25 +197,25 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 	faces[1][0] = a;
 	faces[1][1] = c;
 	faces[1][2] = d;
-	faces[1][3].p = ((c.p - a.p)^(d.p - a.p)).normalize(); //ACD
+	faces[1][3].p = ((c.p - a.p) ^ (d.p - a.p)).normalize(); //ACD
 	faces[2][0] = a;
 	faces[2][1] = d;
 	faces[2][2] = b;
-	faces[2][3].p = ((d.p - a.p)^( b.p - a.p)).normalize(); //ADB
+	faces[2][3].p = ((d.p - a.p) ^ (b.p - a.p)).normalize(); //ADB
 	faces[3][0] = b;
 	faces[3][1] = d;
 	faces[3][2] = c;
-	faces[3][3].p = ((d.p - b.p)^( c.p - b.p)).normalize(); //BDC
+	faces[3][3].p = ((d.p - b.p) ^ (c.p - b.p)).normalize(); //BDC
 
 	int num_faces = 4;
 	int closest_face;
 
 	for (int iterations = 0; iterations < EPA_MAX_NUM_ITERATIONS; iterations++) {
 		//Find face that's closest to origin
-		float min_dist = faces[0][0].p*faces[0][3].p;
+		float min_dist = faces[0][0].p * faces[0][3].p;
 		closest_face = 0;
 		for (int i = 1; i < num_faces; i++) {
-			float dist = faces[i][0].p*faces[i][3].p;
+			float dist = faces[i][0].p * faces[i][3].p;
 			if (dist < min_dist) {
 				min_dist = dist;
 				closest_face = i;
@@ -331,12 +226,12 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 		Vector3 search_dir = faces[closest_face][3].p;
 
 		Points p;
-		CalculateSearchPoint(p, search_dir, selfPoints, otherPoints);
+		CalculateSearchPoint(p, search_dir, otherPoints);
 
-		if (p.p*search_dir - min_dist < EPA_TOLERANCE) {
+		if (p.p * search_dir - min_dist < EPA_TOLERANCE) {
 
 			//collisionInfo.normal = faces[closest_face][3].p * (p.p * search_dir);
-			
+
 			Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p); //plane of closest triangle face
 			Vector3 projectionPoint = closestPlane.ProjectPointOntoPlane(Vector3(0, 0, 0)); //projecting the origin onto the triangle(both are in Minkowski space)
 			float u, v, w;
@@ -356,7 +251,7 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 			collisionInfo.penetration = penetration;
 			collisionInfo.normal = normal;
 			//collisionInfo.AddContactPoint(localA, localB, normal, penetration);
-			
+
 			return;
 		}
 
@@ -366,7 +261,7 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 		//Find all triangles that are facing p
 		for (int i = 0; i < num_faces; i++)
 		{
-			if (faces[i][3].p* (p.p - faces[i][0].p) > 0) //triangle i faces p, remove it
+			if (faces[i][3].p * (p.p - faces[i][0].p) > 0) //triangle i faces p, remove it
 			{
 				//Add removed triangle's edges to loose edge list.
 				//If it's already there, remove it (both triangles it belonged to are gone)
@@ -412,11 +307,11 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 			faces[num_faces][0] = loose_edges[i][0];
 			faces[num_faces][1] = loose_edges[i][1];
 			faces[num_faces][2] = p;
-			faces[num_faces][3].p = ((loose_edges[i][0].p - loose_edges[i][1].p)^( loose_edges[i][0].p - p.p)).normalize();
+			faces[num_faces][3].p = ((loose_edges[i][0].p - loose_edges[i][1].p) ^ (loose_edges[i][0].p - p.p)).normalize();
 
 			//Check for wrong normal to maintain CCW winding
 			float bias = 0.000001; //in case dot result is only slightly < 0 (because origin is on face)
-			if ((faces[num_faces][0].p* faces[num_faces][3].p) + bias < 0) {
+			if ((faces[num_faces][0].p * faces[num_faces][3].p) + bias < 0) {
 				Points temp = faces[num_faces][0];
 				faces[num_faces][0] = faces[num_faces][1];
 				faces[num_faces][1] = temp;
@@ -428,11 +323,11 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 	printf("EPA did not converge\n");
 	//Return most recent closest point
 	//collisionInfo.normal = faces[closest_face][3].p * (faces[closest_face][0].p*faces[closest_face][3].p);
-	
+
 	Vector3 search_dir = faces[closest_face][3].p;
 
 	Points p;
-	CalculateSearchPoint(p, search_dir, selfPoints, otherPoints);
+	CalculateSearchPoint(p, search_dir, otherPoints);
 
 	Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p);
 	Vector3 projectionPoint = closestPlane.ProjectPointOntoPlane(Vector3(0, 0, 0));
@@ -449,23 +344,25 @@ void BoxCollisionComponent::EPA(Points& a, Points& b, Points& c, Points& d, cons
 	collisionInfo.penetration = penetration;
 	collisionInfo.normal = normal;
 	//collisionInfo.AddContactPoint(localA, localB, normal, penetration);
-	
+
 	return;
 }
 
-void BoxCollisionComponent::CalculateSearchPoint(Points& point, Vector3& searchDir, const vector<Vector3>& selfPoints, const vector<Vector3>& otherPoints)
+void SphereCollisionComponent::CalculateSearchPoint(Points& point, Vector3& searchDir, const vector<Vector3>& otherPoints)
 {
+	Vector3 self(mNodeAttachedTo->GetAccumulatedPosition().Get());
+
 	point.b = Support(searchDir, otherPoints);
-	point.a = Support(-searchDir, selfPoints);
+	point.a = -searchDir.normalize() * mRadius + self;
 	point.p = point.b - point.a;
 }
 
-Vector3 BoxCollisionComponent::Support(const Vector3& dir, const vector<Vector3>& Points)
+Vector3 SphereCollisionComponent::Support(const Vector3& dir, const vector<Vector3>& Points)
 {
 	float maxDot = Points[0] * dir;
 	int index = 0;
 
-	for (int i=0; i<Points.size(); ++i)
+	for (int i = 0; i < Points.size(); ++i)
 	{
 		float dot = Points[i] * dir;
 		if (dot > maxDot)
@@ -478,50 +375,17 @@ Vector3 BoxCollisionComponent::Support(const Vector3& dir, const vector<Vector3>
 	return Points[index];
 }
 
-void BoxCollisionComponent::Barycentric(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& p, float& u, float& v, float& w)
+void SphereCollisionComponent::Barycentric(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& p, float& u, float& v, float& w)
 {
 	Vector3 v0 = b - a, v1 = c - a, v2 = p - a;
-	float d00 = v0*v0;
-	float d01 = v0*v1;
-	float d11 = v1*v1;
-	float d20 = v2*v0;
-	float d21 = v2*v1;
+	float d00 = v0 * v0;
+	float d01 = v0 * v1;
+	float d11 = v1 * v1;
+	float d20 = v2 * v0;
+	float d21 = v2 * v1;
 	float denom = d00 * d11 - d01 * d01;
 	v = (d11 * d20 - d01 * d21) / denom;
 	w = (d00 * d21 - d01 * d20) / denom;
 	u = 1.0f - v - w;
 
-}
-
-void BoxCollisionComponent::Draw()
-{
-	Engine::mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["ColliderShape"].Get());
-	Engine::mCommandList->SetPipelineState(Engine::mPSOs["ColliderShape"].Get());
-
-	XMFLOAT3 scale = mNodeAttachedTo->GetScale();
-	int data[4] = { mWidth/scale.x, mHeight/scale.y, mDepth/scale.z, mIsColliding };
-	Engine::mCommandList->SetGraphicsRoot32BitConstants(2, 4, data, 0);
-	Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
-	Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());
-	Engine::mCommandList->DrawIndexedInstanced(mIndices.size(), 1, 0, 0, 0);
-}
-
-
-D3D12_VERTEX_BUFFER_VIEW* BoxCollisionComponent::GetVertexBufferView()
-{
-	mVertexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mVertexUploadBufferIdx)->GetGPUVirtualAddress();
-	mVertexBufferView.StrideInBytes = sizeof(Vertex);
-	mVertexBufferView.SizeInBytes = sizeof(Vertex) * mVertices.size();
-
-	return &mVertexBufferView;
-}
-
-D3D12_INDEX_BUFFER_VIEW* BoxCollisionComponent::GetIndexBufferView()
-{
-	mIndexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mIndexUploadBufferIdx)->GetGPUVirtualAddress();
-	mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-	mIndexBufferView.SizeInBytes = sizeof(uint16_t) * mIndices.size();
-
-	return &mIndexBufferView;
 }

@@ -35,7 +35,7 @@ void InventoryNode::Draw()
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs["Default"].Get());
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
-		+ mSceneNodeIndex * BufferInterface::ConstantBufferByteSize(sizeof(obj)));
+		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mTextureManager->GetTextureIndex(mTextureName), DescType::SRV));
 	Engine::mMeshManager->Draw(mMeshName);

@@ -109,7 +109,7 @@ int	ResourceManager::CreateTexture2D(int width, int height, DXGI_FORMAT format, 
 	D3D12_HEAP_PROPERTIES hp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	D3D12_RESOURCE_DESC rd = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height);
 	rd.Flags = flags;
-
+	rd.MipLevels = 1;
 	
 	D3D12_CLEAR_VALUE clearValue;
 	D3D12_RESOURCE_STATES state;
@@ -135,7 +135,7 @@ int	ResourceManager::CreateTexture2D(int width, int height, DXGI_FORMAT format, 
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 	}
 
-	if (format == DXGI_FORMAT_A8_UNORM || format == DXGI_FORMAT_R8_UNORM)
+	if (flags != D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET && flags != D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 	{
 		IfError::Throw(Engine::mDevice->CreateCommittedResource(
 			&hp, D3D12_HEAP_FLAG_NONE,
