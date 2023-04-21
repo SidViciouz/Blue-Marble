@@ -1,20 +1,18 @@
-#include "VolumeNode.h"
+#include "HollowSphereVolumeNode.h"
 #include "Engine.h"
 
-VolumeNode::VolumeNode(float width, float height, float depth)
-	: SceneNode()
+HollowSphereVolumeNode::HollowSphereVolumeNode(float R, float r)
+	: mR{ R }, mr{ r }
 {
-	mScale = { width,height,depth };
+
 }
 
-void VolumeNode::Draw()
+void HollowSphereVolumeNode::Draw()
 {
 	Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["VolumeCube"].Get());
-	Engine::mCommandList->SetPipelineState(Engine::mPSOs["VolumeCube"].Get());
+	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["VolumeSphere"].Get());
+	Engine::mCommandList->SetPipelineState(Engine::mPSOs["VolumeSphere"].Get());
 
-
-	//Engine::mCommandList->SetGraphicsRootConstantBufferView(2, Engine::mResourceManager->GetResource(Engine::mPerlinMapIdx)->GetGPUVirtualAddress());
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
 		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->GetGradientsDescriptorIdx(), DescType::SRV));
 
@@ -25,9 +23,12 @@ void VolumeNode::Draw()
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
 
+	int Rr[2] = { mR,mr };
+	Engine::mCommandList->SetGraphicsRoot32BitConstants(4, 2, Rr, 0);
+
 	Engine::mCommandList->IASetVertexBuffers(0, 0, nullptr);
 	Engine::mCommandList->IASetIndexBuffer(nullptr);
-	Engine::mCommandList->DrawInstanced(36, 1, 0, 0);
+	Engine::mCommandList->DrawInstanced(6, 1, 0, 0);
 
 	SceneNode::Draw();
 }

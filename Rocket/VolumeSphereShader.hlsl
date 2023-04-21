@@ -42,6 +42,12 @@ cbuffer trans : register(b1)
 	int pad5;
 }
 
+cbuffer rad : register(b2)
+{
+	int R;
+	int r;
+}
+
 Texture1D<float4> gradients : register(t0);
 Texture1D<int> permutation : register(t1);
 
@@ -149,12 +155,14 @@ float noise(float3 position)
 //rayDir는 normalize된 상태여야함.
 bool SphereIntersect(in float3 rayOrigin,in float3 rayDir,out float tMin,out float tMax)
 {
-	float3 center = float3(0.0f, 0.0f, 0.0f);
-	float radius = 3.0f;
+	float3 center = float3(world._14, world._24, world._34);
+	//float radius = 3.0f;
+	float Radius = R;
+	float radius = r;
 
 	float3 rayOriginToCenter = center - rayOrigin;
 
-	if (dot(rayOriginToCenter, rayDir) < 0 && length(rayOriginToCenter) > radius)
+	if (dot(rayOriginToCenter, rayDir) < 0 && length(rayOriginToCenter) > Radius)
 		return false;
 
 	float distance = length(cross(rayOriginToCenter, rayDir));
@@ -162,14 +170,26 @@ bool SphereIntersect(in float3 rayOrigin,in float3 rayDir,out float tMin,out flo
 	tMin = 0.0f;
 	tMax = 0.0f;
 
-	if (distance > radius)
+	if (distance > Radius)
 		return false;
 
-	float t = dot(rayOriginToCenter, rayDir);
-	float dt = sqrt(radius * radius - distance * distance);
+	if (distance <= Radius && distance >= radius)
+	{
+		float t = dot(rayOriginToCenter, rayDir);
+		float dt = sqrt(Radius * Radius - distance * distance);
 
-	tMin = t - dt;
-	tMax = t + dt;
+		tMin = t - dt;
+		tMax = t + dt;
+	}
+	else
+	{
+		float t = dot(rayOriginToCenter, rayDir);
+		float Rdt = sqrt(Radius * Radius - distance * distance);
+		float rdt = sqrt(radius * radius - distance * distance);
+
+		tMin = t - Rdt;
+		tMax = t - rdt;
+	}
 
 	return true;
 }
@@ -181,7 +201,7 @@ float3 sphereLi(float3 position)
 	float sigmaS = 0.1f;
 	float sigmaT = 0.2f;
 	float g = 0.25f;
-	float stepSize = 0.1f;
+	int steps = 15;
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -198,7 +218,7 @@ float3 sphereLi(float3 position)
 		SphereIntersect(lights[i].position, normalize(lightToPos), tMin, tMax);
 
 		float att = 1.0f;
-		int steps = (length(lightToPos) - tMin) / stepSize;
+		int stepSize = (length(lightToPos) - tMin) / steps;
 		float result = 0.0f;
 
 		for (int j = 0; j < steps; ++j)
@@ -232,8 +252,8 @@ float4 PS(VertexOut pin) : SV_Target
 	if (!SphereIntersect(origin, dir, tMin, tMax))
 		clip(-1);
 
-	float stepSize = 0.1f;
-	int steps = (tMax - tMin) / stepSize;
+	int steps = 15;
+	float stepSize = (tMax - tMin) / (float)steps;
 	float sigmaT = 0.2f;
 	float att = 1.0f;
 	float3 result = 0.0f;
@@ -242,12 +262,15 @@ float4 PS(VertexOut pin) : SV_Target
 	for (int i = 0; i < steps; ++i)
 	{
 		float3 ray = origin + (i*stepSize + tMin)*dir;
-		density = noise(ray*100.0f);
+		density = noise(ray*2.5f);
 		att *= exp(-stepSize * sigmaT * density);
 		result += sphereLi(ray) * att;
 	}
 
-	pin.color.w = att;
+	//result.x = clamp(result.x, 0, 1.0);
+	//result.y = clamp(result.y, 0, 1.0);
+	//result.z = clamp(result.z, 0, 1.0);
+	//pin.color.w = att;
 	pin.color.xyz += result.xyz;
 
 	return pin.color;

@@ -146,6 +146,7 @@
     <ClInclude Include="BoxCollisionComponent.h" />
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="CameraInputComponent.h" />
+    <ClInclude Include="HollowSphereVolumeNode.h" />
     <ClInclude Include="ItemInputComponent.h" />
     <ClInclude Include="ItemNode.h" />
     <ClInclude Include="InventoryNode.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="Blooming.cpp" />
     <ClCompile Include="BoxCollisionComponent.cpp" />
     <ClCompile Include="CameraNode.cpp" />
+    <ClCompile Include="HollowSphereVolumeNode.cpp" />
     <ClCompile Include="SphereCollisionComponent.cpp" />
     <ClCompile Include="UINode.cpp" />
     <ClCompile Include="CollisionComponent.cpp" />

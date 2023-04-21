@@ -549,7 +549,7 @@ void Engine::CreateShaderAndRootSignature()
 	range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	range.RegisterSpace = 0;
 
-	D3D12_ROOT_PARAMETER rootParameter[4];
+	D3D12_ROOT_PARAMETER rootParameter[5];
 	rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; //구체적으로 지정해서 최적화할 여지있음.
 	rootParameter[0].Descriptor.RegisterSpace = 0;
@@ -600,8 +600,31 @@ void Engine::CreateShaderAndRootSignature()
 		L"serialize root signature error!");
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
-	mRootSignatures["Volume"] = move(rs);
+	mRootSignatures["VolumeCube"] = move(rs);
 
+	D3D12_DESCRIPTOR_RANGE sphereRange = {};
+	sphereRange.BaseShaderRegister = 1;
+	sphereRange.NumDescriptors = 1;
+	sphereRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	sphereRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	sphereRange.RegisterSpace = 0;
+	rootParameter[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameter[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParameter[3].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameter[3].DescriptorTable.pDescriptorRanges = &sphereRange;
+	rootParameter[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameter[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameter[4].Constants.Num32BitValues = 2;
+	rootParameter[4].Constants.RegisterSpace = 0;
+	rootParameter[4].Constants.ShaderRegister = 2;
+	rsDesc.NumParameters = 5;
+	rsDesc.NumStaticSamplers = 0;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["VolumeSphere"] = move(rs);
 
 	D3D12_DESCRIPTOR_RANGE rangePlanet[4];
 	rangePlanet[0].BaseShaderRegister = 0;
@@ -999,7 +1022,7 @@ void Engine::CreatePso()
 
 	psoDesc.InputLayout.NumElements = 0;
 	psoDesc.InputLayout.pInputElementDescs = nullptr;
-	psoDesc.pRootSignature = mRootSignatures["Volume"].Get();
+	psoDesc.pRootSignature = mRootSignatures["VolumeSphere"].Get();
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 	psoDesc.VS.pShaderBytecode = mShaders["VolumeSphereVS"]->GetBufferPointer();
 	psoDesc.VS.BytecodeLength = mShaders["VolumeSphereVS"]->GetBufferSize();
@@ -1016,6 +1039,7 @@ void Engine::CreatePso()
 		L"create graphics pso error!");
 	mPSOs["VolumeSphere"] = move(pso);
 
+	psoDesc.pRootSignature = mRootSignatures["VolumeCube"].Get();
 	psoDesc.VS.pShaderBytecode = mShaders["VolumeCubeVS"]->GetBufferPointer();
 	psoDesc.VS.BytecodeLength = mShaders["VolumeCubeVS"]->GetBufferSize();
 	psoDesc.PS.pShaderBytecode = mShaders["VolumeCubePS"]->GetBufferPointer();

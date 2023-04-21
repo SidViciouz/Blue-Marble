@@ -197,7 +197,6 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 
 float4 PS(GeoOut pin) : SV_Target
 {
-	/*
 	float3 diffuse = diffuseAlbedo * textureMap.Sample(textureSampler, pin.tex);
 	float3 L = { 0.0f,0.0f,1.0f };
 	float rambertTerm = 0.0f;
@@ -246,9 +245,9 @@ float4 PS(GeoOut pin) : SV_Target
 		transpose(lights[lightIdx].lightProjection));
 
 	if (shadowMap.Sample(textureSampler, pin.lightTex) < lightNDCPixel.z)
-		color = float4(0.0f, 0.0f, 0.0f, 0.0f);
-		*/
-	float4 color = float4(textureMap.Load(float3(pin.tex * float2(16383, 10799), 0.0f)).xyz,0.0f);
+		color *= 0.2f;
+	
+	//float4 color = float4(textureMap.Load(float3(pin.tex * float2(16383, 10799), 0.0f)).xyz,0.0f);
 
 	return color;
 }
