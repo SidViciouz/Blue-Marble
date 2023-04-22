@@ -4,7 +4,10 @@
 WorldNode::WorldNode(string name)
 	: MeshNode(name)
 {
-
+	mCharacter = make_shared<MeshNode>("box");
+	mCharacter->SetRelativePosition(35.0f, 0.0f, 0.0f);
+	mCharacter->SetTextureName("stone");
+	AddChild(mCharacter);
 }
 
 void WorldNode::Draw()
@@ -33,4 +36,30 @@ void WorldNode::Draw()
 	Engine::mMeshManager->Draw(mMeshName);
 
 	SceneNode::Draw();
+}
+
+void WorldNode::Update()
+{
+	/*
+	* 여기에 추가로 필요한 것들을 작성한다.
+	*/
+	/*
+	float delta = Engine::mTimer.GetDeltaTime();
+
+	XMVECTOR pos = XMLoadFloat3(&mCharacter->GetRelativePosition().Get());
+	XMVECTOR quat = XMVectorSet(0.0f, 0.0f,
+		sinf(XMConvertToRadians(20.0f * delta)), cosf(XMConvertToRadians(20.0f * delta)));
+
+	pos = XMVector3Rotate(pos, quat);
+	XMFLOAT3 p;
+	XMFLOAT4 q;
+	XMStoreFloat3(&p, pos);
+	XMStoreFloat4(&q, quat);
+	mCharacter->SetRelativePosition(p);
+	mCharacter->MulRelativeQuaternion(q);
+	*/
+	if (!mActivated)
+		return;
+
+	SceneNode::Update();
 }

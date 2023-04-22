@@ -33,7 +33,7 @@ void MenuScene::Initialize()
 	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
 	light1->SetTextureName("stone");
 	light1->SetColor(1.0f, 1.0f, 1.0f);
-	light1->SetRelativePosition(0.0f, 0.0f, -20.0f);
+	light1->SetRelativePosition(0.0f, 0.0f, -50.0f);
 	light1->SetDirection(0.0f, 0.0f, 1.0f);
 	mLightNodes.push_back(light1);
 

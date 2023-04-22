@@ -5,6 +5,7 @@
 #include "ItemInputComponent.h"
 #include "SphereCollisionComponent.h"
 #include "HollowSphereVolumeNode.h"
+#include "WorldInputComponent.h"
 
 MainScene::MainScene()
 	: Scene()
@@ -42,7 +43,7 @@ void MainScene::Initialize()
 	//cloudVolume->SetRelativePosition(9.0f, 50.0f, 0.0f);
 	
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
-	camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera,"MainScene");
+	//camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera,"MainScene");
 	camera->mCollisionComponent = make_shared<BoxCollisionComponent>(camera, 5.0f, 5.0f, 5.0f);
 	mCameraNode = camera;
 
@@ -88,6 +89,7 @@ void MainScene::Initialize()
 	worldMesh->SetRelativeQuaternion(0.0f, 0.0f, sinf(XMConvertToRadians(90.0f)),cosf(XMConvertToRadians(90.0f)));
 	worldMesh->SetScale(30.0f, 30.0f, 30.0f);
 	worldMesh->mCollisionComponent = make_shared<SphereCollisionComponent>(worldMesh, 30.0f);
+	worldMesh->mInputComponent = Engine::mInputManager->Build<WorldInputComponent>(worldMesh, "MainScene");
 
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(35.0f, 30.0f);
 	worldMesh->AddChild(cloud);

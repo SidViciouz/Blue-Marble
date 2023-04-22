@@ -192,6 +192,7 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="VolumeNode.h" />
+    <ClInclude Include="WorldInputComponent.h" />
     <ClInclude Include="WorldNode.h" />
   </ItemGroup>
   <ItemGroup>

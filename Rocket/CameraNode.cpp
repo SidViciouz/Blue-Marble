@@ -13,7 +13,7 @@ CameraNode::CameraNode(int width, int height)
 	mAngle = XMConvertToRadians(60.0f);
 	mRatio = static_cast<float>(width) / height;
 
-	SetRelativePosition(0.0f, 0.0f, -15.0f);
+	SetRelativePosition(0.0f, 0.0f, -30.0f);
 	//SetRelativeQuaternion(0.0f,cosf(XMConvertToRadians(0.0f)),0.0f,sinf(XMConvertToRadians(0.0f)));
 	UpdateViewMatrix();
 	UpdateProjectionMatrix();
