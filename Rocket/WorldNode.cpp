@@ -1,5 +1,7 @@
 #include "WorldNode.h"
 #include "Engine.h"
+#include "json/json.h"
+#include <iostream>
 
 WorldNode::WorldNode(string name)
 	: MeshNode(name)
@@ -8,6 +10,24 @@ WorldNode::WorldNode(string name)
 	mCharacter->SetRelativePosition(35.0f, 0.0f, 0.0f);
 	mCharacter->SetTextureName("stone");
 	AddChild(mCharacter);
+
+	string str;
+	Json::Value root;
+	root["name"] = "KKK";
+	root["age"] = 12;
+	root["address"] = "kor";
+	root["gfriend"] = true;
+
+	Json::Value family;
+	family.append("mother");
+	family.append("father");
+	family.append("brother");
+	root["family"] = family;
+
+	Json::StyledWriter writer;
+	str = writer.write(root);
+	cout << str << endl;
+
 }
 
 void WorldNode::Draw()
