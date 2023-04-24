@@ -135,7 +135,15 @@ void SceneNode::SetAccumulatedPosition(const XMFLOAT3& position)
 		mRelativePosition.Set(position);
 	else
 	{
-		mRelativePosition.Set((mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+		XMMATRIX invQ = XMMatrixRotationQuaternion(
+			XMQuaternionInverse(XMLoadFloat4(&mParentNode->mAccumulatedQuaternion.Get())));
+
+		XMVECTOR p = XMLoadFloat3(&(mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+
+		XMFLOAT3 pq;
+		XMStoreFloat3(&pq, XMVector3TransformCoord(p, invQ));
+
+		mRelativePosition.Set(pq);
 	}
 }
 
@@ -146,7 +154,16 @@ void SceneNode::SetAccumulatedPosition(const float& x, const float& y, const flo
 		mRelativePosition.Set(x,y,z);
 	else
 	{
-		mRelativePosition.Set((mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+		//mRelativePosition.Set((mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+		XMMATRIX invQ = XMMatrixRotationQuaternion(
+			XMQuaternionInverse(XMLoadFloat4(&mParentNode->mAccumulatedQuaternion.Get())));
+
+		XMVECTOR p = XMLoadFloat3(&(mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+
+		XMFLOAT3 pq;
+		XMStoreFloat3(&pq, XMVector3TransformCoord(p, invQ));
+
+		mRelativePosition.Set(pq);
 	}
 }
 
