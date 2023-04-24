@@ -58,8 +58,63 @@ void WorldNode::Update()
 	mCharacter->SetRelativePosition(p);
 	mCharacter->MulRelativeQuaternion(q);
 	*/
+	UpdateCharacter();
+
 	if (!mActivated)
 		return;
 
 	SceneNode::Update();
+}
+
+void WorldNode::MoveCharacter(const XMFLOAT3& pos)
+{
+	isMoving = true;
+
+	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().Get();
+	
+	mMoveInfo.totalFrame = 60;
+	mMoveInfo.curFrame = 0;
+	mMoveInfo.radius = GetScale().x;
+
+	XMFLOAT3 center = mAccumulatedPosition.Get();
+	Vector3 v1(curPos.x - center.x, curPos.y - center.y, curPos.z - center.z);
+	Vector3 v2(pos.x - center.x, pos.y - center.y, pos.z - center.z);
+
+	v1 = v1.normalize();
+	v2 = v2.normalize();
+
+	mMoveInfo.axis = (v1 ^ v2).normalize().v;
+	mMoveInfo.angle = acos(v1 * v2)/ mMoveInfo.totalFrame;
+}
+
+void WorldNode::UpdateCharacter()
+{
+	if (!isMoving)
+		return;
+
+	if (mMoveInfo.totalFrame < mMoveInfo.curFrame)
+	{
+		isMoving = false;
+		return;
+	}
+
+	++mMoveInfo.curFrame;
+
+	XMVECTOR quat = XMQuaternionRotationAxis(XMLoadFloat3(&mMoveInfo.axis), mMoveInfo.angle);
+
+	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().Get();
+	XMFLOAT3 center = mAccumulatedPosition.Get();
+
+	XMVECTOR xmCurPos = XMLoadFloat3(&curPos);
+	XMVECTOR xmCenter = XMLoadFloat3(&center);
+
+	XMVECTOR cur = xmCurPos - xmCenter;
+
+	cur = XMVector3Normalize(XMVector3Rotate(cur, quat))*mMoveInfo.radius;
+
+	xmCurPos = xmCenter + cur;
+
+	XMStoreFloat3(&curPos, xmCurPos);
+
+	mCharacter->SetAccumulatedPosition(curPos);
 }

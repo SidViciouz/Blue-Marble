@@ -57,7 +57,8 @@ public:
 
 			XMFLOAT3 surface;
 			XMStoreFloat3(&surface, rayOrigin + (rayVector * SurfaceDistance));
-			mNode->mCharacter->SetAccumulatedPosition(surface);
+			mNode->MoveCharacter(surface);
+			//mNode->mCharacter->SetAccumulatedPosition(surface);
 			printf("intersect : %f %f %f\n", surface.x, surface.y, surface.z);
 			return;
 		}
