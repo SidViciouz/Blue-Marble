@@ -57,16 +57,18 @@ public:
 
 			XMFLOAT3 surface;
 			XMStoreFloat3(&surface, rayOrigin + (rayVector * SurfaceDistance));
+
 			mNode->MoveCharacter(surface);
-			//mNode->mCharacter->SetAccumulatedPosition(surface);
-			printf("intersect : %f %f %f\n", surface.x, surface.y, surface.z);
+			mNode->PickCountry(surface);
+
+			//printf("intersect : %f %f %f\n", surface.x, surface.y, surface.z);
 			return;
 		}
 	}
 
 	virtual void								OnMouseMove(const int& x, const int& y) override
 	{
-		printf("%d %d is clicked!\n", x, y);
+		//printf("%d %d is clicked!\n", x, y);
 			
 		float dx = x - prevX;
 		float dy = y - prevY;

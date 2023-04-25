@@ -1,6 +1,7 @@
 #include "WorldNode.h"
 #include "Engine.h"
 #include "json/json.h"
+#include <fstream>
 #include <iostream>
 
 WorldNode::WorldNode(string name)
@@ -10,24 +11,100 @@ WorldNode::WorldNode(string name)
 	mCharacter->SetRelativePosition(35.0f, 0.0f, 0.0f);
 	mCharacter->SetTextureName("stone");
 	AddChild(mCharacter);
-
-	string str;
+	
+	mBorderTextureIdx = Engine::mResourceManager->CreateTexture2D(3600, 1800,
+		DXGI_FORMAT_R8_UNORM,D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	
+	mBorderTextureUavIdx = Engine::mDescriptorManager->CreateUav(
+		Engine::mResourceManager->GetResource(mBorderTextureIdx),
+		DXGI_FORMAT_R8_UNORM,
+		D3D12_UAV_DIMENSION_TEXTURE2D
+	);
+	
+	mUploadBufferIdx = Engine::mResourceManager->CreateUploadBuffer(
+		Engine::mResourceManager->CalculateAlignment(3600,256)* 1800);
+	
 	Json::Value root;
-	root["name"] = "KKK";
-	root["age"] = 12;
-	root["address"] = "kor";
-	root["gfriend"] = true;
+	std::ifstream config_doc("../Data/world-administrative-boundaries.json", std::ifstream::binary);
+	config_doc >> root;
+	string str;
 
-	Json::Value family;
-	family.append("mother");
-	family.append("father");
-	family.append("brother");
-	root["family"] = family;
+	for (int i = 0; i < root.size(); ++i)
+	{
+		Json::Value field = root[i]["geo_shape"]["geometry"]["coordinates"];
 
-	Json::StyledWriter writer;
-	str = writer.write(root);
-	cout << str << endl;
+		CountryInfo info;
 
+		info.geo.x = root[i]["geo_point_2d"]["lon"].asDouble();
+		info.geo.y = root[i]["geo_point_2d"]["lat"].asDouble();
+
+		for (auto it = field.begin(); it != field.end(); it++)
+		{
+			vector<struct Point> points;
+			for (auto jt = it->begin(); jt != it->end(); jt++)
+			{
+				if (jt->size() == 2)
+				{
+					int i = 0;
+					float coord[2];
+					bool isCoord = false;
+					for (auto ht = jt->begin(); ht != jt->end(); ht++)
+					{
+						isCoord = true;
+						Json::StyledWriter writer;
+						coord[i++] = ht->asDouble();
+					}
+					if (isCoord)
+					{
+						points.push_back({ coord[1] ,coord[0] });
+						data[1800 - (((int)(coord[1] * 10) + 900))][((int)(coord[0] * 10) + 1800)] = 1;
+					}
+
+					continue;
+				}
+
+				for (auto kt = jt->begin(); kt != jt->end(); kt++)
+				{
+					int i = 0;
+					float coord[2];
+					bool isCoord = false;
+					for (auto ht = kt->begin(); ht != kt->end(); ht++)
+					{
+						isCoord = true;
+						Json::StyledWriter writer;
+						coord[i++] = ht->asDouble();
+					}
+					if (isCoord)
+					{
+						points.push_back({ coord[1] ,coord[0] });
+						data[1800-(((int)(coord[1]*10)+900))][((int)(coord[0]*10)+1800)] = 1;
+					}
+				}
+			}
+			if (points.size() != 0)
+				info.points.push_back(points);
+		}
+		mCountryInfos[root[i]["name"].asString()] = info;
+	}
+	
+	/*
+	for (auto country : mCountryInfos)
+	{
+		//cout << country.first << "\n";
+		int i = 0;
+		for (auto points : country.second.points)
+		{
+			//printf("%d\n", i);
+			for (auto point : points)
+			{
+				//printf("%f %f\n", point.x, point.y);
+			}
+			++i;
+		}
+	}
+	*/
+	Engine::mResourceManager->UploadTexture2D(mUploadBufferIdx, data, 3600, 1800, 0, 0);
+	Engine::mResourceManager->CopyUploadToTexture(mUploadBufferIdx, mBorderTextureIdx, 3600, 1800, 1, DXGI_FORMAT_R8_UNORM, 1);
 }
 
 void WorldNode::Draw()
@@ -53,6 +130,9 @@ void WorldNode::Draw()
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(5, Engine::mDescriptorManager->GetGpuHandle(
 		Engine::mTextureManager->GetTextureIndex("world"), DescType::SRV));
 
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(6, Engine::mDescriptorManager->GetGpuHandle(
+		mBorderTextureUavIdx, DescType::SRV));
+
 	Engine::mMeshManager->Draw(mMeshName);
 
 	SceneNode::Draw();
@@ -63,21 +143,7 @@ void WorldNode::Update()
 	/*
 	* 여기에 추가로 필요한 것들을 작성한다.
 	*/
-	/*
-	float delta = Engine::mTimer.GetDeltaTime();
 
-	XMVECTOR pos = XMLoadFloat3(&mCharacter->GetRelativePosition().Get());
-	XMVECTOR quat = XMVectorSet(0.0f, 0.0f,
-		sinf(XMConvertToRadians(20.0f * delta)), cosf(XMConvertToRadians(20.0f * delta)));
-
-	pos = XMVector3Rotate(pos, quat);
-	XMFLOAT3 p;
-	XMFLOAT4 q;
-	XMStoreFloat3(&p, pos);
-	XMStoreFloat4(&q, quat);
-	mCharacter->SetRelativePosition(p);
-	mCharacter->MulRelativeQuaternion(q);
-	*/
 	UpdateCharacter();
 
 	if (!mActivated)
@@ -105,6 +171,68 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 
 	mMoveInfo.axis = (v1 ^ v2).normalize().v;
 	mMoveInfo.angle = acos(v1 * v2)/ mMoveInfo.totalFrame;
+}
+
+void WorldNode::PickCountry(const XMFLOAT3& pos)
+{
+	XMVECTOR xmPos = XMLoadFloat3(&pos);
+	XMVECTOR xmQuat = XMLoadFloat4(&mAccumulatedQuaternion.Get());
+	xmQuat = XMQuaternionInverse(xmQuat);
+
+	//world coordinate -> spherical coordinate
+	XMVECTOR xmCenter = XMLoadFloat3(&mAccumulatedPosition.Get());
+	xmPos = xmPos - xmCenter;
+
+	xmPos = XMVector3Rotate(xmPos, xmQuat);
+	xmPos = XMVector3Normalize(xmPos);
+
+	//spherical coordinate -> geographic coordinate
+	XMVECTOR xmProjXZ = XMVectorSetY(xmPos, 0);
+	xmProjXZ = XMVector3Normalize(xmProjXZ);
+
+	XMVECTOR xmFront = XMVectorSet(0, 0, 1, 0);
+
+	XMVECTOR xmRight = XMVectorSet(1, 0, 0, 0);
+
+	XMVECTOR xmUp = XMVectorSet(0, 1, 0, 0);
+
+	XMFLOAT3 up,ppos;
+	XMStoreFloat3(&up, xmUp);
+	XMStoreFloat3(&ppos, xmPos);
+	
+	float latitude = 90.0f - XMConvertToDegrees(acos(XMVectorGetX(XMVector3Dot(xmPos, xmUp))));
+	float longitude = XMConvertToDegrees(acos(XMVectorGetX(XMVector3Dot(xmProjXZ, xmFront))));
+
+	if (XMVectorGetX(XMVector3Dot(xmProjXZ, xmRight)) < 0)
+		longitude *= -1.0f;
+	
+	latitude *= -1.0f;
+	longitude += 269;
+	if (longitude > 360)
+		longitude -= 360;
+
+	//geographics coordinate -> uv coordinate
+	float u = (longitude + 180) / 360.0f;
+	float v = (latitude + 90) / 180.0f;
+
+	printf("latitude : %f, longitude : %f\n", latitude, longitude);
+	//printf("u : %f, v : %f\n", u, v);
+	for (auto country : mCountryInfos)
+	{
+		struct Point p = country.second.geo;
+		float dx = longitude - p.x;
+		float dy = latitude - p.y;
+
+		dx = dx * dx;
+		dy = dy * dy;
+
+		if (dx + dy < 25)
+		{
+			cout << country.first << "\n";
+		}
+	}
+
+	cout << "\n";
 }
 
 void WorldNode::UpdateCharacter()

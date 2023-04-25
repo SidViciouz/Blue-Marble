@@ -883,7 +883,7 @@ void Engine::CreateShaderAndRootSignature()
 	mRootSignatures["Convolve"] = move(rs);
 
 
-	D3D12_DESCRIPTOR_RANGE rangeEarth[3];
+	D3D12_DESCRIPTOR_RANGE rangeEarth[4];
 	rangeEarth[0].BaseShaderRegister = 0;
 	rangeEarth[0].NumDescriptors = 1;
 	rangeEarth[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -899,9 +899,14 @@ void Engine::CreateShaderAndRootSignature()
 	rangeEarth[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeEarth[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangeEarth[2].RegisterSpace = 0;
+	rangeEarth[3].BaseShaderRegister = 3;
+	rangeEarth[3].NumDescriptors = 1;
+	rangeEarth[3].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeEarth[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeEarth[3].RegisterSpace = 0;
 
 
-	D3D12_ROOT_PARAMETER rootParameterEarth[6];
+	D3D12_ROOT_PARAMETER rootParameterEarth[7];
 	rootParameterEarth[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameterEarth[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterEarth[0].Descriptor.RegisterSpace = 0;
@@ -927,8 +932,12 @@ void Engine::CreateShaderAndRootSignature()
 	rootParameterEarth[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterEarth[5].DescriptorTable.NumDescriptorRanges = 1;
 	rootParameterEarth[5].DescriptorTable.pDescriptorRanges = &rangeEarth[2];
+	rootParameterEarth[6].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterEarth[6].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[6].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterEarth[6].DescriptorTable.pDescriptorRanges = &rangeEarth[3];
 
-	rsDesc.NumParameters = 6;
+	rsDesc.NumParameters = 7;
 	rsDesc.pParameters = rootParameterEarth;
 	rsDesc.NumStaticSamplers = 1;
 	rsDesc.pStaticSamplers = &samplerDesc;

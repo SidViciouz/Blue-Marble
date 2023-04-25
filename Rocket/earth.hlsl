@@ -45,6 +45,8 @@ texture2D<float4> textureMap : register(t1);
 
 texture2D<float4> heightMap : register(t2);
 
+texture2D<float> borderMap : register(t3);
+
 SamplerState textureSampler : register(s0);
 
 struct PatchTess
@@ -87,10 +89,10 @@ PatchTess ConstantHS(InputPatch<VertexOut, 3> patch, uint id : SV_PrimitiveID)
 {
 	PatchTess pt;
 
-	pt.edgeTess[0] = 30;
-	pt.edgeTess[1] = 30;
-	pt.edgeTess[2] = 30;
-	pt.insideTess = 30;
+	pt.edgeTess[0] = 60;
+	pt.edgeTess[1] = 60;
+	pt.edgeTess[2] = 60;
+	pt.insideTess = 60;
 
 	return pt;
 }
@@ -204,6 +206,17 @@ float4 PS(GeoOut pin) : SV_Target
 	float3 fresnelTerm;
 	float roughnessTerm;
 
+	if (pin.tex.x < 0.05f && pin.tex.y < 0.05f)
+	{
+		color = float4(1.0f, 0.0f, 0.0f, 0.0f);
+		return color;
+	}
+	else if (pin.tex.x > 0.95f && pin.tex.y < 0.05f)
+	{
+		color = float4(0.0f, 1.0f, 0.0f, 0.0f);
+		return color;
+	}
+
 	pin.normal = normalize(pin.normal);
 
 	for (int i = 0; i < 3; ++i)
@@ -247,6 +260,15 @@ float4 PS(GeoOut pin) : SV_Target
 	if (shadowMap.Sample(textureSampler, pin.lightTex) < lightNDCPixel.z)
 		color *= 0.2f;
 	
+	float border = borderMap.Sample(textureSampler, pin.tex);
+
+	if (border != 0)
+	{
+		color.x = border;
+		color.y = 0;
+		color.z = 0;
+	}
+
 	//float4 color = float4(textureMap.Load(float3(pin.tex * float2(16383, 10799), 0.0f)).xyz,0.0f);
 
 	return color;

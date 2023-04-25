@@ -86,7 +86,7 @@ void MainScene::Initialize()
 	worldMesh->SetTextureName("earth");
 	worldMesh->mObjFeature.diffuseAlbedo = { 1.0f,1.0f,1.0f };
 	worldMesh->SetRelativePosition(0.0f, 0.0f, 30.0f);
-	worldMesh->SetRelativeQuaternion(0.0f, 0.0f, sinf(XMConvertToRadians(90.0f)),cosf(XMConvertToRadians(90.0f)));
+	//worldMesh->SetRelativeQuaternion(0.0f, sinf(XMConvertToRadians(90.0f)), 0.0f,cosf(XMConvertToRadians(90.0f)));
 	worldMesh->SetScale(30.0f, 30.0f, 30.0f);
 	worldMesh->mCollisionComponent = make_shared<SphereCollisionComponent>(worldMesh, 30.0f);
 	worldMesh->mInputComponent = Engine::mInputManager->Build<WorldInputComponent>(worldMesh, "MainScene");
