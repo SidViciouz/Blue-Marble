@@ -226,13 +226,45 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 		dx = dx * dx;
 		dy = dy * dy;
 
-		if (dx + dy < 25)
+		if (dx + dy < 50)
 		{
-			cout << country.first << "\n";
+			int cnt = 0;
+			for (auto points : country.second.points)
+			{
+				for (int i = 0; i < points.size(); ++i)
+				{
+					float xs = points[i].x;
+					float xl;
+					float ys = points[i].y;
+					float yl;
+
+					if (i == points.size() - 1)
+					{
+						xl = points[0].x;
+						yl = points[0].y;
+					}
+					else
+					{
+						xl = points[i + 1].x;
+						yl = points[i + 1].y;
+					}
+
+					if (xs > xl)
+						swap(xs, xl);
+					if (longitude >= ys && longitude <= yl && latitude <= xl)
+					{
+						++cnt;
+					}
+
+				}
+			}
+			if (cnt % 2 == 1)
+			{
+				cout << country.first << "\n";
+				break;
+			}
 		}
 	}
-
-	cout << "\n";
 }
 
 void WorldNode::UpdateCharacter()

@@ -34,7 +34,7 @@ cbuffer env : register(b1)
 	int pad5;
 }
 
-cbuffer lightNum : register(b2)
+cbuffer constant : register(b2)
 {
 	int lightIdx;
 }
@@ -89,10 +89,10 @@ PatchTess ConstantHS(InputPatch<VertexOut, 3> patch, uint id : SV_PrimitiveID)
 {
 	PatchTess pt;
 
-	pt.edgeTess[0] = 60;
-	pt.edgeTess[1] = 60;
-	pt.edgeTess[2] = 60;
-	pt.insideTess = 60;
+	pt.edgeTess[0] = 100;
+	pt.edgeTess[1] = 100;
+	pt.edgeTess[2] = 100;
+	pt.insideTess = 100;
 
 	return pt;
 }
@@ -206,6 +206,7 @@ float4 PS(GeoOut pin) : SV_Target
 	float3 fresnelTerm;
 	float roughnessTerm;
 
+	/*
 	if (pin.tex.x < 0.05f && pin.tex.y < 0.05f)
 	{
 		color = float4(1.0f, 0.0f, 0.0f, 0.0f);
@@ -216,7 +217,7 @@ float4 PS(GeoOut pin) : SV_Target
 		color = float4(0.0f, 1.0f, 0.0f, 0.0f);
 		return color;
 	}
-
+	*/
 	pin.normal = normalize(pin.normal);
 
 	for (int i = 0; i < 3; ++i)
