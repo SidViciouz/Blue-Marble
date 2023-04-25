@@ -24,6 +24,15 @@ WorldNode::WorldNode(string name)
 	mUploadBufferIdx = Engine::mResourceManager->CreateUploadBuffer(
 		Engine::mResourceManager->CalculateAlignment(3600,256)* 1800);
 	
+	mColorCountryTextureIdx = Engine::mResourceManager->CreateTexture2D(3600, 1800,
+		DXGI_FORMAT_R8_SINT, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+	mColorCountryTextureUavIdx = Engine::mDescriptorManager->CreateUav(
+		Engine::mResourceManager->GetResource(mBorderTextureIdx),
+		DXGI_FORMAT_R8_SINT,
+		D3D12_UAV_DIMENSION_TEXTURE2D
+	);
+
 	Json::Value root;
 	std::ifstream config_doc("../Data/world-administrative-boundaries.json", std::ifstream::binary);
 	config_doc >> root;
@@ -34,6 +43,9 @@ WorldNode::WorldNode(string name)
 		Json::Value field = root[i]["geo_shape"]["geometry"]["coordinates"];
 
 		CountryInfo info;
+
+		struct Point minBound = { 90,180 };
+		struct Point maxBound = { -90,-180 };
 
 		info.geo.x = root[i]["geo_point_2d"]["lon"].asDouble();
 		info.geo.y = root[i]["geo_point_2d"]["lat"].asDouble();
@@ -56,6 +68,15 @@ WorldNode::WorldNode(string name)
 					}
 					if (isCoord)
 					{
+						if (coord[1] < minBound.x)
+							minBound.x = coord[1];
+						if (coord[1] > maxBound.x)
+							maxBound.x = coord[1];
+						if(coord[0] < minBound.y)
+							minBound.y = coord[0];
+						if (coord[0] > maxBound.y)
+							maxBound.y = coord[0];
+
 						points.push_back({ coord[1] ,coord[0] });
 						data[1800 - (((int)(coord[1] * 10) + 900))][((int)(coord[0] * 10) + 1800)] = 1;
 					}
@@ -76,33 +97,33 @@ WorldNode::WorldNode(string name)
 					}
 					if (isCoord)
 					{
+						if (coord[1] < minBound.x)
+							minBound.x = coord[1];
+						if (coord[1] > maxBound.x)
+							maxBound.x = coord[1];
+						if (coord[0] < minBound.y)
+							minBound.y = coord[0];
+						if (coord[0] > maxBound.y)
+							maxBound.y = coord[0];
+
 						points.push_back({ coord[1] ,coord[0] });
 						data[1800-(((int)(coord[1]*10)+900))][((int)(coord[0]*10)+1800)] = 1;
 					}
 				}
 			}
 			if (points.size() != 0)
+			{
 				info.points.push_back(points);
+			}
 		}
+		info.minBound = minBound;
+		info.maxBound = maxBound;
+		info.index = i;
 		mCountryInfos[root[i]["name"].asString()] = info;
 	}
-	
-	/*
-	for (auto country : mCountryInfos)
-	{
-		//cout << country.first << "\n";
-		int i = 0;
-		for (auto points : country.second.points)
-		{
-			//printf("%d\n", i);
-			for (auto point : points)
-			{
-				//printf("%f %f\n", point.x, point.y);
-			}
-			++i;
-		}
-	}
-	*/
+
+
+
 	Engine::mResourceManager->UploadTexture2D(mUploadBufferIdx, data, 3600, 1800, 0, 0);
 	Engine::mResourceManager->CopyUploadToTexture(mUploadBufferIdx, mBorderTextureIdx, 3600, 1800, 1, DXGI_FORMAT_R8_UNORM, 1);
 }
@@ -208,8 +229,10 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 	
 	latitude *= -1.0f;
 	longitude += 269;
-	if (longitude > 360)
+	if (longitude > 180)
+	{
 		longitude -= 360;
+	}
 
 	//geographics coordinate -> uv coordinate
 	float u = (longitude + 180) / 360.0f;
@@ -219,14 +242,12 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 	//printf("u : %f, v : %f\n", u, v);
 	for (auto country : mCountryInfos)
 	{
-		struct Point p = country.second.geo;
-		float dx = longitude - p.x;
-		float dy = latitude - p.y;
-
-		dx = dx * dx;
-		dy = dy * dy;
-
-		if (dx + dy < 50)
+		if(longitude >= country.second.minBound.y &&
+			longitude <= country.second.maxBound.y &&
+			latitude >= country.second.minBound.x &&
+			latitude <= country.second.maxBound.x
+			)
+		
 		{
 			int cnt = 0;
 			for (auto points : country.second.points)
@@ -260,11 +281,14 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 			}
 			if (cnt % 2 == 1)
 			{
-				cout << country.first << "\n";
+				cout << country.first << ":" << country.second.index << "\n";
 				break;
 			}
 		}
 	}
+
+	printf("min : %f %f\n", mCountryInfos["France"].minBound.x, mCountryInfos["France"].minBound.y);
+	printf("max : %f %f\n", mCountryInfos["France"].maxBound.x, mCountryInfos["France"].maxBound.y);
 }
 
 void WorldNode::UpdateCharacter()

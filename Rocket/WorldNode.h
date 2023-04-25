@@ -21,6 +21,9 @@ struct CountryInfo
 {
 	struct Point geo;
 	vector<vector<struct Point>> points;
+	struct Point minBound;
+	struct Point maxBound;
+	int index;
 };
 
 class WorldNode : public MeshNode
@@ -42,6 +45,9 @@ protected:
 	int											mBorderTextureIdx;
 	int											mBorderTextureUavIdx;
 	int											mUploadBufferIdx;
+
+	int											mColorCountryTextureIdx;
+	int											mColorCountryTextureUavIdx;
 
 	char										data[1800][3600] = { 0, };
 
