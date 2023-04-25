@@ -537,6 +537,10 @@ void Engine::CreateShaderAndRootSignature()
 		L"compile PSshader error!");
 	mShaders["earthPS"] = move(blob);
 
+	IfError::Throw(D3DCompileFromFile(L"ColorCountry.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["ColorCountryCS"] = move(blob);
+
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
 
@@ -947,6 +951,45 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 	mRootSignatures["earth"] = move(rs);
+
+
+	D3D12_DESCRIPTOR_RANGE rangeColorCountry[2];
+	rangeColorCountry[0].BaseShaderRegister = 0;
+	rangeColorCountry[0].NumDescriptors = 1;
+	rangeColorCountry[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeColorCountry[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeColorCountry[0].RegisterSpace = 0;
+	rangeColorCountry[1].BaseShaderRegister = 0;
+	rangeColorCountry[1].NumDescriptors = 1;
+	rangeColorCountry[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeColorCountry[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	rangeColorCountry[1].RegisterSpace = 0;
+
+	D3D12_ROOT_PARAMETER rootParameterColorCountry[3];
+	rootParameterColorCountry[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterColorCountry[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterColorCountry[0].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterColorCountry[0].DescriptorTable.pDescriptorRanges = &rangeColorCountry[0];
+	rootParameterColorCountry[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterColorCountry[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterColorCountry[1].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterColorCountry[1].DescriptorTable.pDescriptorRanges = &rangeColorCountry[1];
+	rootParameterColorCountry[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+	rootParameterColorCountry[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterColorCountry[2].Constants.Num32BitValues = 1;
+	rootParameterColorCountry[2].Constants.RegisterSpace = 0;
+	rootParameterColorCountry[2].Constants.ShaderRegister = 0;
+
+	rsDesc.NumParameters = 3;
+	rsDesc.pParameters = rootParameterColorCountry;
+	rsDesc.NumStaticSamplers = 1;
+	rsDesc.pStaticSamplers = &samplerDesc;
+	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
+		L"serialize root signature error!");
+	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
+		L"create root signature error!");
+	mRootSignatures["ColorCountry"] = move(rs);
 }
 
 void Engine::CreatePso()
@@ -1259,6 +1302,18 @@ void Engine::CreatePso()
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create graphics pso error!");
 	mPSOs["earth"] = move(pso);
+
+	D3D12_COMPUTE_PIPELINE_STATE_DESC ColorCountryPsoDesc = {};
+	ColorCountryPsoDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	ColorCountryPsoDesc.CachedPSO.pCachedBlob = nullptr;
+	ColorCountryPsoDesc.CS.BytecodeLength = mShaders["ColorCountryCS"]->GetBufferSize();
+	ColorCountryPsoDesc.CS.pShaderBytecode = mShaders["ColorCountryCS"]->GetBufferPointer();
+	ColorCountryPsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	ColorCountryPsoDesc.NodeMask = 0;
+	ColorCountryPsoDesc.pRootSignature = mRootSignatures["ColorCountry"].Get();
+	IfError::Throw(mDevice->CreateComputePipelineState(&ColorCountryPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create compute pso error!");
+	mPSOs["ColorCountry"] = move(pso);
 }
 
 void Engine::SetViewportAndScissor()

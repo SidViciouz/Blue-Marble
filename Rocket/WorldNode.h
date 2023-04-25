@@ -1,5 +1,7 @@
 #pragma once
 
+#define MAX_NUM_POINT 250
+
 #include "MeshNode.h"
 
 struct MoveInfo
@@ -17,13 +19,23 @@ struct Point
 	float y;
 };
 
-struct CountryInfo
+struct Country
 {
 	struct Point geo;
 	vector<vector<struct Point>> points;
 	struct Point minBound;
 	struct Point maxBound;
 	int index;
+};
+
+
+struct CountryInfo
+{
+	int countryIndex;
+	struct Point minBound;
+	struct Point maxBound;
+	int numOfPoint;
+	struct Point points[MAX_NUM_POINT];
 };
 
 class WorldNode : public MeshNode
@@ -49,8 +61,15 @@ protected:
 	int											mColorCountryTextureIdx;
 	int											mColorCountryTextureUavIdx;
 
+	int											mCountryInfoBufferIdx;
+	int											mCountryInfoBufferSrvIdx;
+	int											mCountryInfoUploadBufferIdx;
+
 	char										data[1800][3600] = { 0, };
 
-	unordered_map<string, CountryInfo>			mCountryInfos;
+	unordered_map<string, Country>				mCountrys;
+
+	CountryInfo									mCountryInfos[10000];
+
 	friend class								WorldInputComponent;
 };

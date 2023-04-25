@@ -25,11 +25,11 @@ WorldNode::WorldNode(string name)
 		Engine::mResourceManager->CalculateAlignment(3600,256)* 1800);
 	
 	mColorCountryTextureIdx = Engine::mResourceManager->CreateTexture2D(3600, 1800,
-		DXGI_FORMAT_R8_SINT, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		DXGI_FORMAT_R16_SINT, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
 	mColorCountryTextureUavIdx = Engine::mDescriptorManager->CreateUav(
-		Engine::mResourceManager->GetResource(mBorderTextureIdx),
-		DXGI_FORMAT_R8_SINT,
+		Engine::mResourceManager->GetResource(mColorCountryTextureIdx),
+		DXGI_FORMAT_R16_SINT,
 		D3D12_UAV_DIMENSION_TEXTURE2D
 	);
 
@@ -38,11 +38,13 @@ WorldNode::WorldNode(string name)
 	config_doc >> root;
 	string str;
 
+	int maxPointSize = 0;
+
 	for (int i = 0; i < root.size(); ++i)
 	{
 		Json::Value field = root[i]["geo_shape"]["geometry"]["coordinates"];
 
-		CountryInfo info;
+		Country info;
 
 		struct Point minBound = { 90,180 };
 		struct Point maxBound = { -90,-180 };
@@ -119,13 +121,87 @@ WorldNode::WorldNode(string name)
 		info.minBound = minBound;
 		info.maxBound = maxBound;
 		info.index = i;
-		mCountryInfos[root[i]["name"].asString()] = info;
+		maxPointSize = max(maxPointSize,info.points.size());
+		mCountrys[root[i]["name"].asString()] = info;
 	}
 
+	printf("max point size : %d\n", maxPointSize);
 
+	int i = 0;
+	for (auto country : mCountrys)
+	{
+		for (auto points : country.second.points)
+		{
+			mCountryInfos[i].countryIndex = country.second.index;
+			mCountryInfos[i].maxBound = country.second.maxBound;
+			mCountryInfos[i].minBound = country.second.minBound;
+			int pointSize = points.size();
+			if (pointSize > MAX_NUM_POINT)
+				mCountryInfos[i].numOfPoint = MAX_NUM_POINT;
+			else
+				mCountryInfos[i].numOfPoint = pointSize;
+
+			for (int k = 0,p = 0; k < pointSize; ++k)
+			{
+				if (k == MAX_NUM_POINT)
+				{
+					++i;
+					++p;
+					mCountryInfos[i].countryIndex = country.second.index;
+					mCountryInfos[i].maxBound = country.second.maxBound;
+					mCountryInfos[i].minBound = country.second.minBound;
+					if (pointSize - MAX_NUM_POINT * p > MAX_NUM_POINT)
+						mCountryInfos[i].numOfPoint = MAX_NUM_POINT;
+					else
+						mCountryInfos[i].numOfPoint = pointSize - MAX_NUM_POINT * p;
+				}
+				
+				mCountryInfos[i].points[k-MAX_NUM_POINT*p] = points[k];
+			}
+			++i;
+		}
+	}
+
+	/*
+	printf("area size : %d\n", i);
+	for (int j = 0; j < i; ++j)
+	{
+		printf("index : %d, num of points : %d\n", mCountryInfos[j].countryIndex, mCountryInfos[j].numOfPoint);
+	}
+	*/
 
 	Engine::mResourceManager->UploadTexture2D(mUploadBufferIdx, data, 3600, 1800, 0, 0);
 	Engine::mResourceManager->CopyUploadToTexture(mUploadBufferIdx, mBorderTextureIdx, 3600, 1800, 1, DXGI_FORMAT_R8_UNORM, 1);
+
+	mCountryInfoUploadBufferIdx = Engine::mResourceManager->CreateUploadBuffer(i * sizeof(CountryInfo));
+	mCountryInfoBufferIdx = Engine::mResourceManager->CreateDefaultBuffer(i * sizeof(CountryInfo));
+	mCountryInfoBufferSrvIdx = Engine::mDescriptorManager->CreateSrv(
+		Engine::mResourceManager->GetResource(mCountryInfoBufferIdx),
+		DXGI_FORMAT_UNKNOWN,
+		D3D12_SRV_DIMENSION_BUFFER,
+		1,
+		i,
+		sizeof(CountryInfo)
+	);
+
+	Engine::mResourceManager->Upload(mCountryInfoUploadBufferIdx, mCountryInfos, i * sizeof(CountryInfo), 0);
+	Engine::mResourceManager->CopyUploadToBuffer(mCountryInfoUploadBufferIdx, mCountryInfoBufferIdx);
+
+	//Draw
+	Engine::mCommandList->SetDescriptorHeaps(1, Engine::mDescriptorManager->GetHeapAddress(DescType::UAV));
+
+	Engine::mCommandList->SetComputeRootSignature(Engine::mRootSignatures["ColorCountry"].Get());
+	Engine::mCommandList->SetPipelineState(Engine::mPSOs["ColorCountry"].Get());
+
+	Engine::mCommandList->SetComputeRootDescriptorTable(0,
+		Engine::mDescriptorManager->GetGpuHandle(mCountryInfoBufferSrvIdx, DescType::SRV));
+
+	Engine::mCommandList->SetComputeRootDescriptorTable(1,
+		Engine::mDescriptorManager->GetGpuHandle(mColorCountryTextureUavIdx, DescType::UAV));
+
+	Engine::mCommandList->SetComputeRoot32BitConstant(2, i, 0);
+
+	Engine::mCommandList->Dispatch(113,57,1);
 }
 
 void WorldNode::Draw()
@@ -240,7 +316,7 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 
 	printf("latitude : %f, longitude : %f\n", latitude, longitude);
 	//printf("u : %f, v : %f\n", u, v);
-	for (auto country : mCountryInfos)
+	for (auto country : mCountrys)
 	{
 		if(longitude >= country.second.minBound.y &&
 			longitude <= country.second.maxBound.y &&
@@ -272,6 +348,11 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 
 					if (xs > xl)
 						swap(xs, xl);
+
+					if (ys > yl)
+						swap(ys, yl);
+
+					// 다음의 조건을 만족하면서 영역 밖에 있는 경우를 조건에 추가해야함.
 					if (longitude >= ys && longitude <= yl && latitude <= xl)
 					{
 						++cnt;
@@ -286,9 +367,6 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 			}
 		}
 	}
-
-	printf("min : %f %f\n", mCountryInfos["France"].minBound.x, mCountryInfos["France"].minBound.y);
-	printf("max : %f %f\n", mCountryInfos["France"].maxBound.x, mCountryInfos["France"].maxBound.y);
 }
 
 void WorldNode::UpdateCharacter()

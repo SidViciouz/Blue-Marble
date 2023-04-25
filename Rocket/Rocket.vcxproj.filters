@@ -311,5 +311,6 @@
     <FxCompile Include="Blur.hlsl" />
     <FxCompile Include="Convolve.hlsl" />
     <FxCompile Include="earth.hlsl" />
+    <FxCompile Include="ColorCountry.hlsl" />
   </ItemGroup>
 </Project>
