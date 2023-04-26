@@ -9,6 +9,7 @@ struct Point
 struct CountryInfo
 {
 	int countryIndex;
+	int areaIndex;
 	Point minBound;
 	Point maxBound;
 	int numOfPoint;
@@ -33,8 +34,10 @@ void swap(inout float a, inout float b)
 [numthreads(32, 32, 1)]
 void CS( uint3 id : SV_DispatchThreadID )
 {
-	float idX = id.x / 10.0f - 180.0f; //경도
-	float idY = id.y / 10.0f - 90.0f; //위도
+	float idX = (float)id.x * 0.1f - 180.0f; //경도
+	float idY = (float)id.y * 0.1f - 90.0f; //위도
+
+	ColorCountry[int2(id.x,1799-id.y)] = -1;
 
 	for (int i = 0; i < countryNum; ++i)
 	{
@@ -45,33 +48,64 @@ void CS( uint3 id : SV_DispatchThreadID )
 		{
 			int cnt = 0;
 
-			for (int j = 0; j < countryInfos[i].numOfPoint; ++j)
+			int end = i + 1;
+			while (countryInfos[end].countryIndex == countryInfos[i].countryIndex &&
+				countryInfos[end].areaIndex == countryInfos[i].areaIndex)
+				++end;
+			for (int index = i; index < end; ++index)
 			{
-				float xs = countryInfos[i].points[j].x;
-				float ys = countryInfos[i].points[j].y;
-				float xl = countryInfos[i + 1].points[j].x;
-				float yl = countryInfos[i + 1].points[j].y;
-
-				if(xs > xl)
-					swap(xs, xl);
-				if (ys > yl)
-					swap(ys, yl);
-
-				//if (longitude >= ys && longitude <= yl && latitude <= xl)
-				// 다음의 조건을 만족하면서 영역 밖에 있는 경우를 조건에 추가해야함.
-				if (idY >= xs && idY < xl && idX <= yl) 
+				for (int j = 0; j < countryInfos[index].numOfPoint; ++j)
 				{
-					++cnt;
+					float xs, ys, xl, yl;
+					//시작점
+					if (j == 0)
+					{
+						if (index == i)
+						{
+							xs = countryInfos[end-1].points[countryInfos[end - 1].numOfPoint - 1].x;
+							ys = countryInfos[end-1].points[countryInfos[end - 1].numOfPoint - 1].y;
+						}
+						else
+						{
+							xs = countryInfos[index-1].points[countryInfos[index-1].numOfPoint-1].x;
+							ys = countryInfos[index-1].points[countryInfos[index-1].numOfPoint-1].y;
+						}
+					}
+					else
+					{
+						xs = countryInfos[index].points[j-1].x;
+						ys = countryInfos[index].points[j-1].y;
+					}
+
+					xl = countryInfos[index].points[j].x;
+					yl = countryInfos[index].points[j].y;
+
+					if (xs > xl)
+					{
+						swap(xs, xl);
+						swap(ys, yl);
+					}
+					//if (longitude >= ys && longitude <= yl && latitude <= xl)
+					// 다음의 조건을 만족하면서 영역 밖에 있는 경우를 조건에 추가해야함.
+					float yMax = max(ys, yl);
+					if (idY > xs && idY <= xl && idX < yMax)
+					{
+						float tilt = (yl - ys) / (xl - xs);
+						float curPointTilt = (idX - ys) / (idY - xs);
+
+						if (tilt > curPointTilt)
+							++cnt;
+					}
 				}
 			}
-			
+
 			if (cnt % 2 == 1)
 			{
-				ColorCountry[id.xy] = countryInfos[i].countryIndex;
+				if(ColorCountry[int2(id.x, 1799 - id.y)] == -1)
+					ColorCountry[int2(id.x, 1799 - id.y)] = countryInfos[i].countryIndex;
 				return;
 			}
+			i = end - 1;
 		}	
 	}
-
-	ColorCountry[id.xy] = -1;
 }

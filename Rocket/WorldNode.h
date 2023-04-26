@@ -32,6 +32,7 @@ struct Country
 struct CountryInfo
 {
 	int countryIndex;
+	int areaIndex;
 	struct Point minBound;
 	struct Point maxBound;
 	int numOfPoint;
@@ -68,8 +69,9 @@ protected:
 	char										data[1800][3600] = { 0, };
 
 	unordered_map<string, Country>				mCountrys;
-
 	CountryInfo									mCountryInfos[10000];
+
+	int											mLatestClicked = -2;
 
 	friend class								WorldInputComponent;
 };

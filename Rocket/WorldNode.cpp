@@ -130,9 +130,12 @@ WorldNode::WorldNode(string name)
 	int i = 0;
 	for (auto country : mCountrys)
 	{
+		int area = 0;
+		int num = 0;
 		for (auto points : country.second.points)
 		{
 			mCountryInfos[i].countryIndex = country.second.index;
+			mCountryInfos[i].areaIndex = area;
 			mCountryInfos[i].maxBound = country.second.maxBound;
 			mCountryInfos[i].minBound = country.second.minBound;
 			int pointSize = points.size();
@@ -143,11 +146,12 @@ WorldNode::WorldNode(string name)
 
 			for (int k = 0,p = 0; k < pointSize; ++k)
 			{
-				if (k == MAX_NUM_POINT)
+				if (k- MAX_NUM_POINT * p == MAX_NUM_POINT)
 				{
 					++i;
 					++p;
 					mCountryInfos[i].countryIndex = country.second.index;
+					mCountryInfos[i].areaIndex = area;
 					mCountryInfos[i].maxBound = country.second.maxBound;
 					mCountryInfos[i].minBound = country.second.minBound;
 					if (pointSize - MAX_NUM_POINT * p > MAX_NUM_POINT)
@@ -159,7 +163,10 @@ WorldNode::WorldNode(string name)
 				mCountryInfos[i].points[k-MAX_NUM_POINT*p] = points[k];
 			}
 			++i;
+			++area;
+			num += points.size();
 		}
+		cout << "country : " << country.first << ", area : " << area << ", points :" << num << "\n";
 	}
 
 	/*
@@ -217,6 +224,7 @@ void WorldNode::Draw()
 		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
 
 	Engine::mCommandList->SetGraphicsRoot32BitConstant(4, 1, 0);
+	Engine::mCommandList->SetGraphicsRoot32BitConstant(4, mLatestClicked, 1);
 
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(
 		Engine::mAllScenes[Engine::mCurrentSceneName]->mShadowMap->GetTextureSrvIdx(), DescType::SRV));
@@ -229,6 +237,9 @@ void WorldNode::Draw()
 
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(6, Engine::mDescriptorManager->GetGpuHandle(
 		mBorderTextureUavIdx, DescType::SRV));
+
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(7, Engine::mDescriptorManager->GetGpuHandle(
+		mColorCountryTextureUavIdx, DescType::SRV));
 
 	Engine::mMeshManager->Draw(mMeshName);
 
@@ -362,6 +373,7 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 			}
 			if (cnt % 2 == 1)
 			{
+				mLatestClicked = country.second.index;
 				cout << country.first << ":" << country.second.index << "\n";
 				break;
 			}

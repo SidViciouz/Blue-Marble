@@ -37,6 +37,7 @@ cbuffer env : register(b1)
 cbuffer constant : register(b2)
 {
 	int lightIdx;
+	int clickedCountry;
 }
 
 texture2D<float> shadowMap : register(t0);
@@ -46,6 +47,8 @@ texture2D<float4> textureMap : register(t1);
 texture2D<float4> heightMap : register(t2);
 
 texture2D<float> borderMap : register(t3);
+
+texture2D<int> ColorCountry : register(t4);
 
 SamplerState textureSampler : register(s0);
 
@@ -199,7 +202,13 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 
 float4 PS(GeoOut pin) : SV_Target
 {
+
+	//float3 diffuse = float3(ColorCountry.Load(int3(pin.tex.x * 3600,pin.tex.y * 1800,0))/300.0f,0,0);
 	float3 diffuse = diffuseAlbedo * textureMap.Sample(textureSampler, pin.tex);
+	if (clickedCountry == ColorCountry.Load(int3(pin.tex.x * 3600,pin.tex.y * 1800,0)))
+	{
+		diffuse = float3(1.0, 0.0, 0.0);
+	}
 	float3 L = { 0.0f,0.0f,1.0f };
 	float rambertTerm = 0.0f;
 	float4 color = float4(diffuse * float3(0.1f, 0.1f, 0.1f), 0.0f);
