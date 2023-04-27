@@ -40,6 +40,12 @@ struct Vertex
 	XMFLOAT3									normal;
 };
 
+struct TB
+{
+	XMFLOAT3									tangent;
+	XMFLOAT3									bitangent;
+};
+
 struct Vector3
 {
 												Vector3()

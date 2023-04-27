@@ -80,7 +80,6 @@ void Engine::Initialize()
 	mMeshManager = make_unique<MeshManager>();
 	mMeshManager->Load("ball", "../Model/ball.obj");
 	mMeshManager->Load("box", "../Model/box.obj");
-	mMeshManager->Load("my", "../Model/my.obj");
 	mMeshManager->Load("inventory", "../Model/inventory.obj");
 	mMeshManager->Load("menu", "../Model/menu.obj");
 

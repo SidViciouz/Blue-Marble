@@ -22,6 +22,33 @@ public:
 	* mesh를 접근할 수 있는 이름이다.
 	*/
 	string										mName;
+	
+	/*
+	* mesh의 감싸는 bounding box를 나타낸다.
+	*/
+	BoundingOrientedBox							mBound;
+
+private:
+	/*
+	* mesh의 정보를 wavefront(.obj)포맷으로부터 로드할 떄 토큰을 분리하는데 사용된다.
+	*/
+	string										getToken(string& aLine, bool isFirst);
+	/*
+	* 토큰의 글자수를 반환한다.
+	*/
+	int											getNumber(string& aWord, bool isFirst);
+	/*
+	* mesh데이터를 파일로부터 로드하고 vertex, index 데이터를 채운다.
+	*/
+	void										LoadFromFile(const char* fileName);
+	/*
+	* vertex와 index 정보들을 이용하여 tangent와 bitangent를 구하고, 이를 저장한다.
+	*/
+	void										CalculateTB();
+	/*
+	* vertex, index, tangent 등에 대한 정보를 버퍼에 업로드한다.
+	*/
+	void										UploadBuffers();
 	/*
 	* mesh의 vertex buffer의 index(handle)이다.
 	*/
@@ -54,18 +81,17 @@ public:
 	* index buffer view를 저장하고 있다.
 	*/
 	D3D12_INDEX_BUFFER_VIEW						mIndexBufferView;
-	/*
-	* mesh의 감싸는 bounding box를 나타낸다.
-	*/
-	BoundingOrientedBox							mBound;
 
-private:
 	/*
-	* mesh의 정보를 wavefront(.obj)포맷으로부터 로드할 떄 토큰을 분리하는데 사용된다.
+	* vertex마다의 tangent와 bitangent를 저장하는 buffer이다.
 	*/
-	string										getToken(string& aLine, bool isFirst);
+	vector<TB>									mTBs;
 	/*
-	* 토큰의 글자수를 반환한다.
+	* tangent와 bitangent buffer의 index(handle)이다.
 	*/
-	int											getNumber(string& aWord, bool isFirst);
+	int											mTBBufferIdx;
+	/*
+	* tangent와 bitangent upload buffer의 index(handle)이다.
+	*/
+	int											mTBUploadBufferIdx;
 };

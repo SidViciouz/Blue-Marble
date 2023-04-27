@@ -173,18 +173,33 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 	0.5f, 0.5f, 0, 1.0f
 	};
 
+	/*
+	float u0 = gin[1].tex.x - gin[0].tex.x;
+	float v0 = gin[1].tex.y - gin[0].tex.y;
+	float u1 = gin[2].tex.x - gin[0].tex.x;
+	float v1 = gin[2].tex.y - gin[0].tex.y;
+	float3 e0 = gin[1].posW - gin[0].posW;
+	float3 e1 = gin[2].posW - gin[0].posW;
+	
+	float coef = 1.0f/(u0 * v1 - v0 * u1);
+	float2x2 M1 = {
+		v1, -v0,
+		-u1, v0
+	};
+	
+	float2x3 M2 = {
+		e0.x, e0.y, e0.z,
+		e1.x, e1.y, e1.z
+	};
+	
+
+	float2x3 TB = coef * mul(M1, M2);
+	float3 T = { TB._11,TB._12,TB._13 };
+	float3 B = { TB._21,TB._22,TB._23 };
+	*/
 	for (int i = 0; i < 3; ++i)
 	{
 		float2 tex = gin[i].tex;
-		/*
-		float2 tex = gin[i].tex * float2(16383, 10799);
-		int2 tex1 = (int2)tex;
-		int2 tex2 = tex1 + int2(1, 0);
-		float t = tex.x - (float)tex1.x;
-		float height1 = heightMap.Load(float3(tex1, 0.0f)).x;
-		float height2 = heightMap.Load(float3(tex2, 0.0f)).x;
-		float height = ((1 - t) * height1 + t * height2)*5.0f;
-		*/
 		float height = (heightMap.Load(float3(tex*float2(16383,10799),0.0f)).x)*5.0f;
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
@@ -205,9 +220,14 @@ float4 PS(GeoOut pin) : SV_Target
 
 	//float3 diffuse = float3(ColorCountry.Load(int3(pin.tex.x * 3600,pin.tex.y * 1800,0))/300.0f,0,0);
 	float3 diffuse = diffuseAlbedo * textureMap.Sample(textureSampler, pin.tex);
-	if (clickedCountry == ColorCountry.Load(int3(pin.tex.x * 3600,pin.tex.y * 1800,0)))
+	int countryColor = ColorCountry.Load(int3(pin.tex.x * 3600, pin.tex.y * 1800, 0));
+	if (clickedCountry == countryColor)
 	{
 		diffuse = float3(1.0, 0.0, 0.0);
+	}
+	else if (countryColor == -1)
+	{
+		diffuse = float3(0, 0, 0.7);
 	}
 	float3 L = { 0.0f,0.0f,1.0f };
 	float rambertTerm = 0.0f;
@@ -215,18 +235,6 @@ float4 PS(GeoOut pin) : SV_Target
 	float3 fresnelTerm;
 	float roughnessTerm;
 
-	/*
-	if (pin.tex.x < 0.05f && pin.tex.y < 0.05f)
-	{
-		color = float4(1.0f, 0.0f, 0.0f, 0.0f);
-		return color;
-	}
-	else if (pin.tex.x > 0.95f && pin.tex.y < 0.05f)
-	{
-		color = float4(0.0f, 1.0f, 0.0f, 0.0f);
-		return color;
-	}
-	*/
 	pin.normal = normalize(pin.normal);
 
 	for (int i = 0; i < 3; ++i)
