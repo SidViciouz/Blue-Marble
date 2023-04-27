@@ -10,6 +10,7 @@ Scene::Scene() :
 
 void Scene::UpdateScene(const Timer& timer)
 {
+	static float time = 0;
 	for (int i = 0; i < mLightNodes.size(); ++i)
 	{
 		envFeature.lights[i] = mLightNodes[i]->GetLight();
@@ -20,8 +21,8 @@ void Scene::UpdateScene(const Timer& timer)
 	envFeature.cameraPosition = mCameraNode->GetAccumulatedPosition().Get();
 	envFeature.cameraFront = mCameraNode->GetFront();
 	envFeature.invViewProjection = mCameraNode->GetInvVIewProjection();
-	envFeature.currentTime = timer.GetTime();
-
+	envFeature.currentTime = time;// timer.GetTime();
+	time += 0.025f;
 	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mEnvConstantBufferIdx, &envFeature, sizeof(env), 0);
 }
 

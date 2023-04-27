@@ -139,7 +139,7 @@ float noise(float3 position)
 	float frequency = 1.0f;
 	int layers = 3;
 
-	position.x += currentTime * 10.0f;
+	position.x += currentTime*10.0f;
 
 	for (int i = 0; i < layers; ++i)
 	{

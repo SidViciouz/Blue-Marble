@@ -19,7 +19,7 @@ cbuffer obj : register(b0)
 	int pad;
 }
 
-cbuffer env : register(b1)
+cbuffer trans : register(b1)
 {
 	float4x4 view;
 	float4x4 projection;
@@ -28,6 +28,7 @@ cbuffer env : register(b1)
 	int pad1;
 	float3 cameraFront;
 	int pad2;
+	float4x4 InvViewProjection;
 	float currentTime;
 	int pad3;
 	int pad4;
@@ -52,7 +53,9 @@ texture2D<int> ColorCountry : register(t4);
 
 texture2D<float4> oceanNormalMap : register(t5);
 
-texture2D<float4> earthNormalMap : register(t6);
+texture2D<float4> ocean2NormalMap : register(t6);
+
+texture2D<float4> earthNormalMap : register(t7);
 
 SamplerState textureSampler : register(s0);
 
@@ -93,9 +96,14 @@ VertexOut VS(VertexIn vin)
 	//uvÁÂÇ¥°è
 	vout.tex = vin.tex;
 
-	vout.tangent = mul(vin.tangent, (float3x3)transpose(world));
+	float3 surface = normalize(vin.pos);
 
-	vout.bitangent = mul(vin.bitangent, (float3x3)transpose(world));
+	float3 up = float3(0.0, 1.0f, 0.0);
+	
+	vout.tangent = normalize(mul(cross(surface, up), (float3x3)transpose(world)));
+
+	vout.bitangent = normalize(mul(cross(vout.tangent, surface), (float3x3)transpose(world)));
+
 
 	return vout;
 }
@@ -200,7 +208,12 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 	for (int i = 0; i < 3; ++i)
 	{
 		float2 tex = gin[i].tex;
-		float height = ((heightMap.Load(float3(tex*float2(5400,2700),0.0f)).x)-0.5f)*10.0f;
+		float height;
+		int countryColor = ColorCountry.Load(int3(tex.x * 3599, tex.y * 1799, 0));
+		if (countryColor == -1)
+			height = 0.0f;
+		else
+			height = ((heightMap.Load(float3(tex*float2(5400,2700),0.0f)).x)-0.5f)*10.0f;
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
 		gout.pos = mul(mul(float4(gout.posW, 1.0f), transpose(view)), transpose(projection));
@@ -219,17 +232,16 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 
 float4 PS(GeoOut pin) : SV_Target
 {
-	float3 center = {world._14,world._24,world._34};
-
-	float3 surface = normalize(pin.posL - center);
-	float3 up = float3(0.0, 1.0f, 0.0);
-	pin.tangent = normalize(cross(surface, up));
-	pin.bitangent = normalize(cross(pin.tangent, surface));
+	pin.normal = normalize(pin.normal);
+	pin.tangent = normalize(pin.tangent);
+	pin.bitangent = normalize(pin.bitangent);
 
 	float3x3 TBN = float3x3(pin.tangent,pin.bitangent, pin.normal);
 
-	float3 diffuse = diffuseAlbedo * textureMap.Sample(textureSampler, pin.tex);
-	int countryColor = ColorCountry.Load(int3(pin.tex.x * 3600, pin.tex.y * 1800, 0));
+	float3 textureColor = textureMap.Sample(textureSampler, pin.tex);
+
+	float3 diffuse = diffuseAlbedo * textureColor;
+	int countryColor = ColorCountry.Load(int3(pin.tex.x * 3599, pin.tex.y * 1799, 0));
 
 	float3 normal;
 	
@@ -241,8 +253,11 @@ float4 PS(GeoOut pin) : SV_Target
 	}
 	else if (countryColor == -1)
 	{
-		diffuse = float3(0, 0, 0.5);
-		normal = oceanNormalMap.Sample(textureSampler,pin.tex).rgb;
+		diffuse = float3(0, 0.75, 0.5) * textureColor;
+		//normal = pin.normal;
+		normal = oceanNormalMap.Sample(textureSampler, pin.tex + float2(0,currentTime*0.005f)).rgb
+			+ ocean2NormalMap.Sample(textureSampler, pin.tex + float2(currentTime * 0.005f,0)).rgb;
+		normal *= 0.5f;
 	}
 
 	normal = mul(normal,TBN);

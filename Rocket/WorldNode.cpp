@@ -245,6 +245,9 @@ void WorldNode::Draw()
 		Engine::mTextureManager->GetTextureIndex("water"), DescType::SRV));
 
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(9, Engine::mDescriptorManager->GetGpuHandle(
+		Engine::mTextureManager->GetTextureIndex("water2"), DescType::SRV));
+
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(10, Engine::mDescriptorManager->GetGpuHandle(
 		Engine::mTextureManager->GetTextureIndex("earth_normal"), DescType::SRV));
 
 	Engine::mMeshManager->Draw(mMeshName);

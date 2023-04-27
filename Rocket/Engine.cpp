@@ -89,9 +89,9 @@ void Engine::Initialize()
 	mTextureManager->Load("backPack", L"../Texture/backpack.dds");
 	mTextureManager->Load("stone", L"../Texture/stone.dds");
 	mTextureManager->Load("sun", L"../Texture/sun.dds");
-	mTextureManager->Load("world", L"../Texture/world.dds");
 	mTextureManager->Load("earth", L"../Texture/earth.dds");
 	mTextureManager->Load("water", L"../Texture/water.dds");
+	mTextureManager->Load("water2", L"../Texture/water2.dds");
 	mTextureManager->Load("earth_normal", L"../Texture/earth_normal.dds");
 	mTextureManager->Load("earth_displacement", L"../Texture/earth_displacement.dds");
 
@@ -889,7 +889,7 @@ void Engine::CreateShaderAndRootSignature()
 	mRootSignatures["Convolve"] = move(rs);
 
 
-	D3D12_DESCRIPTOR_RANGE rangeEarth[7];
+	D3D12_DESCRIPTOR_RANGE rangeEarth[8];
 	rangeEarth[0].BaseShaderRegister = 0;
 	rangeEarth[0].NumDescriptors = 1;
 	rangeEarth[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -925,9 +925,14 @@ void Engine::CreateShaderAndRootSignature()
 	rangeEarth[6].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeEarth[6].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangeEarth[6].RegisterSpace = 0;
+	rangeEarth[7].BaseShaderRegister = 7;
+	rangeEarth[7].NumDescriptors = 1;
+	rangeEarth[7].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeEarth[7].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeEarth[7].RegisterSpace = 0;
 
 
-	D3D12_ROOT_PARAMETER rootParameterEarth[10];
+	D3D12_ROOT_PARAMETER rootParameterEarth[11];
 	rootParameterEarth[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameterEarth[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterEarth[0].Descriptor.RegisterSpace = 0;
@@ -969,8 +974,12 @@ void Engine::CreateShaderAndRootSignature()
 	rootParameterEarth[9].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterEarth[9].DescriptorTable.NumDescriptorRanges = 1;
 	rootParameterEarth[9].DescriptorTable.pDescriptorRanges = &rangeEarth[6];
+	rootParameterEarth[10].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterEarth[10].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[10].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterEarth[10].DescriptorTable.pDescriptorRanges = &rangeEarth[7];
 
-	rsDesc.NumParameters = 10;
+	rsDesc.NumParameters = 11;
 	rsDesc.pParameters = rootParameterEarth;
 	rsDesc.NumStaticSamplers = 1;
 	rsDesc.pStaticSamplers = &samplerDesc;
