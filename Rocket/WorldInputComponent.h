@@ -61,7 +61,6 @@ public:
 			mNode->MoveCharacter(surface);
 			mNode->PickCountry(surface);
 
-			//printf("intersect : %f %f %f\n", surface.x, surface.y, surface.z);
 			return;
 		}
 	}

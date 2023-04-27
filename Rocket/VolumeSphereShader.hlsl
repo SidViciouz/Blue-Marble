@@ -137,15 +137,15 @@ float noise(float3 position)
 	float noiseSum = 0.0f;
 	float amplitude = 1.0f;
 	float frequency = 1.0f;
-	int layers = 7;
+	int layers = 3;
 
 	position.x += currentTime * 10.0f;
 
 	for (int i = 0; i < layers; ++i)
 	{
 		noiseSum += evalDensity(position * frequency) * amplitude;
-		amplitude *= 2.0f;
-		frequency *= 0.5f;
+		amplitude *= 5.0f;
+		frequency *= 0.15f;
 	}
 
 	return noiseSum / (float)layers;

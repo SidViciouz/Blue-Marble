@@ -24,6 +24,8 @@ void Timer::Tick()
 
 	mDeltaTime = (mCurrentTime - mPreviousTime)*mSecondPerCount;
 
+	printf("%f\n", 1.0f / mDeltaTime);
+
 	if (mDeltaTime < 0.0f)
 		mDeltaTime = 0.0f;
 
