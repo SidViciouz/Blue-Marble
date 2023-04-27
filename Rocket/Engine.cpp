@@ -91,6 +91,9 @@ void Engine::Initialize()
 	mTextureManager->Load("sun", L"../Texture/sun.dds");
 	mTextureManager->Load("world", L"../Texture/world.dds");
 	mTextureManager->Load("earth", L"../Texture/earth.dds");
+	mTextureManager->Load("water", L"../Texture/water.dds");
+	mTextureManager->Load("earth_normal", L"../Texture/earth_normal.dds");
+	mTextureManager->Load("earth_displacement", L"../Texture/earth_displacement.dds");
 
 	mTextManager = make_shared<TextManager>();
 
@@ -886,7 +889,7 @@ void Engine::CreateShaderAndRootSignature()
 	mRootSignatures["Convolve"] = move(rs);
 
 
-	D3D12_DESCRIPTOR_RANGE rangeEarth[5];
+	D3D12_DESCRIPTOR_RANGE rangeEarth[7];
 	rangeEarth[0].BaseShaderRegister = 0;
 	rangeEarth[0].NumDescriptors = 1;
 	rangeEarth[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
@@ -912,9 +915,19 @@ void Engine::CreateShaderAndRootSignature()
 	rangeEarth[4].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	rangeEarth[4].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	rangeEarth[4].RegisterSpace = 0;
+	rangeEarth[5].BaseShaderRegister = 5;
+	rangeEarth[5].NumDescriptors = 1;
+	rangeEarth[5].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeEarth[5].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeEarth[5].RegisterSpace = 0;
+	rangeEarth[6].BaseShaderRegister = 6;
+	rangeEarth[6].NumDescriptors = 1;
+	rangeEarth[6].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	rangeEarth[6].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	rangeEarth[6].RegisterSpace = 0;
 
 
-	D3D12_ROOT_PARAMETER rootParameterEarth[8];
+	D3D12_ROOT_PARAMETER rootParameterEarth[10];
 	rootParameterEarth[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameterEarth[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterEarth[0].Descriptor.RegisterSpace = 0;
@@ -948,8 +961,16 @@ void Engine::CreateShaderAndRootSignature()
 	rootParameterEarth[7].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	rootParameterEarth[7].DescriptorTable.NumDescriptorRanges = 1;
 	rootParameterEarth[7].DescriptorTable.pDescriptorRanges = &rangeEarth[4];
+	rootParameterEarth[8].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterEarth[8].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[8].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterEarth[8].DescriptorTable.pDescriptorRanges = &rangeEarth[5];
+	rootParameterEarth[9].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameterEarth[9].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameterEarth[9].DescriptorTable.NumDescriptorRanges = 1;
+	rootParameterEarth[9].DescriptorTable.pDescriptorRanges = &rangeEarth[6];
 
-	rsDesc.NumParameters = 8;
+	rsDesc.NumParameters = 10;
 	rsDesc.pParameters = rootParameterEarth;
 	rsDesc.NumStaticSamplers = 1;
 	rsDesc.pStaticSamplers = &samplerDesc;
@@ -1006,7 +1027,7 @@ void Engine::CreatePso()
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
-	D3D12_INPUT_ELEMENT_DESC inputElements[3];
+	D3D12_INPUT_ELEMENT_DESC inputElements[5];
 	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
 	inputElements[1] = { "TEXTURE", 0, DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
 	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
@@ -1283,7 +1304,9 @@ void Engine::CreatePso()
 	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
 	inputElements[1] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
 	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	psoDesc.InputLayout.NumElements = 3;
+	inputElements[3] = { "TANGENT",0,DXGI_FORMAT_R32G32B32_FLOAT,0,32,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[4] = { "BITANGENT",0,DXGI_FORMAT_R32G32B32_FLOAT,0,44,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 5;
 	psoDesc.InputLayout.pInputElementDescs = inputElements;
 	psoDesc.pRootSignature = mRootSignatures["earth"].Get();
 	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;

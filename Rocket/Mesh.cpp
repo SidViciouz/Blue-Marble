@@ -20,7 +20,14 @@ D3D12_VERTEX_BUFFER_VIEW* Mesh::GetVertexBufferView()
 	mVertexBufferView.StrideInBytes = sizeof(Vertex);
 	mVertexBufferView.SizeInBytes = sizeof(Vertex) * mVertices.size();
 
-	return &mVertexBufferView;
+	mTBBufferView.BufferLocation = Engine::mResourceManager->GetResource(mTBBufferIdx)->GetGPUVirtualAddress();
+	mTBBufferView.StrideInBytes = sizeof(TB);
+	mTBBufferView.SizeInBytes = sizeof(TB) * mTBs.size();
+
+	mBufferViewArray[0] = mVertexBufferView;
+	mBufferViewArray[1] = mTBBufferView;
+
+	return mBufferViewArray;
 }
 
 D3D12_INDEX_BUFFER_VIEW* Mesh::GetIndexBufferView()
@@ -34,7 +41,7 @@ D3D12_INDEX_BUFFER_VIEW* Mesh::GetIndexBufferView()
 
 void Mesh::Draw()
 {
-	Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
+	Engine::mCommandList->IASetVertexBuffers(0, 2, GetVertexBufferView());
 	Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());
 	Engine::mCommandList->DrawIndexedInstanced(mIndices.size() , 1, 0, 0, 0);
 }
@@ -182,6 +189,7 @@ void Mesh::LoadFromFile(const char* fileName)
 void Mesh::CalculateTB()
 {
 	mTBs = vector<TB>(mVertices.size(), { {0,0,0},{0,0,0} });
+	vector<int> averageCoef(mVertices.size(), 0);
 
 	for (int i=0; i< mIndices.size(); i += 3)
 	{
@@ -205,7 +213,7 @@ void Mesh::CalculateTB()
 		XMStoreFloat3(&e0, xme0);
 		XMStoreFloat3(&e1, xme1);
 
-		//float coef = 1.0f / (u0 * v1 - v0 * u1);
+		float coef = 1.0f / ((u0 * v1) - (v0 * u1));
 		float M1[2][2] = {
 		v1, -v0,
 		-u1, u0
@@ -226,17 +234,31 @@ void Mesh::CalculateTB()
 			M1[1][0] * M2[0][1] + M1[1][1] * M2[1][1],
 			M1[1][0] * M2[0][2] + M1[1][1] * M2[1][2],
 		};
-		XMFLOAT3 T = { TB[0][0],TB[0][1],TB[0][2] };
-		XMFLOAT3 B = { TB[1][0],TB[1][1],TB[1][2] };
-		
+		XMFLOAT3 T = { coef* TB[0][0], coef*TB[0][1], coef*TB[0][2] };
+		XMFLOAT3 B = { coef* TB[1][0], coef*TB[1][1], coef*TB[1][2] };
+		/*
 		XMVECTOR xmtangent = XMLoadFloat3(&T);
 		XMStoreFloat3(&T, XMVector3Normalize(xmtangent));
 
 		XMVECTOR xmbitangent = XMLoadFloat3(&B);
 		XMStoreFloat3(&B, XMVector3Normalize(xmbitangent));
-		
+		*/
 		for (int j = 0; j < 3; ++j)
 		{
+			averageCoef[a[j]]++;
+
+			XMVECTOR xmnormal = XMLoadFloat3(&mVertices[a[j]].normal);
+
+			XMVECTOR xmtangent = XMLoadFloat3(&T);
+			xmtangent = xmtangent - XMVector3Dot(xmtangent, xmnormal) * xmnormal;
+
+			XMVECTOR xmbitangent = XMLoadFloat3(&B);
+			xmbitangent = xmbitangent - XMVector3Dot(xmbitangent, xmnormal) * xmnormal
+				- XMVector3Dot(xmbitangent, xmtangent) * xmtangent;
+
+			XMStoreFloat3(&T, xmtangent);
+			XMStoreFloat3(&B, xmbitangent);
+
 			mTBs[a[j]].tangent.x += T.x;
 			mTBs[a[j]].tangent.y += T.y;
 			mTBs[a[j]].tangent.z += T.z;
@@ -258,12 +280,18 @@ void Mesh::CalculateTB()
 
 	for (auto index : mIndices)
 	{
-		//그램 슈미트로 정규직교화해야한다.
+		XMVECTOR xmnormal = XMLoadFloat3(&mVertices[index].normal);
+
 		XMVECTOR xmtangent = XMLoadFloat3(&mTBs[index].tangent);
-		XMStoreFloat3(&mTBs[index].tangent,XMVector3Normalize(xmtangent));
+		xmtangent /= averageCoef[index];
+		xmtangent = xmtangent - XMVector3Dot(xmtangent, xmnormal) * xmnormal;
+		XMStoreFloat3(&mTBs[index].tangent,xmtangent);
 
 		XMVECTOR xmbitangent = XMLoadFloat3(&mTBs[index].bitangent);
-		XMStoreFloat3(&mTBs[index].bitangent, XMVector3Normalize(xmbitangent));
+		xmbitangent /= averageCoef[index];
+		xmbitangent = xmbitangent - XMVector3Dot(xmbitangent, xmnormal) * xmnormal
+			- XMVector3Dot(xmbitangent, xmtangent) * xmtangent;
+		XMStoreFloat3(&mTBs[index].bitangent, xmbitangent);
 		
 		printf("%f %f %f, %f %f %f\n",
 			mTBs[index].tangent.x,

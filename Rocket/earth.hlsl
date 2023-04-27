@@ -50,6 +50,10 @@ texture2D<float> borderMap : register(t3);
 
 texture2D<int> ColorCountry : register(t4);
 
+texture2D<float4> oceanNormalMap : register(t5);
+
+texture2D<float4> earthNormalMap : register(t6);
+
 SamplerState textureSampler : register(s0);
 
 struct PatchTess
@@ -63,6 +67,8 @@ struct VertexOut
 	float2 tex : TEXTURE;
 	float3 normal : NORMAL;
 	float3 posL : POSITIONL;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
 };
 
 struct VertexIn
@@ -70,6 +76,8 @@ struct VertexIn
 	float3 pos : POSITION;
 	float2 tex : TEXTURE;
 	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
 };
 
 VertexOut VS(VertexIn vin)
@@ -85,6 +93,10 @@ VertexOut VS(VertexIn vin)
 	//uv좌표계
 	vout.tex = vin.tex;
 
+	vout.tangent = mul(vin.tangent, (float3x3)transpose(world));
+
+	vout.bitangent = mul(vin.bitangent, (float3x3)transpose(world));
+
 	return vout;
 }
 
@@ -92,10 +104,10 @@ PatchTess ConstantHS(InputPatch<VertexOut, 3> patch, uint id : SV_PrimitiveID)
 {
 	PatchTess pt;
 
-	pt.edgeTess[0] = 100;
-	pt.edgeTess[1] = 100;
-	pt.edgeTess[2] = 100;
-	pt.insideTess = 100;
+	pt.edgeTess[0] = 10;
+	pt.edgeTess[1] = 10;
+	pt.edgeTess[2] = 10;
+	pt.insideTess = 10;
 
 	return pt;
 }
@@ -105,6 +117,8 @@ struct HullOut
 	float2 tex : TEXTURE;
 	float3 normal : NORMAL;
 	float3 posL : POSITIONL;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
 };
 
 
@@ -120,6 +134,8 @@ HullOut HS(InputPatch<VertexOut, 3> patch, uint i : SV_OutputControlPointID, uin
 	hout.tex = patch[i].tex;
 	hout.normal = patch[i].normal;
 	hout.posL = patch[i].posL;
+	hout.tangent = patch[i].tangent;
+	hout.bitangent = patch[i].bitangent;
 
 	return hout;
 }
@@ -131,6 +147,8 @@ struct DomainOut
 	float3 normal : NORMAL;
 	float3 posL : POSITIONL;
 	float3 posW : POSITION;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
 };
 
 [domain("tri")]
@@ -146,6 +164,10 @@ DomainOut DS(PatchTess patchTess, float3 uv : SV_DomainLocation, const OutputPat
 
 	dout.posW = mul(float4(dout.posL, 1.0f), transpose(world));
 
+	dout.tangent = normalize(uv.x * tri[0].tangent + uv.y * tri[1].tangent + uv.z * tri[2].tangent);
+
+	dout.bitangent = normalize(uv.x * tri[0].bitangent + uv.y * tri[1].bitangent + uv.z * tri[2].bitangent);
+
 	return dout;
 }
 
@@ -159,6 +181,8 @@ struct GeoOut
 	uint id : SV_PrimitiveID;
 	float4 lightTex : LIGHTTEX;
 	float2 tex : TEXTURE;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
 };
 
 [maxvertexcount(3)]
@@ -173,34 +197,10 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 	0.5f, 0.5f, 0, 1.0f
 	};
 
-	/*
-	float u0 = gin[1].tex.x - gin[0].tex.x;
-	float v0 = gin[1].tex.y - gin[0].tex.y;
-	float u1 = gin[2].tex.x - gin[0].tex.x;
-	float v1 = gin[2].tex.y - gin[0].tex.y;
-	float3 e0 = gin[1].posW - gin[0].posW;
-	float3 e1 = gin[2].posW - gin[0].posW;
-	
-	float coef = 1.0f/(u0 * v1 - v0 * u1);
-	float2x2 M1 = {
-		v1, -v0,
-		-u1, v0
-	};
-	
-	float2x3 M2 = {
-		e0.x, e0.y, e0.z,
-		e1.x, e1.y, e1.z
-	};
-	
-
-	float2x3 TB = coef * mul(M1, M2);
-	float3 T = { TB._11,TB._12,TB._13 };
-	float3 B = { TB._21,TB._22,TB._23 };
-	*/
 	for (int i = 0; i < 3; ++i)
 	{
 		float2 tex = gin[i].tex;
-		float height = (heightMap.Load(float3(tex*float2(16383,10799),0.0f)).x)*5.0f;
+		float height = ((heightMap.Load(float3(tex*float2(5400,2700),0.0f)).x)-0.5f)*10.0f;
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
 		gout.pos = mul(mul(float4(gout.posW, 1.0f), transpose(view)), transpose(projection));
@@ -210,6 +210,8 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 			transpose(lights[lightIdx].lightProjection));
 		gout.lightTex = mul(gout.lightTex, toTexCoord);
 		gout.tex = gin[i].tex;
+		gout.tangent = normalize(gin[i].tangent);
+		gout.bitangent = normalize(gin[i].bitangent);
 
 		triStream.Append(gout);
 	}
@@ -217,25 +219,39 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 
 float4 PS(GeoOut pin) : SV_Target
 {
+	float3 center = {world._14,world._24,world._34};
 
-	//float3 diffuse = float3(ColorCountry.Load(int3(pin.tex.x * 3600,pin.tex.y * 1800,0))/300.0f,0,0);
+	float3 surface = normalize(pin.posL - center);
+	float3 up = float3(0.0, 1.0f, 0.0);
+	pin.tangent = normalize(cross(surface, up));
+	pin.bitangent = normalize(cross(pin.tangent, surface));
+
+	float3x3 TBN = float3x3(pin.tangent,pin.bitangent, pin.normal);
+
 	float3 diffuse = diffuseAlbedo * textureMap.Sample(textureSampler, pin.tex);
 	int countryColor = ColorCountry.Load(int3(pin.tex.x * 3600, pin.tex.y * 1800, 0));
+
+	float3 normal;
+	
+	normal = earthNormalMap.Sample(textureSampler, pin.tex).rgb;
+
 	if (clickedCountry == countryColor)
 	{
 		diffuse = float3(1.0, 0.0, 0.0);
 	}
 	else if (countryColor == -1)
 	{
-		diffuse = float3(0, 0, 0.7);
+		diffuse = float3(0, 0, 0.5);
+		normal = oceanNormalMap.Sample(textureSampler,pin.tex).rgb;
 	}
+
+	normal = mul(normal,TBN);
+
 	float3 L = { 0.0f,0.0f,1.0f };
 	float rambertTerm = 0.0f;
 	float4 color = float4(diffuse * float3(0.1f, 0.1f, 0.1f), 0.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
-
-	pin.normal = normalize(pin.normal);
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -258,16 +274,16 @@ float4 PS(GeoOut pin) : SV_Target
 		}
 
 		//빛의 입사각에 따라 단위면적당 들어오는 빛의 양이 달라짐을 표현
-		rambertTerm = max(dot(L, pin.normal), 0.0f);
+		rambertTerm = max(dot(L, normal), 0.0f);
 
 		//빛의 입사각에 따라 반사되는 빛의 양이 달라지는 것을 표현(반영 조명에서 사용)
-		float cosTerm = 1.0f - saturate(dot(pin.normal, L));
+		float cosTerm = 1.0f - saturate(dot(normal, L));
 		fresnelTerm = fresnel + (1.0f - fresnel) * (cosTerm * cosTerm * cosTerm * cosTerm * cosTerm);
 
 		//표면 거칠기를 표현(반영 조명에서 사용)
 		float3 halfway = normalize(normalize(cameraPosition - pin.posW) + L);
 		float m = (1.0f - roughness) * 32.0f;
-		roughnessTerm = (m + 8.0f) * pow(max(dot(halfway, pin.normal), 0.0f), m) / 8.0f;
+		roughnessTerm = (m + 8.0f) * pow(max(dot(halfway, normal), 0.0f), m) / 8.0f;
 
 		color += float4(rambertTerm * lights[i].color * (diffuse + fresnelTerm * roughnessTerm), 0.0f);
 	}

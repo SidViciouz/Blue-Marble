@@ -233,13 +233,19 @@ void WorldNode::Draw()
 		Engine::mTextureManager->GetTextureIndex(mTextureName), DescType::SRV));
 
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(5, Engine::mDescriptorManager->GetGpuHandle(
-		Engine::mTextureManager->GetTextureIndex("world"), DescType::SRV));
+		Engine::mTextureManager->GetTextureIndex("earth_displacement"), DescType::SRV));
 
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(6, Engine::mDescriptorManager->GetGpuHandle(
 		mBorderTextureUavIdx, DescType::SRV));
 
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(7, Engine::mDescriptorManager->GetGpuHandle(
 		mColorCountryTextureUavIdx, DescType::SRV));
+
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(8, Engine::mDescriptorManager->GetGpuHandle(
+		Engine::mTextureManager->GetTextureIndex("water"), DescType::SRV));
+
+	Engine::mCommandList->SetGraphicsRootDescriptorTable(9, Engine::mDescriptorManager->GetGpuHandle(
+		Engine::mTextureManager->GetTextureIndex("earth_normal"), DescType::SRV));
 
 	Engine::mMeshManager->Draw(mMeshName);
 

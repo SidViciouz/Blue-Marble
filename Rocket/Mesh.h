@@ -81,7 +81,14 @@ private:
 	* index buffer view를 저장하고 있다.
 	*/
 	D3D12_INDEX_BUFFER_VIEW						mIndexBufferView;
-
+	/*
+	* tangent, bitangent buffer view를 저장하고 있다.
+	*/
+	D3D12_VERTEX_BUFFER_VIEW					mTBBufferView;
+	/*
+	* vertex buffer view, tb buffer view의 배열을 저장하고 있다.
+	*/
+	D3D12_VERTEX_BUFFER_VIEW					mBufferViewArray[2];
 	/*
 	* vertex마다의 tangent와 bitangent를 저장하는 buffer이다.
 	*/
