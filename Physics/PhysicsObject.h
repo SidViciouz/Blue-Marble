@@ -9,13 +9,17 @@ using namespace std;
 
 namespace Physics
 {
-	class PhyscisObject
+	class PhysicsObject
 	{
 	public:
-												PhyscisObject();
-												~PhyscisObject() {}
+												PhysicsObject();
+												~PhysicsObject() {}
 
 		void									SetCollider(shared_ptr<Collider> collider);
+		shared_ptr<Collider>					GetCollider() const;
+
+		Transform&								GetTransform();
+
 	protected:
 		Transform								mTransform;
 

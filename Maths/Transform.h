@@ -11,6 +11,8 @@ namespace Maths
 												Transform();
 												~Transform() {}
 
+		Vector3									GetPosition() const;
+
 	protected:
 		Vector3									position;
 		Quaternion								quaternion;

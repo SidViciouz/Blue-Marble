@@ -100,16 +100,13 @@ namespace Maths
 		}
 		float										length() const
 		{
-			return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+			return sqrt((v.x * v.x )+ (v.y * v.y) + (v.z * v.z));
 		}
 		Vector3										normalize()
 		{
 			Vector3 result;
 
-			if (Zero())
-				return result;
-
-			XMStoreFloat3(&result.v, XMLoadFloat3(&v) / length());
+			XMStoreFloat3(&result.v, XMVector3Normalize(XMLoadFloat3(&v)));
 
 			return result;
 		}
@@ -127,6 +124,28 @@ namespace Maths
 			else
 				return false;
 		}
+		static float								Dot(const Vector3& a, const Vector3& b)
+		{
+			float result;
+
+			result = XMVectorGetX(XMVector3Dot(XMLoadFloat3(&a.v), XMLoadFloat3(&b.v)));
+
+			return result;
+		}
+		static Vector3								Cross(const Vector3& a, const Vector3& b)
+		{
+			Vector3 result;
+
+			XMStoreFloat3(&result.v, XMVector3Cross(XMLoadFloat3(&a.v), XMLoadFloat3(&b.v)));
+
+			return result;
+		}
+		inline void operator-=(const Vector3& a) {
+			v.x -= a.v.x;
+			v.y -= a.v.y;
+			v.z -= a.v.z;
+		}
+
 		XMFLOAT3									v;
 	};
 
