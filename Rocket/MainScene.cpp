@@ -17,16 +17,16 @@ MainScene::MainScene()
 void MainScene::Initialize()
 {
 	boxMesh = make_shared<MeshNode>("box");
-	boxMesh->SetTextureName("stone");
-	boxMesh->SetRelativePosition(4.5f, 5.0f, 1.0f);
+	boxMesh->SetTextureName("dice");
+	boxMesh->SetRelativePosition(9.5f, 5.0f, 1.0f);
 	boxMesh->SetRelativeQuaternion(0.0f, sinf(2.0f), 0.0f, cosf(2.0f));
 	boxMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(boxMesh, 2.0f, 2.0f, 2.0f);
 	boxMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(boxMesh, 1.0f);
 	boxMesh->mRigidBodyComponent->mVelocity.v.x = -3.0f;
 
 	ballMesh = make_shared<MeshNode>("ball");
-	ballMesh->SetTextureName("stone");
-	ballMesh->SetRelativePosition(0.0f, 6.0f, 0.0f);
+	ballMesh->SetTextureName("dice");
+	ballMesh->SetRelativePosition(5.0f, 6.0f, 0.0f);
 	ballMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
 	ballMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(ballMesh, 2.0f, 2.0f, 2.0f);
 	ballMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(ballMesh, 1.0f);
@@ -34,14 +34,12 @@ void MainScene::Initialize()
 
 	groundMesh = make_shared<MeshNode>("box");
 	groundMesh->SetTextureName("stone");
-	groundMesh->SetRelativePosition(0.0f, -5.0f, 0.0f);
+	groundMesh->SetRelativePosition(5.0f, -5.0f, 0.0f);
 	groundMesh->SetScale(10.0f, 1.0f, 10.0f);
 	groundMesh->mCollisionComponent = make_shared<BoxCollisionComponent>(groundMesh, 20.0f, 2.0f, 20.0f);
-	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 1.0f);
+	groundMesh->mRigidBodyComponent = make_shared<RigidBodyComponent>(groundMesh, 100.0f);
 
-	//shared_ptr<VolumeNode> cloudVolume = make_shared<VolumeNode>(50.0f, 5.0f, 50.0f);
-	//cloudVolume->SetRelativePosition(9.0f, 50.0f, 0.0f);
-	
+
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
 	//camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera,"MainScene");
 	camera->mCollisionComponent = make_shared<BoxCollisionComponent>(camera, 5.0f, 5.0f, 5.0f);
@@ -97,7 +95,6 @@ void MainScene::Initialize()
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(ballMesh);
 	mSceneRoot->AddChild(groundMesh);
-	//mSceneRoot->AddChild(cloudVolume);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);
 	mSceneRoot->AddChild(light2);
@@ -115,8 +112,8 @@ void MainScene::UpdateScene(const Timer& timer)
 
 	mSceneRoot->Update();
 
-	ballMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f * 1.0f, 0.0f), Vector3());
-	boxMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f * 1.0f, 0.0f), Vector3());
+	ballMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f * 1.0f, 0.0f), Vector3(0,0,0));
+	boxMesh->mRigidBodyComponent->AddForce(Vector3(0.0f, -9.8f * 1.0f, 0.0f), Vector3(0,0,0));
 
 	CollisionInfo collisionInfo;
 	if (ballMesh->IsColliding(boxMesh.get(), collisionInfo))
@@ -129,18 +126,16 @@ void MainScene::UpdateScene(const Timer& timer)
 		boxMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
 		boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, ballMesh->mRigidBodyComponent);
 	}
-	
 	if (boxMesh->IsColliding(groundMesh.get(), collisionInfo))
 	{
-		boxMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
+		boxMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -1.0f).v);
 		boxMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
 	}
 	if (ballMesh->IsColliding(groundMesh.get(), collisionInfo))
 	{
-		ballMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -0.5f).v);
+		ballMesh->AddRelativePosition((collisionInfo.normal * collisionInfo.penetration * -1.0f).v);
 		ballMesh->mRigidBodyComponent->AddImpulse(collisionInfo, groundMesh->mRigidBodyComponent);
 	}
-
 	if (mCameraNode->IsColliding(ballMesh.get(), collisionInfo))
 	{
 		inventory->OverlappedNode(ballMesh);
@@ -150,7 +145,6 @@ void MainScene::UpdateScene(const Timer& timer)
 	{
 		inventory->OverlappedNode(boxMesh);
 	}
-
 	if (worldMesh->IsColliding(mCameraNode.get(), collisionInfo))
 	{
 		printf("world mesh collide with camera!\n");

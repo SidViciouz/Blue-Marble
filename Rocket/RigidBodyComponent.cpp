@@ -1,23 +1,39 @@
 #include "RigidBodyComponent.h"
 #include "SceneNode.h"
 #include "BoxCollisionComponent.h"
+#include "SphereCollisionComponent.h"
 #include "MeshNode.h"
 
 RigidBodyComponent::RigidBodyComponent(shared_ptr<SceneNode> NodeAttachedTo,float mass)
 	: mNodeAttachedTo{ NodeAttachedTo }, mMass{ mass }
 {
 	BoxCollisionComponent* box = dynamic_cast<BoxCollisionComponent*>(mNodeAttachedTo->mCollisionComponent.get());
-	
-	float w = box->mWidth;
-	float h = box->mHeight;
-	float d = box->mDepth;
+	SphereCollisionComponent* sphere = dynamic_cast<SphereCollisionComponent*>(mNodeAttachedTo->mCollisionComponent.get());
 
-	mInertiaTensor = 
+	if (box != nullptr)
 	{
-		mMass*(h*h + d*d)/12.0f, 0, 0,
-		0, mMass*(w*w + d*d)/12.0f,0,
-		0,0,mMass*(w*w+h*h)/12.0f
-	};
+		float w = box->mWidth;
+		float h = box->mHeight;
+		float d = box->mDepth;
+
+		mInertiaTensor = 
+		{
+			mMass*(h*h + d*d)/12.0f, 0, 0,
+			0, mMass*(w*w + d*d)/12.0f,0,
+			0,0,mMass*(w*w+h*h)/12.0f
+		};
+	}
+	else if (sphere != nullptr)
+	{
+		float val = mMass * sphere->mRadius * sphere->mRadius * 0.4f;
+
+		mInertiaTensor =
+		{
+		val, 0, 0,
+		0, val, 0,
+		0, 0, val
+		};
+	}
 
 	XMMATRIX inertiaM = XMLoadFloat3x3(&mInertiaTensor);
 	XMVECTOR det = XMMatrixDeterminant(inertiaM);
@@ -40,11 +56,10 @@ void RigidBodyComponent::Update(float deltaTime)
 	// update linear properties
 	mPosition.v = mNodeAttachedTo->GetRelativePosition().Get();
 
-	Vector3 deltaVel = mForce * (deltaTime / mMass);
+	Vector3 deltaVel = (mForce * deltaTime) / mMass;
 
 	mVelocity = mVelocity + deltaVel;
-
-	mPosition = mPosition + (mVelocity * deltaTime);
+	//mPosition = mPosition + (mVelocity * deltaTime);
 
 	// update angular properties
 	mRotation = mNodeAttachedTo->GetRelativeQuaternion();
@@ -64,7 +79,7 @@ void RigidBodyComponent::Update(float deltaTime)
 	Vector3 vec = mAngularVel.normalize() * sinf(deltaAngle);
 	Quaternion deltaQuat( vec.v.x, vec.v.y, vec.v.z, cosf(deltaAngle));
 
-	mRotation.Mul(deltaQuat);
+	//mRotation.Mul(deltaQuat);
 
 	mForce = Vector3();
 	mTorque = Vector3();
@@ -100,9 +115,10 @@ void RigidBodyComponent::AddImpulse(CollisionInfo& collisionInfo, shared_ptr<Rig
 	float impulse =  (1 + e)*(vr*n)/denominator;
 
 	mVelocity = (-n * (vr*n) * e) / (invM1 + invM2) * invM1;
+	mVelocity = mVelocity * 0.8f;
 	//mVelocity = -n * (vr*n) * e;
 	//mVelocity = -mVelocity*e;
 	//mVelocity = mVelocity + (n * impulse) * invM1;
-	mAngularVel = mAngularVel + ((n * impulse)^r1) * I1;
-	mAngularVel = mAngularVel * e;
+	mAngularVel = mAngularVel + (r1^(n * impulse)) * I1;
+	mAngularVel = mAngularVel * 0.8f;
 }

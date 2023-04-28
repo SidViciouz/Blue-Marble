@@ -45,7 +45,7 @@ cbuffer env : register(b1)
 	int pad2;
 }
 
-texture2D textureMap : register(t0);
+texture2D<float4> textureMap : register(t0);
 
 SamplerState textureSampler : register(s0);
 
@@ -146,10 +146,10 @@ float4 PS(VertexOut pin) : SV_Target
 {
 	float3 L = {0.0f,0.0f,1.0f};
 	float rambertTerm = 0.0f;
-	float4 color = float4(diffuseAlbedo * float3(0.1f, 0.1f, 0.1f), 1.0f);
+	float4 color = float4(diffuseAlbedo *float3(0.1f,0.1f,0.1f), 1.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
-	/*
+	
 	pin.normal = normalize(pin.normal);
 
 	for (int i = 0; i < 3; ++i)
@@ -188,8 +188,8 @@ float4 PS(VertexOut pin) : SV_Target
 
 		color += float4(rambertTerm * lights[i].color * (diffuse + fresnelTerm*roughnessTerm), 1.0f);
 	}
-	*/
-	color = textureMap.Sample(textureSampler, pin.tex);
+	
+	//color.xyz = textureMap.Sample(textureSampler, pin.tex).xyz;
 
 	return color;
 }

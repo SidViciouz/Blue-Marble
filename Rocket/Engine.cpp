@@ -94,6 +94,8 @@ void Engine::Initialize()
 	mTextureManager->Load("water2", L"../Texture/water2.dds");
 	mTextureManager->Load("earth_normal", L"../Texture/earth_normal.dds");
 	mTextureManager->Load("earth_displacement", L"../Texture/earth_displacement.dds");
+	mTextureManager->Load("dice", L"../Texture/dice.dds");
+
 
 	mTextManager = make_shared<TextManager>();
 
@@ -1077,11 +1079,12 @@ void Engine::CreatePso()
 	for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
 		psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
 
+	/*
 	psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
 	psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 	psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
 	psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-
+	*/
 	psoDesc.DepthStencilState.DepthEnable = TRUE;
 	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
@@ -1151,8 +1154,9 @@ void Engine::CreatePso()
 	psoDesc.PS.BytecodeLength = mShaders["ColliderShapePS"]->GetBufferSize();
 	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.BlendState.RenderTarget[0].BlendEnable = false;
 	psoDesc.RasterizerState.DepthClipEnable = false;
-	psoDesc.DepthStencilState.DepthEnable = false;
+	psoDesc.DepthStencilState.DepthEnable = true;
 	psoDesc.DepthStencilState.StencilEnable = false;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
 	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;

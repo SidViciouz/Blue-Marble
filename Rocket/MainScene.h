@@ -6,6 +6,7 @@
 #include "ItemNode.h"
 #include "WorldNode.h"
 
+
 /*
 * 게임의 메인 scene이다.
 */
@@ -33,4 +34,5 @@ public:
 	shared_ptr<MeshNode>						groundMesh;
 	shared_ptr<InventoryNode>					inventory;
 	shared_ptr<WorldNode>						worldMesh;
+
 };
