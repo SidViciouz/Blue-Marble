@@ -1,6 +1,7 @@
 #pragma once
 
 #include "InputComponent.h"
+#include "InventoryNode.h"
 
 class UIInputComponent : public InputComponent<UIInputComponent>
 {

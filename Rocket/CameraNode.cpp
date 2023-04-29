@@ -146,7 +146,8 @@ void CameraNode::UpdateViewMatrix()
 	XMVECTOR right = XMLoadFloat3(&mRight);
 	XMVECTOR up = XMLoadFloat3(&mUp);
 	XMVECTOR front = XMVector3Normalize(XMLoadFloat3(&mFront));
-	XMVECTOR position = XMLoadFloat3(&GetRelativePosition().Get());
+	XMFLOAT3 pos = GetRelativePosition().v;
+	XMVECTOR position = XMLoadFloat3(&pos);
 
 	up = XMVector3Normalize(XMVector3Cross(front, right));
 	right = XMVector3Cross(up, front);

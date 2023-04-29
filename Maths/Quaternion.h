@@ -28,7 +28,7 @@ namespace Maths
 		void										operator*=(const Quaternion& quaternion);
 		void										Mul(const float& x, const float& y, const float& z, const float& w);
 
-		Quaternion									operator+(const Quaternion& other);
+		Quaternion									operator+(const Quaternion& other) const;
 
 		void										Normalize();
 

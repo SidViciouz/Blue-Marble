@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Util.h"
-#include "Math/Position.h"
-#include "Math/Quaternion.h"
 #include "Constant.h"
-#include "CollisionComponent.h"
-#include "RigidBodyComponent.h"
 #include "InputComponentBase.h"
+#include "../Maths/Quaternion.h"
+
+using namespace Maths;
 
 class SceneNode
 {
@@ -24,10 +22,6 @@ public:
 	* 프레임마다 데이터를 업데이트한다.
 	*/
 	virtual void								Update();
-	/*
-	* 이 노드의 collisionComponent가 상대 노드의 collisionComponent와 충돌하는지의 여부와 충돌정보를 반환한다.
-	*/
-	virtual bool								IsColliding(SceneNode* counterPart, CollisionInfo& collisionInfo);
 	/*
 	* 이 노드에 자식 노드를 추가한다.
 	*/
@@ -68,11 +62,6 @@ public:
 	void										MulRelativeQuaternion(const XMFLOAT4& quaternion);
 	void										MulRelativeQuaternion(const float& x, const float& y, const float& z, const float& w);
 
-	void										AddAccumulatedPosition(const XMFLOAT3& position);
-	void										AddAccumulatedPosition(const float& x, const float& y, const float& z);
-	void										MulAccumulatedQuaternion(const Quaternion& quaternion);
-	void										MulAccumulatedQuaternion(const XMFLOAT4& quaternion);
-	void										MulAccumulatedQuaternion(const float& x, const float& y, const float& z, const float& w);
 	/*
 	* 상대적인 위치에 d*position을 더한다.
 	*/
@@ -80,7 +69,7 @@ public:
 	/*
 	* 상대적인 위치를 반환한다.
 	*/
-	Position									GetRelativePosition();
+	Vector3										GetRelativePosition();
 	/*
 	* 상대적인 quaternion을 반환한다.
 	*/
@@ -92,19 +81,11 @@ public:
 	/*
 	* global position을 반환한다.
 	*/
-	Position									GetAccumulatedPosition();
+	Vector3										GetAccumulatedPosition();
 	/*
 	* global quaternion을 반환한다.
 	*/
 	Quaternion									GetAccumulatedQuaternion();
-	/*
-	* 이 노드에 연결한 collision component를 가리킨다.
-	*/
-	shared_ptr<CollisionComponent>				mCollisionComponent;
-	/*
-	* 이 노드에 연결한 rigid body component를 가리킨다.
-	*/
-	shared_ptr<RigidBodyComponent>				mRigidBodyComponent;
 	/*
 	* 이 노드에 연결한 input component를 가리킨다.
 	*/
@@ -134,7 +115,7 @@ protected:
 	/*
 	* 부모 노드와의 상대적인 position이다.
 	*/
-	Position									mRelativePosition;
+	Vector3										mRelativePosition;
 	/*
 	* 부모 노드와의 상대적인 quaternion이다.
 	*/
@@ -146,7 +127,7 @@ protected:
 	/*
 	* global position을 나타낸다.
 	*/
-	Position									mAccumulatedPosition;
+	Vector3										mAccumulatedPosition;
 	/*
 	* global quaternion을 나타낸다.
 	*/

@@ -22,6 +22,7 @@ void Timer::Tick()
 {
 	QueryPerformanceCounter((LARGE_INTEGER*)&mCurrentTime);
 
+
 	mDeltaTime = (mCurrentTime - mPreviousTime)*mSecondPerCount;
 
 	if (mDeltaTime < 0.0f)

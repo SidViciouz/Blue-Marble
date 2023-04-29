@@ -18,7 +18,7 @@ void Scene::UpdateScene(const Timer& timer)
 	}
 	envFeature.view = mCameraNode->GetView();
 	envFeature.projection = mCameraNode->GetProjection();
-	envFeature.cameraPosition = mCameraNode->GetAccumulatedPosition().Get();
+	envFeature.cameraPosition = mCameraNode->GetAccumulatedPosition().v;
 	envFeature.cameraFront = mCameraNode->GetFront();
 	envFeature.invViewProjection = mCameraNode->GetInvVIewProjection();
 	envFeature.currentTime = time;// timer.GetTime();

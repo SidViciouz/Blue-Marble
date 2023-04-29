@@ -57,12 +57,6 @@
     <ClInclude Include="DDSTextureLoader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Quaternion.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Position.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Defines.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -88,18 +82,6 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="VolumeNode.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="CollisionComponent.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="RigidBodyComponent.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="BoxCollisionComponent.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Plane.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="MainScene.h">
@@ -162,9 +144,6 @@
     <ClInclude Include="WorldNode.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="SphereCollisionComponent.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="HollowSphereVolumeNode.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -194,12 +173,6 @@
     <ClCompile Include="DDSTextureLoader.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Quaternion.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Position.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="DescriptorManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -222,18 +195,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="VolumeNode.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="CollisionComponent.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="RigidBodyComponent.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="BoxCollisionComponent.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Plane.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="MainScene.cpp">
@@ -276,9 +237,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="WorldNode.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="SphereCollisionComponent.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="HollowSphereVolumeNode.cpp">

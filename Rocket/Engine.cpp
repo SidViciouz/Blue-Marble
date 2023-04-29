@@ -1,4 +1,6 @@
 #include "Engine.h"
+#include "MenuScene.h"
+#include "MainScene.h"
 
 ComPtr<ID3D12GraphicsCommandList> Engine::mCommandList;
 

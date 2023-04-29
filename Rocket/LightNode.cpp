@@ -18,7 +18,7 @@ void LightNode::Update()
 {
 	MeshNode::Update();
 
-	mLight.mPosition = mAccumulatedPosition.Get();
+	mLight.mPosition = mAccumulatedPosition.v;
 
 	XMStoreFloat4x4(&mLight.mLightView, XMMatrixLookToLH(
 		XMLoadFloat3(&mLight.mPosition),

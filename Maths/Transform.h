@@ -6,8 +6,6 @@
 
 namespace Maths
 {
-	class Matrix4x4;
-
 	class Transform
 	{
 	public:

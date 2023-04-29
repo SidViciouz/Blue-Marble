@@ -2,6 +2,8 @@
 
 #include "InputComponent.h"
 #include "Engine.h"
+#include "ItemNode.h"
+#include "InventoryNode.h"
 
 class ItemInputComponent : public InputComponent<ItemInputComponent>
 {

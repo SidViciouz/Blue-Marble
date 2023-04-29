@@ -110,15 +110,13 @@ bool InventoryNode::DropItem(const int& index)
 		{
 			if (!mDroppedItems[i]->GetDraw())
 			{
-				XMFLOAT3 pos = Engine::mAllScenes[Engine::mCurrentSceneName]->mCameraNode->GetAccumulatedPosition().Get();
+				XMFLOAT3 pos = Engine::mAllScenes[Engine::mCurrentSceneName]->mCameraNode->GetAccumulatedPosition().v;
 
 				mStoredItems[index]->SetDraw(false);
 				mStoredMeshes[index]->SetActivated(true);
 				mStoredMeshes[index]->SetAccumulatedPosition(
 					pos.x,pos.y,pos.z
 				);
-				mStoredMeshes[index]->mRigidBodyComponent->mVelocity = { 0.0f,0.0f,0.0f };
-				mStoredMeshes[index]->mRigidBodyComponent->mAngularVel = { 0.5f,0.5f,0.5f };
 
 				mDroppedItems[i]->SetMeshName(mStoredItems[index]->GetMeshName());
 				mDroppedItems[i]->SetDraw(true);

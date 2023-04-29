@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Vector3.h"
-#include "Quaternion.h"
 #include <cstdlib>
 
 namespace Maths
 {
+	class Vector3;
+	class Quaternion;
+
 	class Matrix3x3
 	{
 	public:

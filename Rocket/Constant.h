@@ -1,12 +1,14 @@
 #pragma once
 #include "Util.h"
 #include "Light.h"
+#include "../Maths/Vector3.h"
 
 #define MAX_OBJECT_NUM 1000
 
 #define MAX_SCENE_NODE_NUM 1000
 
 using namespace DirectX;
+using namespace Maths;
 
 struct obj
 {
@@ -45,7 +47,7 @@ struct TB
 	XMFLOAT3									tangent;
 	XMFLOAT3									bitangent;
 };
-
+/*
 struct Vector3
 {
 												Vector3()
@@ -129,9 +131,7 @@ struct Vector3
 
 		return result;
 	}
-	/*
-	* cross product
-	*/
+
 	Vector3										operator^(const Vector3& other) const
 	{
 		Vector3 result;
@@ -170,14 +170,14 @@ struct Vector3
 			return false;
 	}
 };
-
+*/
 struct Points
 {
 	Vector3 p;
 	Vector3 a;
 	Vector3 b;
 };
-
+/*
 struct CollisionInfo
 {
 	Vector3 localA;
@@ -185,7 +185,7 @@ struct CollisionInfo
 	Vector3 normal;
 	float penetration;
 };
-
+*/
 struct Message
 {
 	UINT msgType;

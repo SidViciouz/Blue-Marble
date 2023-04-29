@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Util.h"
-
 class SceneNode;
 
 class InputComponentBase

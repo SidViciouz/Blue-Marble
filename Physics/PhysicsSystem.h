@@ -4,6 +4,9 @@
 #include "Collision.h"
 #include "PhysicsWorld.h"
 #include <set>
+#include "../Maths/Quaternion.h"
+
+using namespace Maths;
 
 namespace Physics
 {

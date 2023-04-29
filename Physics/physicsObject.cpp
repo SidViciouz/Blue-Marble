@@ -1,6 +1,7 @@
 #include "PhysicsObject.h"
 
 using namespace Physics;
+using namespace Maths;
 
 PhysicsObject::PhysicsObject(PhysicsType type) :
 	mPhysicsType(type)

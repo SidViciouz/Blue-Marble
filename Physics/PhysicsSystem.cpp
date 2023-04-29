@@ -7,7 +7,6 @@
 
 using namespace Physics;
 
-
 PhysicsSystem::PhysicsSystem(shared_ptr<PhysicsWorld> physicsWorld) :
 	physicsWorld(physicsWorld)
 {

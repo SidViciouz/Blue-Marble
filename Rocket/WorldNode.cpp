@@ -46,15 +46,15 @@ WorldNode::WorldNode(string name)
 
 		Country info;
 
-		struct Point minBound = { 90,180 };
-		struct Point maxBound = { -90,-180 };
+		P minBound = { 90,180 };
+		P maxBound = { -90,-180 };
 
 		info.geo.x = root[i]["geo_point_2d"]["lon"].asDouble();
 		info.geo.y = root[i]["geo_point_2d"]["lat"].asDouble();
 
 		for (auto it = field.begin(); it != field.end(); it++)
 		{
-			vector<struct Point> points;
+			vector<P> points;
 			for (auto jt = it->begin(); jt != it->end(); jt++)
 			{
 				if (jt->size() == 2)
@@ -273,21 +273,21 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 {
 	isMoving = true;
 
-	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().Get();
+	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().v;
 	
 	mMoveInfo.totalFrame = 60;
 	mMoveInfo.curFrame = 0;
 	mMoveInfo.radius = GetScale().x;
 
-	XMFLOAT3 center = mAccumulatedPosition.Get();
+	XMFLOAT3 center = mAccumulatedPosition.v;
 	Vector3 v1(curPos.x - center.x, curPos.y - center.y, curPos.z - center.z);
 	Vector3 v2(pos.x - center.x, pos.y - center.y, pos.z - center.z);
 
-	v1 = v1.normalize();
-	v2 = v2.normalize();
+	v1.Normalize();
+	v2.Normalize();
 
-	mMoveInfo.axis = (v1 ^ v2).normalize().v;
-	mMoveInfo.angle = acos(v1 * v2)/ mMoveInfo.totalFrame;
+	mMoveInfo.axis = (v1 ^ v2).Normalized().v;
+	mMoveInfo.angle = acos(Vector3::Dot(v1, v2))/ mMoveInfo.totalFrame;
 }
 
 void WorldNode::PickCountry(const XMFLOAT3& pos)
@@ -297,7 +297,7 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 	xmQuat = XMQuaternionInverse(xmQuat);
 
 	//world coordinate -> spherical coordinate
-	XMVECTOR xmCenter = XMLoadFloat3(&mAccumulatedPosition.Get());
+	XMVECTOR xmCenter = XMLoadFloat3(&mAccumulatedPosition.v);
 	xmPos = xmPos - xmCenter;
 
 	xmPos = XMVector3Rotate(xmPos, xmQuat);
@@ -405,8 +405,8 @@ void WorldNode::UpdateCharacter()
 
 	XMVECTOR quat = XMQuaternionRotationAxis(XMLoadFloat3(&mMoveInfo.axis), mMoveInfo.angle);
 
-	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().Get();
-	XMFLOAT3 center = mAccumulatedPosition.Get();
+	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().v;
+	XMFLOAT3 center = mAccumulatedPosition.v;
 
 	XMVECTOR xmCurPos = XMLoadFloat3(&curPos);
 	XMVECTOR xmCenter = XMLoadFloat3(&center);

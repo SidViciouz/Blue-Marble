@@ -1,15 +1,21 @@
 #pragma once
 
-#include "InventoryNode.h"
-#include "TextNode.h"
 #include "Engine.h"
-#include "ItemNode.h"
-#include "WorldNode.h"
+#include "../Physics/PhysicsSystem.h"
+#include "../Physics/PhysicsWorld.h"
 
-
+//using namespace Physics;
 /*
 * 게임의 메인 scene이다.
 */
+
+class InventoryNode;
+class TextNode;
+class ItemNode;
+class WorldNode;
+
+using namespace Physics;
+
 class MainScene : public Scene
 {
 public:
@@ -35,4 +41,6 @@ public:
 	shared_ptr<InventoryNode>					inventory;
 	shared_ptr<WorldNode>						worldMesh;
 
+	shared_ptr<PhysicsSystem>					mPhysicsSystem;
+	shared_ptr<PhysicsWorld>					mPhysicsWorld;
 };

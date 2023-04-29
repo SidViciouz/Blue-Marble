@@ -19,10 +19,6 @@ public:
 	*/
 	virtual void								Update() override;
 	/*
-	* 이 노드의 collisionComponent가 다른 노드의 collisionComponent와 충돌이 있는지 여부와 충돌 정보를 반환한다.
-	*/
-	virtual bool								IsColliding(SceneNode* counterPart, CollisionInfo& collisionInfo) override;
-	/*
 	* 이 노드가 그리는 mesh의 이름을 반환한다.
 	*/
 	const string&								GetMeshName() const;

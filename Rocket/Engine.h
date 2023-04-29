@@ -3,7 +3,6 @@
 #include "framework.h"
 #include <map>
 #include "IfError.h"
-#include "Constant.h"
 #include "Timer.h"
 #include "Scene.h"
 #include <random>
@@ -13,13 +12,9 @@
 #include "ResourceManager.h"
 #include "PerlinMap.h"
 #include "MeshManager.h"
-#include "MeshNode.h"
 #include "VolumeNode.h"
-#include "BoxCollisionComponent.h"
 #include "InputManager.h"
-#include "MainScene.h"
 #include "TextManager.h"
-#include "MenuScene.h"
 #include "TextureManager.h"
 
 using PSOs = unordered_map<string, ComPtr< ID3D12PipelineState>>;

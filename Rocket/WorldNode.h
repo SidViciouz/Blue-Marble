@@ -13,7 +13,7 @@ struct MoveInfo
 	int		 curFrame;
 };
 
-struct Point
+struct P
 {
 	float x;
 	float y;
@@ -21,10 +21,10 @@ struct Point
 
 struct Country
 {
-	struct Point geo;
-	vector<vector<struct Point>> points;
-	struct Point minBound;
-	struct Point maxBound;
+	P geo;
+	vector<vector<P>> points;
+	P minBound;
+	P maxBound;
 	int index;
 };
 
@@ -33,10 +33,10 @@ struct CountryInfo
 {
 	int countryIndex;
 	int areaIndex;
-	struct Point minBound;
-	struct Point maxBound;
+	P minBound;
+	P maxBound;
 	int numOfPoint;
-	struct Point points[MAX_NUM_POINT];
+	P points[MAX_NUM_POINT];
 };
 
 class WorldNode : public MeshNode

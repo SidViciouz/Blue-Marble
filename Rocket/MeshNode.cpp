@@ -37,12 +37,6 @@ void MeshNode::Draw()
 
 	Engine::mMeshManager->Draw(mMeshName);
 
-	if (mCollisionComponent != nullptr)
-	{
-		mCollisionComponent->Draw();
-	}
-
-
 	SceneNode::Draw();
 }
 
@@ -69,14 +63,6 @@ void MeshNode::Update()
 		return;
 
 	SceneNode::Update();
-}
-
-bool MeshNode::IsColliding(SceneNode* counterPart, CollisionInfo& collisionInfo)
-{
-	if (!mActivated)
-		return false;
-
-	return SceneNode::IsColliding(counterPart, collisionInfo);
 }
 
 const string& MeshNode::GetMeshName() const

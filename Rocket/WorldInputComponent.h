@@ -2,6 +2,7 @@
 
 #include "InputComponent.h"
 #include "Engine.h"
+#include "WorldNode.h"
 
 class WorldInputComponent : public InputComponent<WorldInputComponent>
 {
@@ -39,7 +40,8 @@ public:
 		rayVector = XMVector3Normalize(XMVector3TransformNormal(rayVector, inverseViewMatrix));
 		rayOrigin = XMVector3TransformCoord(rayOrigin, inverseViewMatrix);
 
-		XMVECTOR position = XMLoadFloat3(&mNode->GetAccumulatedPosition().Get());
+		XMFLOAT3 pos = mNode->GetAccumulatedPosition().v;
+		XMVECTOR position = XMLoadFloat3(&pos);
 		float radius = mNode->GetScale().x;
 
 		XMVECTOR toCenter = position - rayOrigin;
@@ -77,7 +79,7 @@ public:
 		Vector3 dir(dx, dy, 0);
 
 		Vector3 axis = dir ^ Vector3(0, 0, 1);
-		axis = axis.normalize() * sinf(degree);
+		axis = axis.Normalized() * sinf(degree);
 
 		XMFLOAT4 quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
 		mNode->MulRelativeQuaternion(quat);
