@@ -9,10 +9,10 @@ Plane::Plane() {
 
 Plane::Plane(const Vector3& normal, float distance, bool normalise) {
 	if (normalise) {
-		float length = normal.length();
+		float length = normal.Length();
 
 		this->normal = normal;
-		this->normal.normalize();
+		this->normal.Normalize();
 
 		this->distance = distance / length;
 	}
@@ -44,7 +44,7 @@ Plane Plane::PlaneFromTri(const Vector3& v0, const Vector3& v1, const Vector3& v
 	Vector3 normal = Vector3::Cross(v1v0, v2v0);
 
 
-	normal.normalize();
+	normal.Normalize();
 	float d = -Vector3::Dot(v0, normal);
 	return Plane(normal, d, false);
 }

@@ -170,19 +170,19 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 	faces[0][0] = a;
 	faces[0][1] = b;
 	faces[0][2] = c;
-	faces[0][3].p = (Vector3::Cross(b.p - a.p, c.p - a.p)).normalize(); //ABC
+	faces[0][3].p = (Vector3::Cross(b.p - a.p, c.p - a.p)).Normalized(); //ABC
 	faces[1][0] = a;
 	faces[1][1] = c;
 	faces[1][2] = d;
-	faces[1][3].p = (Vector3::Cross(c.p - a.p, d.p - a.p)).normalize(); //ACD
+	faces[1][3].p = (Vector3::Cross(c.p - a.p, d.p - a.p)).Normalized(); //ACD
 	faces[2][0] = a;
 	faces[2][1] = d;
 	faces[2][2] = b;
-	faces[2][3].p = (Vector3::Cross(d.p - a.p, b.p - a.p)).normalize(); //ADB
+	faces[2][3].p = (Vector3::Cross(d.p - a.p, b.p - a.p)).Normalized(); //ADB
 	faces[3][0] = b;
 	faces[3][1] = d;
 	faces[3][2] = c;
-	faces[3][3].p = (Vector3::Cross(d.p - b.p, c.p - b.p)).normalize(); //BDC
+	faces[3][3].p = (Vector3::Cross(d.p - b.p, c.p - b.p)).Normalized(); //BDC
 
 	int num_faces = 4;
 	int closest_face;
@@ -217,8 +217,8 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 			//The contact points just have the same barycentric coordinate in their own triangles which  are composed by result coordinates of support function 
 			Vector3 localA = faces[closest_face][0].a * u + faces[closest_face][1].a * v + faces[closest_face][2].a * w;
 			Vector3 localB = faces[closest_face][0].b * u + faces[closest_face][1].b * v + faces[closest_face][2].b * w;
-			float penetration = (localA - localB).length();
-			Vector3 normal = (localA - localB).normalize();
+			float penetration = (localA - localB).Length();
+			Vector3 normal = (localA - localB).Normalized();
 
 			//Convergence (new point is not significantly further from origin)
 			localA -= coll1->GetTransform().GetPosition();
@@ -282,7 +282,7 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 			faces[num_faces][0] = loose_edges[i][0];
 			faces[num_faces][1] = loose_edges[i][1];
 			faces[num_faces][2] = p;
-			faces[num_faces][3].p = Vector3::Cross(loose_edges[i][0].p - loose_edges[i][1].p, loose_edges[i][0].p - p.p).normalize();
+			faces[num_faces][3].p = Vector3::Cross(loose_edges[i][0].p - loose_edges[i][1].p, loose_edges[i][0].p - p.p).Normalized();
 
 			//Check for wrong normal to maintain CCW winding
 			float bias = 0.000001; //in case dot result is only slightly < 0 (because origin is on face)
@@ -309,8 +309,8 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 		projectionPoint, u, v, w);
 	Vector3 localA = faces[closest_face][0].a * u + faces[closest_face][1].a * v + faces[closest_face][2].a * w;
 	Vector3 localB = faces[closest_face][0].b * u + faces[closest_face][1].b * v + faces[closest_face][2].b * w;
-	float penetration = (localA - localB).length();
-	Vector3 normal = (localA - localB).normalize();
+	float penetration = (localA - localB).Length();
+	Vector3 normal = (localA - localB).Normalized();
 
 	collisionInfo.AddContactPoint(localA, localB, normal, penetration);
 
