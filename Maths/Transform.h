@@ -22,6 +22,9 @@ namespace Maths
 		Vector3									GetScale() const;
 		Quaternion								GetOrientation() const;
 
+		Matrix3x3								GetRotMatrix() const;
+		Matrix3x3								GetInvRotMatrix() const;
+
 	protected:
 
 		Matrix4x4								matrix;

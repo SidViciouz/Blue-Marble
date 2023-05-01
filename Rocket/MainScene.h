@@ -43,4 +43,18 @@ public:
 
 	shared_ptr<PhysicsSystem>					mPhysicsSystem;
 	shared_ptr<PhysicsWorld>					mPhysicsWorld;
+
+	void										InitWorld();
+
+	PhysicsObject*								AddFloorToWorld(const Vector3& position);
+	PhysicsObject*								AddCubeToWorld(
+																const Vector3& position,
+																Vector3 dimensions,
+																float inverseMass = 5.0f,
+																bool bStatic = false,
+																float elasticity = 0.8f);
+
+	PhysicsObject*								mFloor;
+	PhysicsObject*								mCube;
+	PhysicsObject*								mCube2;
 };

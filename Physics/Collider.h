@@ -12,7 +12,7 @@ namespace Physics
 		None = 0,
 		Sphere = 1,
 		Capsule = 2,
-		OBB = 3
+		AABB = 3
 	};
 
 	class Collider
@@ -26,6 +26,6 @@ namespace Physics
 		const ColliderType&						GetType() const;
 	protected:
 
-		ColliderType							mColliderType;
+		ColliderType							mType;
 	};
 }

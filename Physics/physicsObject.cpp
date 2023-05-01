@@ -1,4 +1,5 @@
 #include "PhysicsObject.h"
+#include "Collider.h"
 
 using namespace Physics;
 using namespace Maths;
@@ -9,12 +10,12 @@ PhysicsObject::PhysicsObject(PhysicsType type) :
 
 }
 
-void PhysicsObject::SetCollider(shared_ptr<Collider> collider)
+void PhysicsObject::SetCollider(Collider* collider)
 {
 	mCollider = collider;
 }
 
-shared_ptr<Collider> PhysicsObject::GetCollider() const
+Collider* PhysicsObject::GetCollider() const
 {
 	return mCollider;
 }
@@ -22,6 +23,11 @@ shared_ptr<Collider> PhysicsObject::GetCollider() const
 Transform& PhysicsObject::GetTransform()
 {
 	return mTransform;
+}
+
+void PhysicsObject::SetPhysicsType(PhysicsType type)
+{
+	mPhysicsType = type;
 }
 
 PhysicsType PhysicsObject::GetPhysicsType() const

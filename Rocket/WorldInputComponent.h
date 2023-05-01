@@ -81,8 +81,13 @@ public:
 		Vector3 axis = dir ^ Vector3(0, 0, 1);
 		axis = axis.Normalized() * sinf(degree);
 
-		XMFLOAT4 quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
-		mNode->MulRelativeQuaternion(quat);
+		//XMFLOAT4 quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
+		Quaternion quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
+		//mNode->MulRelativeQuaternion(quat);
+		Quaternion q = mNode->GetRelativeQuaternion();
+		q =  q * quat;
+		mNode->SetRelativeQuaternion(q.Get());
+
 
 		prevX = x;
 		prevY = y;
@@ -94,3 +99,4 @@ protected:
 	int											prevY;
 	WorldNode*									mNode;
 };
+;

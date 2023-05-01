@@ -1,5 +1,6 @@
 #include "Transform.h"
 #include "Matrix4x4.h"
+#include "Matrix3x3.h"
 
 using namespace Maths;
 
@@ -46,4 +47,14 @@ Vector3 Transform::GetScale() const
 Quaternion Transform::GetOrientation() const
 {
 	return quaternion;
+}
+
+Matrix3x3 Transform::GetRotMatrix() const
+{
+	return Matrix3x3(quaternion);
+}
+
+Matrix3x3 Transform::GetInvRotMatrix() const
+{
+	return Matrix3x3(quaternion.Conjugate());
 }

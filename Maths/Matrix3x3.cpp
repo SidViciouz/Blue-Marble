@@ -31,7 +31,6 @@ Matrix3x3::Matrix3x3(float elements[9])
 
 Matrix3x3::Matrix3x3(const Quaternion& quat)
 {
-
 	XMFLOAT4 q = quat.Get();
 
 	float yy = q.y * q.y;

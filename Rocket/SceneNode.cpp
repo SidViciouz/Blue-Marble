@@ -55,7 +55,8 @@ void SceneNode::Update()
 	{
 		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
 		XMVECTOR p = XMLoadFloat3(&mRelativePosition.v);
-		XMMATRIX q = XMMatrixRotationQuaternion(XMLoadFloat4(&mParentNode->mAccumulatedQuaternion.Get()));
+		XMFLOAT4 curQuat = mParentNode->mAccumulatedQuaternion.Get();
+		XMMATRIX q = XMMatrixRotationQuaternion(XMLoadFloat4(&curQuat));
 		XMFLOAT3 pq;
 		XMStoreFloat3( &pq ,XMVector3TransformCoord(p, q));
 		mAccumulatedPosition.v = pq;
@@ -63,7 +64,8 @@ void SceneNode::Update()
 	}
 
 	XMFLOAT3 pos = mAccumulatedPosition.v;
-	XMMATRIX world = XMMatrixScaling(mScale.x, mScale.y, mScale.z) * XMMatrixRotationQuaternion(XMLoadFloat4(&mAccumulatedQuaternion.Get())) * XMMatrixTranslation(pos.x, pos.y, pos.z);
+	XMFLOAT4 quat = mAccumulatedQuaternion.Get();
+	XMMATRIX world = XMMatrixScaling(mScale.x, mScale.y, mScale.z) * XMMatrixRotationQuaternion(XMLoadFloat4(&quat)) * XMMatrixTranslation(pos.x, pos.y, pos.z);
 
 	XMStoreFloat4x4(&mObjFeature.world, world);
 
@@ -99,12 +101,18 @@ void SceneNode::SetRelativePosition(const float& x, const float& y, const float&
 
 void SceneNode::SetRelativeQuaternion(const XMFLOAT4& quaternion)
 {
-	mRelativeQuaternion.Set(quaternion);
+	mRelativeQuaternion.x = quaternion.x;
+	mRelativeQuaternion.y = quaternion.y;
+	mRelativeQuaternion.z = quaternion.z;
+	mRelativeQuaternion.w = quaternion.w;
 }
 
 void SceneNode::SetRelativeQuaternion(const float& x, const float& y, const float& z, const float& w)
 {
-	mRelativeQuaternion.Set(x, y, z, w);
+	mRelativeQuaternion.x = x;
+	mRelativeQuaternion.y = y;
+	mRelativeQuaternion.z = z;
+	mRelativeQuaternion.w = w;
 }
 
 void SceneNode::SetScale(const XMFLOAT3& scale)
@@ -124,8 +132,9 @@ void SceneNode::SetAccumulatedPosition(const XMFLOAT3& position)
 		mRelativePosition.v = position;
 	else
 	{
+		XMFLOAT4 quat = mParentNode->mAccumulatedQuaternion.Get();
 		XMMATRIX invQ = XMMatrixRotationQuaternion(
-			XMQuaternionInverse(XMLoadFloat4(&mParentNode->mAccumulatedQuaternion.Get())));
+			XMQuaternionInverse(XMLoadFloat4(&quat)));
 		XMFLOAT3 pos = (mAccumulatedPosition - mParentNode->mAccumulatedPosition).v;
 		XMVECTOR p = XMLoadFloat3(&pos);
 
@@ -144,8 +153,9 @@ void SceneNode::SetAccumulatedPosition(const float& x, const float& y, const flo
 	else
 	{
 		//mRelativePosition.Set((mAccumulatedPosition - mParentNode->mAccumulatedPosition).Get());
+		XMFLOAT4 quat = mParentNode->mAccumulatedQuaternion.Get();
 		XMMATRIX invQ = XMMatrixRotationQuaternion(
-			XMQuaternionInverse(XMLoadFloat4(&mParentNode->mAccumulatedQuaternion.Get())));
+			XMQuaternionInverse(XMLoadFloat4(&quat)));
 		XMFLOAT3 pos = (mAccumulatedPosition - mParentNode->mAccumulatedPosition).v;
 		XMVECTOR p = XMLoadFloat3(&pos);
 
@@ -167,7 +177,7 @@ void SceneNode::AddRelativePosition(const float& x, const float& y, const float&
 	mRelativePosition.v.y += y;
 	mRelativePosition.v.z += z;
 }
-
+/*
 void SceneNode::MulRelativeQuaternion(const Quaternion& quaternion)
 {
 	mRelativeQuaternion *= quaternion;
@@ -182,7 +192,7 @@ void SceneNode::MulRelativeQuaternion(const float& x, const float& y, const floa
 {
 	mRelativeQuaternion.Mul(x, y, z, w);
 }
-
+*/
 void SceneNode::MulAddRelativePosition(const float& d,const XMFLOAT3& position)
 {
 	mRelativePosition += Vector3(d * position.x, d * position.y, d * position.z);

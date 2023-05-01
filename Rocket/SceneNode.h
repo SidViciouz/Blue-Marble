@@ -58,9 +58,9 @@ public:
 	/*
 	* 상대적인 quaternion에 입력으로 들어온 quaternion을 곱한다.
 	*/
-	void										MulRelativeQuaternion(const Quaternion& quaternion);
-	void										MulRelativeQuaternion(const XMFLOAT4& quaternion);
-	void										MulRelativeQuaternion(const float& x, const float& y, const float& z, const float& w);
+	//void										MulRelativeQuaternion(const Quaternion& quaternion);
+	//void										MulRelativeQuaternion(const XMFLOAT4& quaternion);
+	//void										MulRelativeQuaternion(const float& x, const float& y, const float& z, const float& w);
 
 	/*
 	* 상대적인 위치에 d*position을 더한다.

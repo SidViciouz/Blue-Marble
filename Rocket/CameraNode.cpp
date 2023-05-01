@@ -87,7 +87,8 @@ void CameraNode::TurnX(float x)
 	XMStoreFloat3(&mFront, XMVector3TransformNormal(XMLoadFloat3(&mFront), R));
 
 	XMFLOAT4 quat;
-	XMStoreFloat4(&quat,XMQuaternionMultiply(XMLoadFloat4(&mRelativeQuaternion.Get()), XMQuaternionRotationAxis(rightAxis,x)));
+	XMFLOAT4 curQuat = mRelativeQuaternion.Get();
+	XMStoreFloat4(&quat,XMQuaternionMultiply(XMLoadFloat4(&curQuat), XMQuaternionRotationAxis(rightAxis,x)));
 	SetRelativeQuaternion(quat);
 }
 
@@ -104,7 +105,8 @@ void CameraNode::TurnY(float y)
 	XMStoreFloat3(&mFront, XMVector3TransformNormal(XMLoadFloat3(&mFront), R));
 
 	XMFLOAT4 quat;
-	XMStoreFloat4(&quat, XMQuaternionMultiply(XMLoadFloat4(&mRelativeQuaternion.Get()), XMQuaternionRotationAxis(upAxis, y)));
+	XMFLOAT4 curQuat = mRelativeQuaternion.Get();
+	XMStoreFloat4(&quat, XMQuaternionMultiply(XMLoadFloat4(&curQuat), XMQuaternionRotationAxis(upAxis, y)));
 	SetRelativeQuaternion(quat);
 
 	//printf("%f %f %f %f\n", quat.x, quat.y, quat.z, quat.w);

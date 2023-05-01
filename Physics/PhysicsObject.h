@@ -23,10 +23,12 @@ namespace Physics
 												PhysicsObject(PhysicsType type = PhysicsType::Dynamic);
 												~PhysicsObject() {}
 
-		void									SetCollider(shared_ptr<Collider> collider);
-		shared_ptr<Collider>					GetCollider() const;
+		void									SetCollider(Collider* collider);
+		Collider*								GetCollider() const;
 
 		Transform&								GetTransform();
+
+		void									SetPhysicsType(PhysicsType type);
 
 		PhysicsType								GetPhysicsType() const;
 
@@ -78,7 +80,7 @@ namespace Physics
 	protected:
 		Transform								mTransform;
 
-		shared_ptr<Collider>					mCollider;
+		Collider*								mCollider;
 
 		PhysicsType								mPhysicsType;
 

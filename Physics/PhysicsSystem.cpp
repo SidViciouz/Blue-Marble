@@ -230,7 +230,7 @@ void PhysicsSystem::BasicCollisionDetection() {
 			/*if (CollisionDetection::ObjectIntersection(*i, *j, info)) {*/
 
 			if (GJKCalculation(*i, *j, info)) {
-
+				printf("there is collision\n");
 				//if(tutorialGame)
 				//	tutorialGame->AddDebugPoint(info.point.localA);
 				/*Test*/
@@ -500,7 +500,7 @@ void PhysicsSystem::IntegrateVelocity(float dt) {
 
 			orientation = orientation +
 				(Quaternion(angVel * dt * 0.5f, 0.0f) * orientation);
-			orientation.Normalize();
+			orientation.Normalise();
 
 
 

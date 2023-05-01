@@ -292,8 +292,9 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 
 void WorldNode::PickCountry(const XMFLOAT3& pos)
 {
+	XMFLOAT4 quat = mAccumulatedQuaternion.Get();
 	XMVECTOR xmPos = XMLoadFloat3(&pos);
-	XMVECTOR xmQuat = XMLoadFloat4(&mAccumulatedQuaternion.Get());
+	XMVECTOR xmQuat = XMLoadFloat4(&quat);
 	xmQuat = XMQuaternionInverse(xmQuat);
 
 	//world coordinate -> spherical coordinate
