@@ -6,7 +6,7 @@ TextureManager::TextureManager()
 
 }
 
-void TextureManager::Load(const string& name,const wchar_t* path)
+void TextureManager::Load(const string& name,const wchar_t* path, bool isTexCube)
 {
 	ComPtr<ID3D12Resource> texture;
 	ComPtr<ID3D12Resource> uploadBuffer;
@@ -24,6 +24,12 @@ void TextureManager::Load(const string& name,const wchar_t* path)
 	mUploadBuffer[name] = move(uploadBuffer);
 
 	ID3D12Resource* resource = GetResource(name);
+
+	if (isTexCube)
+	{
+		mTextureIdx[name] = Engine::mDescriptorManager->CreateSrv(resource, resource->GetDesc().Format, D3D12_SRV_DIMENSION_TEXTURECUBE);
+		return;
+	}
 
 	mTextureIdx[name] =  Engine::mDescriptorManager->CreateSrv(resource, resource->GetDesc().Format, D3D12_SRV_DIMENSION_TEXTURE2D);
 }

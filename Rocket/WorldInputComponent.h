@@ -62,7 +62,6 @@ public:
 
 			mNode->MoveCharacter(surface);
 			mNode->PickCountry(surface);
-
 			return;
 		}
 	}
@@ -85,7 +84,7 @@ public:
 		Quaternion quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
 		//mNode->MulRelativeQuaternion(quat);
 		Quaternion q = mNode->GetRelativeQuaternion();
-		q =  q * quat;
+		q =  quat * q;
 		mNode->SetRelativeQuaternion(q.Get());
 
 

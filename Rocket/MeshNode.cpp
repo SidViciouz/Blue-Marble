@@ -19,19 +19,6 @@ void MeshNode::Draw()
 	Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
 		Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
 		+ mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
-	/*
-	Engine::mCommandList->SetGraphicsRootDescriptorTable(2,
-		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->GetGradientsDescriptorIdx(), DescType::SRV));
-	Engine::mCommandList->SetGraphicsRootDescriptorTable(3,
-		Engine::mDescriptorManager->GetGpuHandle(Engine::mPerlinMap->GetPermutationDescriptorIdx(), DescType::SRV));
-
-	Engine::mCommandList->SetGraphicsRoot32BitConstant(4, 1, 0);
-	Engine::mCommandList->SetGraphicsRootDescriptorTable(5, Engine::mDescriptorManager->GetGpuHandle(
-		Engine::mAllScenes[Engine::mCurrentSceneName]->mShadowMap->GetTextureSrvIdx(), DescType::SRV));
-
-	Engine::mCommandList->SetGraphicsRootDescriptorTable(6, Engine::mDescriptorManager->GetGpuHandle(
-		Engine::mTextureManager->GetTextureIndex(mTextureName), DescType::SRV));
-		*/
 	Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(
 		Engine::mTextureManager->GetTextureIndex(mTextureName), DescType::SRV));
 

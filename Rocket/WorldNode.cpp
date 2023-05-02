@@ -335,7 +335,7 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 	float u = (longitude + 180) / 360.0f;
 	float v = (latitude + 90) / 180.0f;
 
-	printf("latitude : %f, longitude : %f\n", latitude, longitude);
+	//printf("latitude : %f, longitude : %f\n", latitude, longitude);
 	//printf("u : %f, v : %f\n", u, v);
 	for (auto country : mCountrys)
 	{

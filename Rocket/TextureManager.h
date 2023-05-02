@@ -19,7 +19,7 @@ public:
 	/*
 	* mesh에 입힐 texture를 load한다.
 	*/
-	void										Load(const string& name,const wchar_t* path);
+	void										Load(const string& name,const wchar_t* path, bool isTexCube = false);
 	/*
 	* name에 해당하는 텍스처를 반환한다.
 	*/

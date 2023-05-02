@@ -9,6 +9,7 @@
 #include "TextNode.h"
 #include "ItemNode.h"
 #include "WorldNode.h"
+#include "DiceNode.h"
 #include "../Physics/PhysicsSystem.h"
 #include "../Physics/PhysicsWorld.h"
 #include "../Physics/AABBCollider.h"
@@ -30,12 +31,17 @@ MainScene::MainScene()
 
 void MainScene::Initialize()
 {
-	boxMesh = make_shared<MeshNode>("box");
+	boxMesh = make_shared<DiceNode>("box");
 	boxMesh->SetTextureName("dice");
 	boxMesh->SetRelativePosition(9.5f, 5.0f, 1.0f);
 	boxMesh->SetRelativeQuaternion(0.0f, sinf(2.0f), 0.0f, cosf(2.0f));
 
-	ballMesh = make_shared<MeshNode>("box");
+	boxMesh2 = make_shared<DiceNode>("box");
+	boxMesh2->SetTextureName("dice");
+	boxMesh2->SetRelativePosition(9.5f, 5.0f, 1.0f);
+	boxMesh2->SetRelativeQuaternion(0.0f, sinf(2.0f), 0.0f, cosf(2.0f));
+
+	ballMesh = make_shared<DiceNode>("box");
 	ballMesh->SetTextureName("dice");
 	ballMesh->SetRelativePosition(5.0f, 6.0f, 0.0f);
 	ballMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
@@ -97,6 +103,7 @@ void MainScene::Initialize()
 	worldMesh->AddChild(cloud);
 
 	mSceneRoot->AddChild(boxMesh);
+	mSceneRoot->AddChild(boxMesh2);
 	mSceneRoot->AddChild(ballMesh);
 	mSceneRoot->AddChild(groundMesh);
 	mSceneRoot->AddChild(camera);
@@ -137,6 +144,14 @@ void MainScene::UpdateScene(const Timer& timer)
 		mCube2->GetTransform().GetOrientation().w);
 
 
+	boxMesh2->SetAccumulatedPosition(mCube3->GetTransform().GetPosition().v);
+	boxMesh2->SetRelativeQuaternion(
+		mCube3->GetTransform().GetOrientation().x,
+		mCube3->GetTransform().GetOrientation().y,
+		mCube3->GetTransform().GetOrientation().z,
+		mCube3->GetTransform().GetOrientation().w
+	);
+
 	mSceneRoot->Update();
 	
 }
@@ -155,6 +170,8 @@ void MainScene::InitWorld()
 	mCube = AddCubeToWorld(Vector3(0,0,0), Vector3(1, 1, 1));
 
 	mCube2 = AddCubeToWorld(Vector3(1, 3, 0), Vector3(1, 1, 1));
+
+	mCube3 = AddCubeToWorld(Vector3(-0.5, 5, 0), Vector3(1, 1, 1));
 
 	mFloor = AddFloorToWorld(Vector3(0, -20, 0));
 }

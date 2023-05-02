@@ -150,6 +150,9 @@
     <ClInclude Include="WorldInputComponent.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DiceNode.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rocket.cpp">
@@ -242,6 +245,9 @@
     <ClCompile Include="HollowSphereVolumeNode.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="DiceNode.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Rocket.rc">
@@ -270,5 +276,6 @@
     <FxCompile Include="Convolve.hlsl" />
     <FxCompile Include="earth.hlsl" />
     <FxCompile Include="ColorCountry.hlsl" />
+    <FxCompile Include="Dice.hlsl" />
   </ItemGroup>
 </Project>

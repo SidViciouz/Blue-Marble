@@ -36,6 +36,7 @@ public:
 	* 수정 예정이다.
 	*/
 	shared_ptr<MeshNode>						boxMesh;
+	shared_ptr<MeshNode>						boxMesh2;
 	shared_ptr<MeshNode>						ballMesh;
 	shared_ptr<MeshNode>						groundMesh;
 	shared_ptr<InventoryNode>					inventory;
@@ -57,4 +58,5 @@ public:
 	PhysicsObject*								mFloor;
 	PhysicsObject*								mCube;
 	PhysicsObject*								mCube2;
+	PhysicsObject*								mCube3;
 };

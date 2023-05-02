@@ -96,7 +96,7 @@ void Engine::Initialize()
 	mTextureManager->Load("water2", L"../Texture/water2.dds");
 	mTextureManager->Load("earth_normal", L"../Texture/earth_normal.dds");
 	mTextureManager->Load("earth_displacement", L"../Texture/earth_displacement.dds");
-	mTextureManager->Load("dice", L"../Texture/dice.dds");
+	mTextureManager->Load("dice", L"../Texture/dice.dds",true);
 
 
 	mTextManager = make_shared<TextManager>();
@@ -546,6 +546,14 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(D3DCompileFromFile(L"ColorCountry.hlsl", nullptr, nullptr, "CS", "cs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
 	mShaders["ColorCountryCS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"Dice.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["DiceVS"] = move(blob);
+
+	IfError::Throw(D3DCompileFromFile(L"Dice.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
+		L"compile shader error!");
+	mShaders["DicePS"] = move(blob);
 
 	//shader에 대응되는 root signature 생성.
 	ComPtr<ID3D12RootSignature> rs = nullptr;
@@ -1360,6 +1368,35 @@ void Engine::CreatePso()
 	IfError::Throw(mDevice->CreateComputePipelineState(&ColorCountryPsoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
 		L"create compute pso error!");
 	mPSOs["ColorCountry"] = move(pso);
+
+	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[1] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
+	psoDesc.InputLayout.NumElements = 3;
+	psoDesc.InputLayout.pInputElementDescs = inputElements;
+	psoDesc.pRootSignature = mRootSignatures["Default"].Get();
+	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+	psoDesc.VS.pShaderBytecode = mShaders["DiceVS"]->GetBufferPointer();
+	psoDesc.VS.BytecodeLength = mShaders["DiceVS"]->GetBufferSize();
+	psoDesc.PS.pShaderBytecode = mShaders["DicePS"]->GetBufferPointer();
+	psoDesc.PS.BytecodeLength = mShaders["DicePS"]->GetBufferSize();
+	psoDesc.HS.pShaderBytecode = nullptr;
+	psoDesc.HS.BytecodeLength = 0;
+	psoDesc.DS.pShaderBytecode = nullptr;
+	psoDesc.DS.BytecodeLength = 0;
+	psoDesc.GS.pShaderBytecode = nullptr;
+	psoDesc.GS.BytecodeLength = 0;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	psoDesc.RasterizerState.DepthClipEnable = true;
+	psoDesc.DepthStencilState.DepthEnable = true;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
+		L"create graphics pso error!");
+	mPSOs["Dice"] = move(pso);
 }
 
 void Engine::SetViewportAndScissor()

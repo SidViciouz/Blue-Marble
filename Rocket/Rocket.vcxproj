@@ -145,6 +145,7 @@
     <ClInclude Include="Blooming.h" />
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="CameraInputComponent.h" />
+    <ClInclude Include="DiceNode.h" />
     <ClInclude Include="HollowSphereVolumeNode.h" />
     <ClInclude Include="ItemInputComponent.h" />
     <ClInclude Include="ItemNode.h" />
@@ -191,6 +192,7 @@
   <ItemGroup>
     <ClCompile Include="Blooming.cpp" />
     <ClCompile Include="CameraNode.cpp" />
+    <ClCompile Include="DiceNode.cpp" />
     <ClCompile Include="HollowSphereVolumeNode.cpp" />
     <ClCompile Include="UINode.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
@@ -279,6 +281,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CS</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Dice.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS</EntryPointName>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
     </FxCompile>
     <FxCompile Include="DownSampling.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
