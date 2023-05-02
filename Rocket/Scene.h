@@ -6,7 +6,7 @@
 #include "LightNode.h"
 #include "ShadowMap.h"
 #include "Blooming.h"
-
+#include "PhysicsManager.h"
 
 using namespace std;
 
@@ -52,4 +52,8 @@ public:
 	* blooming 효과를 처리하고 이에 필요한 데이터를 관리하는 객체이다.
 	*/
 	shared_ptr<Blooming>						mBlooming;
+	/*
+	* 물리적인 기능을 관리한다.
+	*/
+	shared_ptr<PhysicsManager>					mPhysicsManager;
 };

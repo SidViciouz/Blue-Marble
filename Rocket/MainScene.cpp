@@ -10,46 +10,34 @@
 #include "ItemNode.h"
 #include "WorldNode.h"
 #include "DiceNode.h"
-#include "../Physics/PhysicsSystem.h"
-#include "../Physics/PhysicsWorld.h"
-#include "../Physics/AABBCollider.h"
 
 using namespace Physics;
 
 MainScene::MainScene()
 	: Scene()
 {
-	mPhysicsWorld = make_shared<PhysicsWorld>();
-	mPhysicsSystem = make_shared<PhysicsSystem>(mPhysicsWorld);
-
-	mPhysicsSystem->UseGravity(true);
-
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
-	InitWorld();
 }
 
 void MainScene::Initialize()
 {
-	boxMesh = make_shared<DiceNode>("box");
+	shared_ptr<MeshNode> boxMesh = make_shared<DiceNode>("box");
 	boxMesh->SetTextureName("dice");
-	boxMesh->SetRelativePosition(9.5f, 5.0f, 1.0f);
-	boxMesh->SetRelativeQuaternion(0.0f, sinf(2.0f), 0.0f, cosf(2.0f));
+	boxMesh->SetPhysicsComponent(mPhysicsManager->BuildCube(boxMesh,PhysicsType::Dynamic,Vector3(10,-5,0),Vector3(1,1,1)));
 
-	boxMesh2 = make_shared<DiceNode>("box");
+	shared_ptr<MeshNode> boxMesh2 = make_shared<DiceNode>("box");
 	boxMesh2->SetTextureName("dice");
-	boxMesh2->SetRelativePosition(9.5f, 5.0f, 1.0f);
-	boxMesh2->SetRelativeQuaternion(0.0f, sinf(2.0f), 0.0f, cosf(2.0f));
+	boxMesh2->SetPhysicsComponent(mPhysicsManager->BuildCube(boxMesh2, PhysicsType::Dynamic, Vector3(11, -2, 0), Vector3(1,1,1)));
 
-	ballMesh = make_shared<DiceNode>("box");
-	ballMesh->SetTextureName("dice");
-	ballMesh->SetRelativePosition(5.0f, 6.0f, 0.0f);
-	ballMesh->SetRelativeQuaternion(0.0f, sinf(1.0f), 0.0f, cosf(1.0f));
+	shared_ptr<MeshNode> boxMesh3 = make_shared<DiceNode>("box");
+	boxMesh3->SetTextureName("dice");
+	boxMesh3->SetPhysicsComponent(mPhysicsManager->BuildCube(boxMesh3, PhysicsType::Dynamic, Vector3(9.5, 0, 0), Vector3(1,1,1)));
 
-	groundMesh = make_shared<MeshNode>("box");
+	shared_ptr<MeshNode> groundMesh = make_shared<MeshNode>("box");
 	groundMesh->SetTextureName("stone");
-	groundMesh->SetRelativePosition(5.0f, -5.0f, 0.0f);
 	groundMesh->SetScale(10.0f, 1.0f, 10.0f);
+	groundMesh->SetPhysicsComponent(mPhysicsManager->BuildCube(groundMesh, PhysicsType::Static, Vector3(10, -15, 0), Vector3(10, 1, 10),0,0));
 
 
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
@@ -104,7 +92,7 @@ void MainScene::Initialize()
 
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(boxMesh2);
-	mSceneRoot->AddChild(ballMesh);
+	mSceneRoot->AddChild(boxMesh3);
 	mSceneRoot->AddChild(groundMesh);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);
@@ -118,40 +106,6 @@ void MainScene::UpdateScene(const Timer& timer)
 {
 	Scene::UpdateScene(timer);
 
-	mPhysicsSystem->Update(Engine::mTimer.GetDeltaTime());
-
-	groundMesh->SetAccumulatedPosition(mFloor->GetTransform().GetPosition().v);
-	groundMesh->SetRelativeQuaternion(
-		mFloor->GetTransform().GetOrientation().x,
-		mFloor->GetTransform().GetOrientation().y,
-		mFloor->GetTransform().GetOrientation().z,
-		mFloor->GetTransform().GetOrientation().w
-	);
-
-	boxMesh->SetAccumulatedPosition(mCube->GetTransform().GetPosition().v);
-	boxMesh->SetRelativeQuaternion(
-		mCube->GetTransform().GetOrientation().x,
-		mCube->GetTransform().GetOrientation().y,
-		mCube->GetTransform().GetOrientation().z,
-		mCube->GetTransform().GetOrientation().w
-	);
-
-	ballMesh->SetAccumulatedPosition(mCube2->GetTransform().GetPosition().v);
-	ballMesh->SetRelativeQuaternion(
-		mCube2->GetTransform().GetOrientation().x,
-		mCube2->GetTransform().GetOrientation().y,
-		mCube2->GetTransform().GetOrientation().z,
-		mCube2->GetTransform().GetOrientation().w);
-
-
-	boxMesh2->SetAccumulatedPosition(mCube3->GetTransform().GetPosition().v);
-	boxMesh2->SetRelativeQuaternion(
-		mCube3->GetTransform().GetOrientation().x,
-		mCube3->GetTransform().GetOrientation().y,
-		mCube3->GetTransform().GetOrientation().z,
-		mCube3->GetTransform().GetOrientation().w
-	);
-
 	mSceneRoot->Update();
 	
 }
@@ -163,60 +117,4 @@ void MainScene::DrawScene() const
 	mBlooming->DownScalePass();
 	mBlooming->BrightPass();
 	mBlooming->BlurPass();
-}
-
-void MainScene::InitWorld()
-{
-	mCube = AddCubeToWorld(Vector3(0,0,0), Vector3(1, 1, 1));
-
-	mCube2 = AddCubeToWorld(Vector3(1, 3, 0), Vector3(1, 1, 1));
-
-	mCube3 = AddCubeToWorld(Vector3(-0.5, 5, 0), Vector3(1, 1, 1));
-
-	mFloor = AddFloorToWorld(Vector3(0, -20, 0));
-}
-
-PhysicsObject* MainScene::AddFloorToWorld(const Vector3& position)
-{
-	PhysicsObject* floor = new PhysicsObject();
-
-	Vector3 floorSize = Vector3(40, 2, 40);
-	AABBCollider* collider = new AABBCollider(floorSize);
-	floor->SetCollider((Collider*)collider);
-	floor->GetTransform()
-		.SetScale(floorSize * 2)
-		.SetPosition(position);
-
-	floor->SetInverseMass(0);
-	floor->InitCubeInertia();
-
-	floor->SetPhysicsType(PhysicsType::Static);
-
-	mPhysicsWorld->AddGameObject(floor);
-
-	return floor;
-}
-
-PhysicsObject* MainScene::AddCubeToWorld(const Vector3& position, Vector3 dimensions, float inverseMass, bool bStatic, float elasticity) {
-	PhysicsObject* cube = new PhysicsObject();
-
-	AABBCollider* collider = new AABBCollider(dimensions);
-
-	cube->SetCollider((Collider*)collider);
-
-	cube->GetTransform()
-		.SetPosition(position)
-		.SetScale(dimensions * 2);
-
-	cube->SetInverseMass(inverseMass);
-	cube->InitCubeInertia();
-	cube->SetElasticity(elasticity);
-
-	if (bStatic) {
-		cube->SetPhysicsType(PhysicsType::Static);
-	}
-
-	mPhysicsWorld->AddGameObject(cube);
-
-	return cube;
 }

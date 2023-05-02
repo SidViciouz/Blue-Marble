@@ -15,14 +15,10 @@ PhysicsWorld::~PhysicsWorld() {
 
 void PhysicsWorld::Clear() {
 	gameObjects.clear();
-	constraints.clear();
 }
 
 void PhysicsWorld::ClearAndErase() {
 	for (auto& i : gameObjects) {
-		delete i;
-	}
-	for (auto& i : constraints) {
 		delete i;
 	}
 	Clear();
@@ -59,29 +55,4 @@ void PhysicsWorld::UpdateWorld(float dt) {
 		std::random_shuffle(gameObjects.begin(), gameObjects.end());
 	}
 
-	if (shuffleConstraints) {
-		std::random_shuffle(constraints.begin(), constraints.end());
-	}
-}
-
-/*
-Constraint Tutorial Stuff
-*/
-
-void PhysicsWorld::AddConstraint(Constraint* c) {
-	constraints.emplace_back(c);
-}
-
-void PhysicsWorld::RemoveConstraint(Constraint* c, bool andDelete) {
-	constraints.erase(std::remove(constraints.begin(), constraints.end(), c), constraints.end());
-	if (andDelete) {
-		delete c;
-	}
-}
-
-void PhysicsWorld::GetConstraintIterators(
-	std::vector<Constraint*>::const_iterator& first,
-	std::vector<Constraint*>::const_iterator& last) const {
-	first = constraints.begin();
-	last = constraints.end();
 }

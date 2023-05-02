@@ -35,28 +35,6 @@ public:
 	* 이 scene내의 몇몇 노드들을 임시로 가리키고 있는 포인터이다.
 	* 수정 예정이다.
 	*/
-	shared_ptr<MeshNode>						boxMesh;
-	shared_ptr<MeshNode>						boxMesh2;
-	shared_ptr<MeshNode>						ballMesh;
-	shared_ptr<MeshNode>						groundMesh;
 	shared_ptr<InventoryNode>					inventory;
 	shared_ptr<WorldNode>						worldMesh;
-
-	shared_ptr<PhysicsSystem>					mPhysicsSystem;
-	shared_ptr<PhysicsWorld>					mPhysicsWorld;
-
-	void										InitWorld();
-
-	PhysicsObject*								AddFloorToWorld(const Vector3& position);
-	PhysicsObject*								AddCubeToWorld(
-																const Vector3& position,
-																Vector3 dimensions,
-																float inverseMass = 5.0f,
-																bool bStatic = false,
-																float elasticity = 0.8f);
-
-	PhysicsObject*								mFloor;
-	PhysicsObject*								mCube;
-	PhysicsObject*								mCube2;
-	PhysicsObject*								mCube3;
 };

@@ -3,7 +3,8 @@
 
 Scene::Scene() :
 	mSceneRoot(make_shared<SceneNode>()),
-	mShadowMap(make_shared<ShadowMap>(500,500))
+	mShadowMap(make_shared<ShadowMap>(500,500)),
+	mPhysicsManager(make_shared<PhysicsManager>())
 {
 
 }
@@ -24,6 +25,8 @@ void Scene::UpdateScene(const Timer& timer)
 	envFeature.currentTime = time;// timer.GetTime();
 	time += 0.025f;
 	Engine::mResourceManager->Upload(Engine::mFrames[Engine::mCurrentFrame]->mEnvConstantBufferIdx, &envFeature, sizeof(env), 0);
+
+	mPhysicsManager->Update();
 }
 
 void Scene::DrawScene() const

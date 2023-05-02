@@ -2,6 +2,8 @@
 
 #include "SceneNode.h"
 
+class PhysicsComponent;
+
 class MeshNode : public SceneNode
 {
 public:
@@ -34,6 +36,10 @@ public:
 	* mesh에 입힐 텍스처를 설정한다.
 	*/
 	void										SetTextureName(const string& name);
+	/*
+	* physics component를 설정한다.
+	*/
+	void										SetPhysicsComponent(shared_ptr<PhysicsComponent> physicsComponent);
 
 protected:
 	/*
@@ -48,4 +54,8 @@ protected:
 	* mesh에 입힐 텍스처의 이름을 나타낸다.
 	*/
 	string										mTextureName;
+	/*
+	* physics 기능을 담당하는 컴포넌트이다.
+	*/
+	shared_ptr<PhysicsComponent>				mPhysicsComponent;
 };

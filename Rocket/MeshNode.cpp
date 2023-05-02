@@ -1,5 +1,6 @@
 #include "MeshNode.h"
 #include "Engine.h"
+#include "PhysicsComponent.h"
 
 MeshNode::MeshNode(string name)
 	: mMeshName{ name }, SceneNode()
@@ -70,4 +71,9 @@ const bool& MeshNode::GetActivated() const
 void MeshNode::SetTextureName(const string& name)
 {
 	mTextureName = name;
+}
+
+void MeshNode::SetPhysicsComponent(shared_ptr<PhysicsComponent> physicsComponent)
+{
+	mPhysicsComponent = physicsComponent;
 }

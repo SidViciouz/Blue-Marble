@@ -152,6 +152,8 @@
     <ClInclude Include="InventoryNode.h" />
     <ClInclude Include="LightNode.h" />
     <ClInclude Include="MenuScene.h" />
+    <ClInclude Include="PhysicsComponent.h" />
+    <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="StartButtonInputComponent.h" />
     <ClInclude Include="TextManager.h" />
@@ -194,6 +196,8 @@
     <ClCompile Include="CameraNode.cpp" />
     <ClCompile Include="DiceNode.cpp" />
     <ClCompile Include="HollowSphereVolumeNode.cpp" />
+    <ClCompile Include="PhysicsComponent.cpp" />
+    <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="UINode.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DescriptorManager.cpp" />

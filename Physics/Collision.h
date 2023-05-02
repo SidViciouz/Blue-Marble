@@ -26,7 +26,7 @@ namespace Physics
 	{
 		PhysicsObject* a;
 		PhysicsObject* b;
-		mutable int		framesLeft; //? 
+		mutable int	framesLeft; 
 		mutable int staticCount;
 
 		ContactPoint point;
@@ -56,12 +56,12 @@ namespace Physics
 		}
 	};
 
-	bool GJKCalculation(PhysicsObject* coll1, PhysicsObject* coll2, CollisionInfo& collisionInfo);
+	bool										GJKCalculation(PhysicsObject* coll1, PhysicsObject* coll2, CollisionInfo& collisionInfo);
 
-	void update_simplex3(Point& a, Point& b, Point& c, Point& d, int& simp_dim, Vector3& search_dir);
-	bool update_simplex4(Point& a, Point& b, Point& c, Point& d, int& simp_dim, Vector3& search_dir);
+	void										update_simplex3(Point& a, Point& b, Point& c, Point& d, int& simp_dim, Vector3& search_dir);
+	bool										update_simplex4(Point& a, Point& b, Point& c, Point& d, int& simp_dim, Vector3& search_dir);
 
-	void EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, PhysicsObject* coll2, CollisionInfo& collisionInfo);
+	void										EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, PhysicsObject* coll2, CollisionInfo& collisionInfo);
 
-	void CalculateSearchPoint(Point& point, Vector3& search_dir, PhysicsObject* coll1, PhysicsObject* coll2);
+	void										CalculateSearchPoint(Point& point, Vector3& search_dir, PhysicsObject* coll1, PhysicsObject* coll2);
 }

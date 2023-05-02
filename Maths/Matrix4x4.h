@@ -9,65 +9,47 @@ namespace Maths
 
 	class Matrix4x4 {
 	public:
-		Matrix4x4(void);
-		Matrix4x4(float elements[16]);
-		Matrix4x4(const Matrix3x3& m3);
-		Matrix4x4(const Quaternion& quat);
-		~Matrix4x4(void);
+												Matrix4x4(void);
+												Matrix4x4(float elements[16]);
+												Matrix4x4(const Matrix3x3& m3);
+												Matrix4x4(const Quaternion& quat);
+												~Matrix4x4(void);
 
-		float	array[16];
+		float									array[16];
 
-		//Set all matrix values to zero
-		void	ToZero();
+		void									ToZero();
 
-		//Gets the OpenGL position vector (floats 12,13, and 14)
-		Vector3 GetPositionVector() const;
-		//Sets the OpenGL position vector (floats 12,13, and 14)
-		void	SetPositionVector(const Vector3& in);
+		Vector3									GetPositionVector() const;
 
-		//Gets the scale vector (floats 1,5, and 10)
-		Vector3 GetDiagonal() const;
-		//Sets the scale vector (floats 1,5, and 10)
-		void	SetDiagonal(const Vector3& in);
+		void									SetPositionVector(const Vector3& in);
 
-		//Creates a rotation matrix that rotates by 'degrees' around the 'axis'
-		//Analogous to glRotatef
-		static Matrix4x4 Rotation(float degrees, const Vector3& axis);
+		Vector3									GetDiagonal() const;
 
-		//Creates a scaling matrix (puts the 'scale' vector down the diagonal)
-		//Analogous to glScalef
-		static Matrix4x4 Scale(const Vector3& scale);
+		void									SetDiagonal(const Vector3& in);
 
-		//Creates a translation matrix (identity, with 'translation' vector at
-		//floats 12, 13, and 14. Analogous to glTranslatef
-		static Matrix4x4 Translation(const Vector3& translation);
+		static Matrix4x4						Rotation(float degrees, const Vector3& axis);
 
-		//Creates a perspective matrix, with 'znear' and 'zfar' as the near and 
-		//far planes, using 'aspect' and 'fov' as the aspect ratio and vertical
-		//field of vision, respectively.
-		static Matrix4x4 Perspective(float znear, float zfar, float aspect, float fov);
+		static Matrix4x4						Scale(const Vector3& scale);
 
-		//Creates an orthographic matrix with 'znear' and 'zfar' as the near and 
-		//far planes, and so on. Descriptive variable names are a good thing!
-		static Matrix4x4 Orthographic(float znear, float zfar, float right, float left, float top, float bottom);
+		static Matrix4x4						Translation(const Vector3& translation);
 
-		//Builds a view matrix suitable for sending straight to the vertex shader.
-		//Puts the camera at 'from', with 'lookingAt' centered on the screen, with
-		//'up' as the...up axis (pointing towards the top of the screen)
-		static Matrix4x4 BuildViewMatrix(const Vector3& from, const Vector3& lookingAt, const Vector3& up);
+		static Matrix4x4						Perspective(float znear, float zfar, float aspect, float fov);
 
-		void    Invert();
-		Matrix4x4 Inverse() const;
+		static Matrix4x4						Orthographic(float znear, float zfar, float right, float left, float top, float bottom);
 
-		Matrix4x4 Transpose() const;
+		static Matrix4x4						BuildViewMatrix(const Vector3& from, const Vector3& lookingAt, const Vector3& up);
 
-		Vector4 GetRow(unsigned int row) const;
-		Vector4 GetColumn(unsigned int column) const;
+		void									Invert();
+		Matrix4x4								Inverse() const;
 
-		//Multiplies 'this' matrix by matrix 'a'. Performs the multiplication in 'OpenGL' order (ie, backwards)
-		inline Matrix4x4 operator*(const Matrix4x4& a) const {
+		Matrix4x4								Transpose() const;
+
+		Vector4									GetRow(unsigned int row) const;
+		Vector4									GetColumn(unsigned int column) const;
+
+		inline Matrix4x4						operator*(const Matrix4x4& a) const
+		{
 			Matrix4x4 out;
-			//Students! You should be able to think up a really easy way of speeding this up...
 			for (unsigned int r = 0; r < 4; ++r) {
 				for (unsigned int c = 0; c < 4; ++c) {
 					out.array[c + (r * 4)] = 0.0f;
@@ -80,7 +62,8 @@ namespace Maths
 		}
 
 
-		inline Matrix4x4 operator*(const float a) const {
+		inline Matrix4x4						operator*(const float a) const
+		{
 			Matrix4x4 out;
 			for (unsigned int r = 0; r < 4; ++r) {
 				for (unsigned int c = 0; c < 4; ++c) {
@@ -90,8 +73,8 @@ namespace Maths
 			return out;
 		}
 
-		Vector3 operator*(const Vector3& v) const;
-		Vector4 operator*(const Vector4& v) const;
+		Vector3									operator*(const Vector3& v) const;
+		Vector4									operator*(const Vector4& v) const;
 
 	};
 }

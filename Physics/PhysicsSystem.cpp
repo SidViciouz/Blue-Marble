@@ -70,25 +70,6 @@ float realDT = idealDT;
 
 void PhysicsSystem::Update(float dt)
 {
-	/*
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::B)) {
-		useBroadPhase = !useBroadPhase;
-		std::cout << "Setting broadphase to " << useBroadPhase << std::endl;
-		if (useBroadPhase) {
-			InitBroadPhase();
-		}
-	}
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::I)) {
-		constraintIterationCount--;
-
-		std::cout << "Setting constraint iterations to " << constraintIterationCount << std::endl;
-	}
-	if (Window::GetKeyboard()->KeyPressed(KeyboardKeys::O)) {
-		constraintIterationCount++;
-
-		std::cout << "Setting constraint iterations to " << constraintIterationCount << std::endl;
-	}
-	*/
 	dTOffset += dt; //We accumulate time delta here - there might be remainders from previous frame!
 
 	/*
@@ -115,10 +96,10 @@ void PhysicsSystem::Update(float dt)
 		//This is our simple iterative solver - 
 		//we just run things multiple times, slowly moving things forward
 		//and then rechecking that the constraints have been met		
-		float constraintDt = realDT / (float)constraintIterationCount;
-		for (int i = 0; i < constraintIterationCount; ++i) {
-			UpdateConstraints(constraintDt);
-		}
+		//float constraintDt = realDT / (float)constraintIterationCount;
+		//for (int i = 0; i < constraintIterationCount; ++i) {
+		//	UpdateConstraints(constraintDt);
+		//}
 		IntegrateVelocity(realDT); //update positions from new velocity changes
 
 		dTOffset -= realDT;
@@ -128,39 +109,6 @@ void PhysicsSystem::Update(float dt)
 
 	UpdateCollisionList(); //Remove any old collisions
 
-	/*
-	t.Tick();
-	float updateTime = t.GetTimeDeltaSeconds();
-
-	//Uh oh, physics is taking too long...
-	if (updateTime > realDT) {
-		realHZ /= 2;
-		realDT *= 2;
-		if (gameWorld.DebugMode()) {
-			std::cout << "Dropping iteration count due to long physics time...(now " << realHZ << ")\n";
-		}
-	}
-	else if (dt * 2 < realDT) { //we have plenty of room to increase iteration count!
-		int temp = realHZ;
-		realHZ *= 2;
-		realDT /= 2;
-
-		if (realHZ > idealHZ) {
-			realHZ = idealHZ;
-			realDT = idealDT;
-		}
-		if (temp != realHZ) {
-			if (gameWorld.DebugMode()) {
-				std::cout << "Raising iteration count due to short physics time...(now " << realHZ << ")\n";
-			}
-		}
-	}
-	*/
-}
-
-void PhysicsSystem::TestUpdate(float dt)
-{
-	BasicCollisionDetection();
 }
 
 /*
@@ -174,7 +122,8 @@ From this simple mechanism, we we build up gameplay interactions inside the
 OnCollisionBegin / OnCollisionEnd functions (removing health when hit by a
 rocket launcher, gaining a point when the player hits the gold coin, and so on).
 */
-void PhysicsSystem::UpdateCollisionList() {
+void PhysicsSystem::UpdateCollisionList()
+{
 	for (std::set<CollisionInfo>::iterator i = allBroadPhaseCollisions.begin(); i != allBroadPhaseCollisions.end(); ) {
 		if ((*i).framesLeft == numCollisionFrames) {
 			//i->a->OnCollisionBegin(i->b);
@@ -213,7 +162,8 @@ to the collision set for later processing. The set will guarantee that
 a particular pair will only be added once, so objects colliding for
 multiple frames won't flood the set with duplicates.
 */
-void PhysicsSystem::BasicCollisionDetection() {
+void PhysicsSystem::BasicCollisionDetection()
+{
 	std::vector < PhysicsObject* >::const_iterator first;
 	std::vector < PhysicsObject* >::const_iterator last;
 	physicsWorld->GetObjectIterators(first, last);
@@ -230,14 +180,10 @@ void PhysicsSystem::BasicCollisionDetection() {
 			/*if (CollisionDetection::ObjectIntersection(*i, *j, info)) {*/
 
 			if (GJKCalculation(*i, *j, info)) {
-				printf("there is collision\n");
-				//if(tutorialGame)
-				//	tutorialGame->AddDebugPoint(info.point.localA);
-				/*Test*/
+
 				if (bPhysics) {
 					ImpulseResolveCollision(*info.a, *info.b, info.point);
 				}
-				/*Test*/
 
 				info.framesLeft = numCollisionFrames;
 				allBroadPhaseCollisions.insert(info);
@@ -252,7 +198,8 @@ In tutorial 5, we start determining the correct response to a collision,
 so that objects separate back out.
 
 */
-void PhysicsSystem::ImpulseResolveCollision(PhysicsObject& a, PhysicsObject& b, ContactPoint& p) const {
+void PhysicsSystem::ImpulseResolveCollision(PhysicsObject& a, PhysicsObject& b, ContactPoint& p) const
+{
 
 	PhysicsObject* physA = &a;
 	PhysicsObject* physB = &b;
@@ -547,12 +494,3 @@ to constrain objects based on some extra calculation, allowing
 us to model springs and ropes etc.
 
 */
-void PhysicsSystem::UpdateConstraints(float dt) {
-	std::vector<Constraint*>::const_iterator first;
-	std::vector<Constraint*>::const_iterator last;
-	physicsWorld->GetConstraintIterators(first, last);
-
-	for (auto i = first; i != last; ++i) {
-		(*i)->UpdateConstraint(dt);
-	}
-}

@@ -29,7 +29,8 @@ Quaternion::Quaternion(const Vector3& vector, float w) {
 	this->w = w;
 }
 
-Quaternion::Quaternion(const Matrix4x4& m) {
+Quaternion::Quaternion(const Matrix4x4& m)
+{
 	w = sqrt(std::max(0.0f, (1.0f + m.array[0] + m.array[5] + m.array[10]))) * 0.5f;
 
 	if (abs(w) < 0.0001f) {
@@ -51,7 +52,8 @@ Quaternion::Quaternion(const Matrix4x4& m) {
 	}
 }
 
-Quaternion::Quaternion(const Matrix3x3& m) {
+Quaternion::Quaternion(const Matrix3x3& m)
+{
 	w = sqrt(std::max(0.0f, (1.0f + m.array[0] + m.array[4] + m.array[8]))) * 0.5f;
 
 	float qrFour = 4.0f * w;
@@ -66,11 +68,13 @@ Quaternion::~Quaternion(void)
 {
 }
 
-float Quaternion::Dot(const Quaternion& a, const Quaternion& b) {
+float Quaternion::Dot(const Quaternion& a, const Quaternion& b)
+{
 	return (a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w);
 }
 
-void Quaternion::Normalise() {
+void Quaternion::Normalise()
+{
 	float magnitude = sqrt(x * x + y * y + z * z + w * w);
 
 	if (magnitude > 0.0f) {
@@ -88,7 +92,8 @@ XMFLOAT4 Quaternion::Get() const
 	return XMFLOAT4(x, y, z, w);
 }
 
-void Quaternion::CalculateW() {
+void Quaternion::CalculateW()
+{
 	w = 1.0f - (x * x) - (y * y) - (z * z);
 	if (w < 0.0f) {
 		w = 0.0f;
@@ -103,7 +108,8 @@ Quaternion Quaternion::Conjugate() const
 	return Quaternion(-x, -y, -z, w);
 }
 
-Quaternion Quaternion::Lerp(const Quaternion& from, const Quaternion& to, float by) {
+Quaternion Quaternion::Lerp(const Quaternion& from, const Quaternion& to, float by)
+{
 	Quaternion temp = to;
 
 	float dot = Quaternion::Dot(from, to);
@@ -115,7 +121,8 @@ Quaternion Quaternion::Lerp(const Quaternion& from, const Quaternion& to, float 
 	return (from * (1.0f - by)) + (temp * by);
 }
 
-Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, float by) {
+Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, float by)
+{
 	Quaternion temp = to;
 
 	float dot = Quaternion::Dot(from, to);
@@ -129,7 +136,8 @@ Quaternion Quaternion::Slerp(const Quaternion& from, const Quaternion& to, float
 
 //http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
 //Verified! Different values to above, due to difference between x/z being 'forward'
-Vector3 Quaternion::ToEuler() const {
+Vector3 Quaternion::ToEuler() const
+{
 	Vector3 euler;
 
 	float t = x * y + z * w;
@@ -162,7 +170,8 @@ Vector3 Quaternion::ToEuler() const {
 
 //http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/
 //VERIFIED AS CORRECT - Pitch and roll are changed around as the above uses x as 'forward', whereas we use -z
-Quaternion Quaternion::EulerAnglesToQuaternion(float roll, float yaw, float pitch) {
+Quaternion Quaternion::EulerAnglesToQuaternion(float roll, float yaw, float pitch)
+{
 	float cos1 = (float)cos(Maths::DegreesToRadians(yaw * 0.5f));
 	float cos2 = (float)cos(Maths::DegreesToRadians(pitch * 0.5f));
 	float cos3 = (float)cos(Maths::DegreesToRadians(roll * 0.5f));
@@ -181,7 +190,8 @@ Quaternion Quaternion::EulerAnglesToQuaternion(float roll, float yaw, float pitc
 	return q;
 };
 
-Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees) {
+Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
+{
 	float theta = (float)Maths::DegreesToRadians(degrees);
 	float result = (float)sin(theta / 2.0f);
 
@@ -189,87 +199,8 @@ Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees
 }
 
 
-Vector3		Quaternion::operator *(const Vector3& a)	const {
+Vector3	Quaternion::operator *(const Vector3& a) const
+{
 	Quaternion newVec = *this * Quaternion(a.v.x, a.v.y, a.v.z, 0.0f) * Conjugate();
 	return Vector3(newVec.x, newVec.y, newVec.z);
 }
-/*
-Quaternion::Quaternion()
-{
-	Set(0.0f, 0.0f, 0.0f, 1.0f);
-}
-
-Quaternion::Quaternion(const float& x, const float& y, const float& z, const float& w)
-{
-	Set(x, y, z, w);
-}
-
-Quaternion::Quaternion(const Vector3& vector, float w) {
-	mQuaternion.x = vector.v.x;
-	mQuaternion.y = vector.v.y;
-	mQuaternion.z = vector.v.z;
-	mQuaternion.w = w;
-}
-
-Quaternion Quaternion::operator*(const Quaternion& other) const
-{
-	Quaternion quaternion = *this;
-
-	quaternion *= other.mQuaternion;
-
-	return quaternion;
-}
-
-void Quaternion::Set(const XMFLOAT4& quaternion)
-{
-	XMStoreFloat4(&mQuaternion, XMQuaternionNormalize(XMLoadFloat4(&quaternion)));
-}
-
-void Quaternion::Set(const Quaternion& quaternion)
-{
-	XMStoreFloat4(&mQuaternion, XMQuaternionNormalize(XMLoadFloat4(&quaternion.mQuaternion)));
-}
-
-void Quaternion::Set(const float& x, const float& y, const float& z, const float& w)
-{
-	XMStoreFloat4(&mQuaternion, XMQuaternionNormalize(XMVectorSet(x, y, z, w)));
-}
-
-void Quaternion::operator*=(const XMFLOAT4& quaternion)
-{
-	XMStoreFloat4(&mQuaternion, XMQuaternionMultiply(XMLoadFloat4(&mQuaternion), XMQuaternionNormalize(XMLoadFloat4(&quaternion))));
-}
-
-void Quaternion::operator*=(const Quaternion& quaternion)
-{
-	XMStoreFloat4(&mQuaternion, XMQuaternionMultiply(XMLoadFloat4(&mQuaternion), XMQuaternionNormalize(XMLoadFloat4(&quaternion.mQuaternion))));
-}
-
-void Quaternion::Mul(const float& x, const float& y, const float& z, const float& w)
-{
-	XMStoreFloat4(&mQuaternion, XMQuaternionMultiply(XMLoadFloat4(&mQuaternion), XMQuaternionNormalize(XMVectorSet(x, y, z, w))));
-}
-
-Quaternion Quaternion::operator+(const Quaternion& other) const
-{
-	return Quaternion(mQuaternion.x + other.mQuaternion.x,
-		mQuaternion.y + other.mQuaternion.y,
-		mQuaternion.z + other.mQuaternion.z,
-		mQuaternion.w + other.mQuaternion.w);
-}
-
-void Quaternion::Normalize()
-{
-	XMStoreFloat4(&mQuaternion, XMVector4Normalize(XMLoadFloat4(&mQuaternion)));
-}
-
-Quaternion Quaternion::Conjugate() const
-{
-	return Quaternion(-mQuaternion.x, -mQuaternion.y, -mQuaternion.z, mQuaternion.w);
-}
-
-const XMFLOAT4& Quaternion::Get() const
-{
-	return mQuaternion;
-}
-*/
