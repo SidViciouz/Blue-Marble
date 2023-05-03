@@ -26,7 +26,7 @@ int ResourceManager::CreateSwapChain(int width, int height, DXGI_FORMAT format, 
 
 	mSwapChain->GetBuffer(0, IID_PPV_ARGS(mResourceTable[mNextResourceIdx++].GetAddressOf()));
 	mSwapChain->GetBuffer(1, IID_PPV_ARGS(mResourceTable[mNextResourceIdx++].GetAddressOf()));
-
+	
 	return mNextResourceIdx - 2;
 }
 

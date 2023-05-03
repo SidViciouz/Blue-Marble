@@ -116,13 +116,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\82102\Desktop\Rocket\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Users\82102\Desktop\Rocket\Rocket;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>freetype.lib;libfbxsdk-md.lib;wininet.lib;libxml2-md.lib;zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\82102\Desktop\Rocket\Rocket\lib;$(ProjectDir)lib\vs2019\x64\debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,6 +148,7 @@
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="CameraInputComponent.h" />
     <ClInclude Include="DiceNode.h" />
+    <ClInclude Include="Fbx.h" />
     <ClInclude Include="HollowSphereVolumeNode.h" />
     <ClInclude Include="ItemInputComponent.h" />
     <ClInclude Include="ItemNode.h" />
@@ -195,6 +198,7 @@
     <ClCompile Include="Blooming.cpp" />
     <ClCompile Include="CameraNode.cpp" />
     <ClCompile Include="DiceNode.cpp" />
+    <ClCompile Include="Fbx.cpp" />
     <ClCompile Include="HollowSphereVolumeNode.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />

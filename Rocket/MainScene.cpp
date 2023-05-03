@@ -10,6 +10,7 @@
 #include "ItemNode.h"
 #include "WorldNode.h"
 #include "DiceNode.h"
+#include "Fbx.h"
 
 using namespace Physics;
 
@@ -18,6 +19,8 @@ MainScene::MainScene()
 {
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
+
+	Fbx a;
 }
 
 void MainScene::Initialize()
