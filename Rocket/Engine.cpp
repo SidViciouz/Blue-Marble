@@ -97,6 +97,7 @@ void Engine::Initialize()
 	mTextureManager->Load("earth_normal", L"../Texture/earth_normal.dds");
 	mTextureManager->Load("earth_displacement", L"../Texture/earth_displacement.dds");
 	mTextureManager->Load("dice", L"../Texture/dice.dds",true);
+	mTextureManager->Load("sophia", L"../Texture/rp_sophia_animated_003_dif.dds");
 
 
 	mTextManager = make_shared<TextManager>();

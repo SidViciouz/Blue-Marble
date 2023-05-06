@@ -189,8 +189,8 @@ float4 PS(VertexOut pin) : SV_Target
 		color += float4(rambertTerm * lights[i].color * (diffuse + fresnelTerm*roughnessTerm), 1.0f);
 	}
 	
+	//return textureMap.Sample(textureSampler, pin.tex);
 	//color.xyz = textureMap.Sample(textureSampler, pin.tex).xyz;
-
 	return color;
 }
 

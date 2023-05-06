@@ -11,6 +11,7 @@
 #include "WorldNode.h"
 #include "DiceNode.h"
 #include "Fbx.h"
+#include "AnimationNode.h"
 
 using namespace Physics;
 
@@ -19,8 +20,6 @@ MainScene::MainScene()
 {
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
-
-	Fbx a;
 }
 
 void MainScene::Initialize()
@@ -93,6 +92,10 @@ void MainScene::Initialize()
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(35.0f, 30.0f);
 	worldMesh->AddChild(cloud);
 
+	shared_ptr<AnimatedNode> animated = make_shared<AnimatedNode>();
+	animated->SetRelativePosition(30, 0, -10);
+	animated->SetScale(0.2f, 0.2f, 0.2f);
+
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(boxMesh2);
 	mSceneRoot->AddChild(boxMesh3);
@@ -102,6 +105,7 @@ void MainScene::Initialize()
 	mSceneRoot->AddChild(light2);
 	mSceneRoot->AddChild(light3);
 	mSceneRoot->AddChild(worldMesh);
+	mSceneRoot->AddChild(animated);
 	mSceneRoot->Update();
 }
 

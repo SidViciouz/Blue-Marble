@@ -38,8 +38,6 @@ WorldNode::WorldNode(string name)
 	config_doc >> root;
 	string str;
 
-	int maxPointSize = 0;
-
 	for (int i = 0; i < root.size(); ++i)
 	{
 		Json::Value field = root[i]["geo_shape"]["geometry"]["coordinates"];
@@ -121,11 +119,8 @@ WorldNode::WorldNode(string name)
 		info.minBound = minBound;
 		info.maxBound = maxBound;
 		info.index = i;
-		maxPointSize = max(maxPointSize,info.points.size());
 		mCountrys[root[i]["name"].asString()] = info;
 	}
-
-	printf("max point size : %d\n", maxPointSize);
 
 	int i = 0;
 	for (auto country : mCountrys)
@@ -166,7 +161,7 @@ WorldNode::WorldNode(string name)
 			++area;
 			num += points.size();
 		}
-		cout << "country : " << country.first << ", area : " << area << ", points :" << num << "\n";
+		//cout << "country : " << country.first << ", area : " << area << ", points :" << num << "\n";
 	}
 
 	/*

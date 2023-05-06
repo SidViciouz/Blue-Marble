@@ -292,7 +292,7 @@ void Mesh::CalculateTB()
 		xmbitangent = xmbitangent - XMVector3Dot(xmbitangent, xmnormal) * xmnormal
 			- XMVector3Dot(xmbitangent, xmtangent) * xmtangent;
 		XMStoreFloat3(&mTBs[index].bitangent, xmbitangent);
-		
+		/*
 		printf("%f %f %f, %f %f %f\n",
 			mTBs[index].tangent.x,
 			mTBs[index].tangent.y,
@@ -300,7 +300,7 @@ void Mesh::CalculateTB()
 			mTBs[index].bitangent.x,
 			mTBs[index].bitangent.y,
 			mTBs[index].bitangent.z);
-			
+		*/
 	}
 }
 

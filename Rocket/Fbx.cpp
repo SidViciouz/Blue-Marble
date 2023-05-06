@@ -56,7 +56,7 @@ void PrintAttribute(FbxNodeAttribute* pAttribute) {
 /**
  * Print a node, its attributes, and all its children recursively.
  */
-void PrintNode(FbxNode* pNode) {
+void PrintNode(FbxNode* pNode, FbxAnimEvaluator* mySceneEvaluator) {
     PrintTabs();
     const char* nodeName = pNode->GetName();
     FbxDouble3 translation = pNode->LclTranslation.Get();
@@ -71,6 +71,15 @@ void PrintNode(FbxNode* pNode) {
         scaling[0], scaling[1], scaling[2]
     );
     numTabs++;
+
+    FbxTime myTime;
+    myTime.SetSecondDouble(0.0);
+    FbxVector4 trans= mySceneEvaluator->GetNodeLocalRotation(pNode,myTime);
+    printf("[0]s : %f %f %f %f\n", trans.mData[0], trans.mData[1], trans.mData[2] , trans.mData[3]);
+    myTime.SetSecondDouble(1.0);
+    trans = mySceneEvaluator->GetNodeLocalRotation(pNode, myTime);
+    printf("[1]s : %f %f %f %f\n\n", trans.mData[0], trans.mData[1], trans.mData[2], trans.mData[3]);
+    /*
     FbxMesh* mesh = pNode->GetMesh();
     if (mesh != nullptr)
     {
@@ -80,15 +89,15 @@ void PrintNode(FbxNode* pNode) {
             printf("%d ", ver[i]);
         printf("\n");
     }
-    
+    */
     // Print the node's attributes.
     for (int i = 0; i < pNode->GetNodeAttributeCount(); i++)
         PrintAttribute(pNode->GetNodeAttributeByIndex(i));
 
     // Recursively print the children.
     for (int j = 0; j < pNode->GetChildCount(); j++)
-        PrintNode(pNode->GetChild(j));
-
+        PrintNode(pNode->GetChild(j),mySceneEvaluator);
+    
     numTabs--;
     PrintTabs();
     printf("\n");
@@ -97,7 +106,7 @@ void PrintNode(FbxNode* pNode) {
 Fbx::Fbx()
 {
     // Change the following filename to a suitable filename value.
-    const char* lFilename = "file.fbx";
+    const char* lFilename = "rp_sophia_animated_003_idling.fbx";
 
     // Initialize the SDK manager. This object handles memory management.
     FbxManager* lSdkManager = FbxManager::Create();
@@ -125,13 +134,16 @@ Fbx::Fbx()
     // The file is imported; so get rid of the importer.
     lImporter->Destroy();
 
+
+    FbxAnimEvaluator* mySceneEvaluator = lScene->GetAnimationEvaluator();
+    
     // Print the nodes of the scene and their attributes recursively.
     // Note that we are not printing the root node because it should
     // not contain any attributes.
     FbxNode* lRootNode = lScene->GetRootNode();
     if (lRootNode) {
         for (int i = 0; i < lRootNode->GetChildCount(); i++)
-            PrintNode(lRootNode->GetChild(i));
+            PrintNode(lRootNode->GetChild(i),mySceneEvaluator);
     }
     // Destroy the SDK manager and all the other objects it was handling.
     lSdkManager->Destroy();

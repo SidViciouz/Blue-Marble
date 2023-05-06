@@ -27,8 +27,8 @@ TextManager::TextManager()
 		printf("FT_Set_Pixel_Sizes error!\n");
 	}
 
-	if (mFace->available_sizes == NULL)
-		printf("available size is NULL\n");
+	//if (mFace->available_sizes == NULL)
+	//	printf("available size is NULL\n");
 
 
 	//font 비트맵을 저장할 텍스처 생성
@@ -60,8 +60,6 @@ TextManager::TextManager()
 		int width = mFace->glyph->bitmap.width;
 		int height = mFace->glyph->bitmap.rows;
 	
-		printf("%d %d\n", width, height);
-
 		if (offsetX + width >= 256)
 		{
 			offsetX = 0;
