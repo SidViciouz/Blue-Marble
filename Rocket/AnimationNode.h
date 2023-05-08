@@ -75,7 +75,6 @@ protected:
 	FbxIOSettings*								ios;
 	FbxScene*									scene;
 	FbxAnimEvaluator*							mySceneEvaluator;
-	FbxTime										time;
 
 	/*
 	* mesh data
@@ -99,4 +98,6 @@ protected:
 	int											mPoseIndex = -1;
 
 	bool										mAllByControlPoint = true;
+	bool										mMeshCache = false;
+	FbxVector4*									lVertexArray = NULL;
 };

@@ -41,6 +41,9 @@ void MainScene::Initialize()
 	groundMesh->SetScale(10.0f, 1.0f, 10.0f);
 	groundMesh->SetPhysicsComponent(mPhysicsManager->BuildCube(groundMesh, PhysicsType::Static, Vector3(10, -15, 0), Vector3(10, 1, 10),0,0));
 
+	shared_ptr<AnimatedNode> animated = make_shared<AnimatedNode>();
+	animated->SetRelativePosition(30, 0, -10);
+	animated->SetScale(0.1f, 0.1f, 0.1f);
 
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
 	//camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera,"MainScene");
@@ -92,20 +95,16 @@ void MainScene::Initialize()
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(35.0f, 30.0f);
 	worldMesh->AddChild(cloud);
 
-	shared_ptr<AnimatedNode> animated = make_shared<AnimatedNode>();
-	animated->SetRelativePosition(30, 0, -10);
-	animated->SetScale(0.2f, 0.2f, 0.2f);
-
 	mSceneRoot->AddChild(boxMesh);
 	mSceneRoot->AddChild(boxMesh2);
 	mSceneRoot->AddChild(boxMesh3);
 	mSceneRoot->AddChild(groundMesh);
+	mSceneRoot->AddChild(animated);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);
 	mSceneRoot->AddChild(light2);
 	mSceneRoot->AddChild(light3);
 	mSceneRoot->AddChild(worldMesh);
-	mSceneRoot->AddChild(animated);
 	mSceneRoot->Update();
 }
 

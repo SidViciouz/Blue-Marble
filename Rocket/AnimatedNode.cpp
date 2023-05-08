@@ -3,7 +3,7 @@
 
 AnimatedNode::AnimatedNode()
 {
-    filename = "kick.fbx";
+    filename = "rp_sophia_animated_003_idling.fbx";
     
     sdkManager = FbxManager::Create();
 
@@ -32,15 +32,6 @@ AnimatedNode::AnimatedNode()
 
 void AnimatedNode::Draw()
 {
-    TimerTick();
-
-    FbxPose* lPose = nullptr;
-    if(mPoseIndex != -1)
-        lPose = scene->GetPose(mPoseIndex);
-
-    FbxAMatrix lDummyGlobalPosition;
-
-    DrawNodeRecursive(scene->GetRootNode(), mCurrentTime, currentAnimLayer, lDummyGlobalPosition, lPose);
     
     Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["Default"].Get());
@@ -50,6 +41,7 @@ void AnimatedNode::Draw()
         + mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
     Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(
         Engine::mTextureManager->GetTextureIndex("sophia"), DescType::SRV));
+
     Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
     Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());
     Engine::mCommandList->DrawIndexedInstanced(mIndex.size(), 1, 0, 0, 0);
@@ -60,10 +52,17 @@ void AnimatedNode::Draw()
 
 void AnimatedNode::Update()
 {
-    time.SetSecondDouble(time.GetSecondDouble() + Engine::mTimer.GetDeltaTime());
+    TimerTick();
+
+    FbxPose* lPose = nullptr;
+    if (mPoseIndex != -1)
+        lPose = scene->GetPose(mPoseIndex);
+
+    FbxAMatrix lDummyGlobalPosition;
+
+    DrawNodeRecursive(scene->GetRootNode(), mCurrentTime, currentAnimLayer, lDummyGlobalPosition, lPose);
 
     SceneNode::Update();
-
 }
 
 void AnimatedNode::Print(FbxNode* obj,int tabs)
@@ -153,100 +152,142 @@ void AnimatedNode::LoadVertexData()
     FbxMesh* mesh = FbxCast<FbxMesh>(scene->GetSrcObject(FbxCriteria::ObjectType(FbxMesh::ClassId)));
 
     FbxVector4* controlPoints = mesh->GetControlPoints();
-
+    
     FbxArray<FbxVector4> normals;
     mesh->GetPolygonVertexNormals(normals);
 
-    int uvCount = mesh->GetElementUVCount();
+    const char* uvSetName = NULL;
+    FbxStringList lUVNames;
+    mesh->GetUVSetNames(lUVNames);
+    if (lUVNames.GetCount())
+    {
+        uvSetName = lUVNames[0];
+    }
+
 
     FbxGeometryElementUV* uvElement = mesh->GetElementUV(0);
-    const char* uvSetName = uvElement->GetName();
+    FbxGeometryElement::EMappingMode lUVMappingMode = uvElement->GetMappingMode();
 
-    switch (uvElement->GetMappingMode())
+    FbxArray<FbxVector2> uvs;
+    mesh->GetPolygonVertexUVs(uvSetName, uvs);
+
+    int triangle[6] = { 0,1,2,0,2,3 };
+
+    if (lUVMappingMode != FbxGeometryElement::eByControlPoint)
     {
-    case FbxGeometryElement::eNone:
-        printf("eNone\n");
-        break;
-
-    case FbxGeometryElement::eByControlPoint:
-        printf("eByControlPoint\n");
-        break;
-
-    case FbxGeometryElement::eByPolygonVertex:
-        printf("eByPolygonVertex\n");
-        break;
-
-    case FbxGeometryElement::eByPolygon:
-        printf("eByPolygon\n");
-        break;
-
-    case FbxGeometryElement::eByEdge:
-        printf("eByEdge\n");
-        break;
-
-    case FbxGeometryElement::eAllSame:
-        printf("eAllSame\n");
-        break;
+        mAllByControlPoint = false;
     }
 
-
-    for (int i = 0; i < mesh->GetControlPointsCount(); ++i)
+    if (mAllByControlPoint)
     {
-        FbxVector4 pos = controlPoints[i];
+        const FbxGeometryElementNormal* lNormalElement = mesh->GetElementNormal(0);
+        const FbxGeometryElementUV* lUVElement = mesh->GetElementUV(0);
+        FbxVector4 normal;
+        FbxVector2 uv;
 
-        Vertex vertex;
-        vertex.position.x = pos.mData[0];
-        vertex.position.y = pos.mData[1];
-        vertex.position.z = pos.mData[2];
-
-        mVertex.push_back(vertex);
-    }
-
-    int polygonCount = mesh->GetPolygonCount();
-    for (int i = 0; i < polygonCount; ++i)
-    {
-        int index = mesh->GetPolygonVertexIndex(i);
-        if (index == -1)
-            break;
-        int count = mesh->GetPolygonSize(i);
-        if (count == 3)
+        for (int i = 0; i < mesh->GetControlPointsCount(); ++i)
         {
-            for (int j = 0; j < count; ++j)
+            Vertex vertex;
+
+            FbxVector4 pos = controlPoints[i];
+            vertex.position = { static_cast<float>(pos[0]), static_cast<float>(pos[1]), static_cast<float>(pos[2]) };
+
+            int lNormalIndex = i;
+            if (lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
             {
-                mIndex.push_back(mesh->GetPolygonVertices()[index + j]);
-
-                FbxVector4 normal = normals[index + j];
-                mVertex[mesh->GetPolygonVertices()[index + j]].normal = { (float)normal[0],(float)normal[1],(float)normal[2] };
-
-                const int controlPointIndex = mesh->GetPolygonVertex(i, j);
-                const int textureUVIndex = uvElement->GetIndexArray().GetAt(controlPointIndex);
-                const FbxVector2 textureUV = uvElement->GetDirectArray().GetAt(textureUVIndex);
-
-                mVertex[mesh->GetPolygonVertices()[index + j]].uv = { (float)textureUV[0],(float)textureUV[1] };
+                lNormalIndex = lNormalElement->GetIndexArray().GetAt(i);
             }
-        }
-        else if (count == 4)
-        {
-            mIndex.push_back(mesh->GetPolygonVertices()[index + 0]);
-            mIndex.push_back(mesh->GetPolygonVertices()[index + 1]);
-            mIndex.push_back(mesh->GetPolygonVertices()[index + 2]);
-            mIndex.push_back(mesh->GetPolygonVertices()[index + 0]);
-            mIndex.push_back(mesh->GetPolygonVertices()[index + 2]);
-            mIndex.push_back(mesh->GetPolygonVertices()[index + 3]);
+            normal = lNormalElement->GetDirectArray().GetAt(lNormalIndex);
+            vertex.normal = { static_cast<float>(normal[0]),static_cast<float>(normal[1]), static_cast<float>(normal[2]) };
 
-            for (int j = 0; j < 4; ++j)
+            int lUVIndex = i;
+            if (lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
             {
-                FbxVector4 normal = normals[index + j];
-                mVertex[mesh->GetPolygonVertices()[index + j]].normal = { (float)normal[0],(float)normal[1],(float)normal[2] };
+                lUVIndex = lUVElement->GetIndexArray().GetAt(i);
+            }
+            uv = lUVElement->GetDirectArray().GetAt(lUVIndex);
+            vertex.uv = { static_cast<float>(uv[0]),static_cast<float>(1.0f - uv[1]) };
 
-                const int controlPointIndex = mesh->GetPolygonVertex(i, j);
-                const int textureUVIndex = uvElement->GetIndexArray().GetAt(controlPointIndex);
-                const FbxVector2 textureUV = uvElement->GetDirectArray().GetAt(textureUVIndex);
+            mVertex.push_back(vertex);
+        }
 
-                mVertex[mesh->GetPolygonVertices()[index + j]].uv = { (float)textureUV[0],(float)textureUV[1] };
+        int polygonCount = mesh->GetPolygonCount();
+        for (int i = 0; i < polygonCount; ++i)
+        {
+            int vertexCount = mesh->GetPolygonSize(i);
+            if (vertexCount == 3)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    mIndex.push_back(mesh->GetPolygonVertex(i, j));
+                }
+            }
+            else if (vertexCount == 4)
+            {
+                for(int j=0; j<6; ++j)
+                    mIndex.push_back(mesh->GetPolygonVertex(i, triangle[j]));
             }
         }
     }
+    else
+    {
+        int lVertexCount = 0;
+        int polygonCount = mesh->GetPolygonCount();
+        for (int i = 0; i < polygonCount; ++i)
+        {
+            int vertexCount = mesh->GetPolygonSize(i);
+            if (vertexCount == 3)
+            {
+                for (int j = 0; j < 3; ++j)
+                {
+                    int lControlPointIndex = mesh->GetPolygonVertex(i,j);
+
+                    Vertex vertex;
+
+                    FbxVector4 pos = controlPoints[lControlPointIndex];
+                    vertex.position = { static_cast<float>(pos[0]), static_cast<float>(pos[1]), static_cast<float>(pos[2]) };
+                    
+                    FbxVector4 normal;
+                    mesh->GetPolygonVertexNormal(i, j, normal);
+                    vertex.normal = { static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]) };
+
+                    bool lUnmappedUV;
+                    FbxVector2 uv;
+                    mesh->GetPolygonVertexUV(i, j, uvSetName, uv, lUnmappedUV);
+                    vertex.uv = {static_cast<float>(uv[0]),1.0f-static_cast<float>(uv[1]) };
+                    
+                    mVertex.push_back(vertex);
+
+                    mIndex.push_back(lVertexCount++);
+                }
+            }
+            else if (vertexCount == 4)
+            {
+                for (int j = 0; j < 6; ++j)
+                {
+                    int lControlPointIndex = mesh->GetPolygonVertex(i, triangle[j]);
+
+                    Vertex vertex;
+
+                    FbxVector4 pos = controlPoints[lControlPointIndex];
+                    vertex.position = { static_cast<float>(pos[0]), static_cast<float>(pos[1]), static_cast<float>(pos[2]) };
+
+                    FbxVector4 normal;
+                    mesh->GetPolygonVertexNormal(i, triangle[j], normal);
+                    vertex.normal = { static_cast<float>(normal[0]), static_cast<float>(normal[1]), static_cast<float>(normal[2]) };
+
+                    bool lUnmappedUV;
+                    FbxVector2 uv;
+                    mesh->GetPolygonVertexUV(i, triangle[j], uvSetName, uv, lUnmappedUV);
+                    vertex.uv = {static_cast<float>(uv[0]),1.0f-static_cast<float>(uv[1]) };
+
+                    mVertex.push_back(vertex);
+
+                    mIndex.push_back(lVertexCount++);
+                }
+            }
+        }
+    } 
 
     mVertexBuffer = Engine::mResourceManager->CreateUploadBuffer(sizeof(Vertex) * mVertex.size());
     mIndexBuffer = Engine::mResourceManager->CreateUploadBuffer(sizeof(uint16_t) * mIndex.size());
@@ -254,6 +295,7 @@ void AnimatedNode::LoadVertexData()
     Engine::mResourceManager->Upload(mVertexBuffer, mVertex.data(), sizeof(Vertex) * mVertex.size(), 0);
     Engine::mResourceManager->Upload(mIndexBuffer, mIndex.data(), sizeof(uint16_t) * mIndex.size(), 0);
 
+    /*
     FbxNode* root = scene->GetRootNode();
     int numChild = root->GetChildCount();
     for (int i = 0; i < numChild; ++i)
@@ -261,6 +303,7 @@ void AnimatedNode::LoadVertexData()
         FbxNode* obj = root->GetChild(i);
         Print(obj, 1);
     }
+    */
 }
 
 bool AnimatedNode::SetCurrentAnimStack(int pIndex)
@@ -315,15 +358,6 @@ void AnimatedNode::DrawNodeRecursive(FbxNode* pNode, FbxTime& pTime, FbxAnimLaye
     FbxAMatrix lGlobalPosition = GetGlobalPosition(pNode, pTime, pPose, &pParentGlobalPositoin);
     if (pNode->GetNodeAttribute())
     {
-        /*
-        printf("%s\n", pNode->GetTypeName());
-        printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
-            lGlobalPosition[0][0], lGlobalPosition[0][1], lGlobalPosition[0][2], lGlobalPosition[0][3],
-            lGlobalPosition[1][0], lGlobalPosition[1][1], lGlobalPosition[1][2], lGlobalPosition[1][3],
-            lGlobalPosition[2][0], lGlobalPosition[2][1], lGlobalPosition[2][2], lGlobalPosition[2][3],
-            lGlobalPosition[3][0], lGlobalPosition[3][1], lGlobalPosition[3][2], lGlobalPosition[3][3]
-        );
-        */
         FbxAMatrix lGeometryOffset = GetGeometry(pNode);
         FbxAMatrix lGlobalOffPosition = lGlobalPosition * lGeometryOffset;
         DrawNode(pNode, pTime, pAnimLayer, pParentGlobalPositoin, lGlobalOffPosition, pPose);
@@ -399,7 +433,8 @@ void AnimatedNode::TimerTick()
 {
     if (mStop > mStart)
     {
-
+        
+        mFrameTime.SetSecondDouble(Engine::mTimer.GetDeltaTime());
         mCurrentTime += mFrameTime;
 
         if (mCurrentTime > mStop)
@@ -451,10 +486,11 @@ void AnimatedNode::DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimL
     const bool lHasSkin = lMesh->GetDeformerCount(FbxDeformer::eSkin) > 0;
     const bool lHasDeformation = lHasVertexCache || lHasShape || lHasSkin;
     
-    FbxVector4* lVertexArray = NULL;
+    //FbxVector4* lVertexArray = NULL;
 
-    if (lHasDeformation)
+    if (!mMeshCache && lHasDeformation)
     {
+
         lVertexArray = new FbxVector4[lVertexCount];
         memcpy(lVertexArray, lMesh->GetControlPoints(), lVertexCount * sizeof(FbxVector4));
     }
@@ -491,8 +527,7 @@ void AnimatedNode::DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimL
         //update vertex position
         UpdateVertexPosition(lMesh, lVertexArray);
     }
-    
-    //draw
+   
 }
 
 void AnimatedNode::ReadVertexCacheData(FbxMesh* pMesh, FbxTime& pTime, FbxVector4* pVertexArray)
@@ -537,6 +572,7 @@ void AnimatedNode::UpdateVertexPosition(const FbxMesh* pMesh, const FbxVector4* 
     
     // Convert to the same sequence with data in GPU.
     int lVertexCount = 0;
+
     if (mAllByControlPoint)
     {
         lVertexCount = pMesh->GetControlPointsCount();
@@ -547,20 +583,39 @@ void AnimatedNode::UpdateVertexPosition(const FbxMesh* pMesh, const FbxVector4* 
             mVertex[lIndex].position.z = static_cast<float>(pVertices[lIndex][2]);
         }
     }
+    
     else
     {
         const int lPolygonCount = pMesh->GetPolygonCount();
+        int triangle[6] = { 0,1,2,0,2,3 };
+
 
         int lVertexCount = 0;
         for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
         {
-            for (int lVerticeIndex = 0; lVerticeIndex < pMesh->GetPolygonSize(lPolygonIndex); ++lVerticeIndex)
+            int vertexCount = pMesh->GetPolygonSize(lPolygonIndex);
+
+            if (vertexCount == 3)
             {
-                const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
-                mVertex[lVertexCount].position.x = static_cast<float>(pVertices[lControlPointIndex][0]);
-                mVertex[lVertexCount].position.y = static_cast<float>(pVertices[lControlPointIndex][1]);
-                mVertex[lVertexCount].position.z = static_cast<float>(pVertices[lControlPointIndex][2]);
-                ++lVertexCount;
+                for (int lVerticeIndex = 0; lVerticeIndex < 3; ++lVerticeIndex)
+                {
+                    const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
+                    mVertex[lVertexCount].position.x = static_cast<float>(pVertices[lControlPointIndex][0]);
+                    mVertex[lVertexCount].position.y = static_cast<float>(pVertices[lControlPointIndex][1]);
+                    mVertex[lVertexCount].position.z = static_cast<float>(pVertices[lControlPointIndex][2]);
+                    ++lVertexCount;
+                }
+            }
+            else if (vertexCount == 4)
+            {
+                for (int lVerticeIndex = 0; lVerticeIndex < 6; ++lVerticeIndex)
+                {
+                    const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, triangle[lVerticeIndex]);
+                    mVertex[lVertexCount].position.x = static_cast<float>(pVertices[lControlPointIndex][0]);
+                    mVertex[lVertexCount].position.y = static_cast<float>(pVertices[lControlPointIndex][1]);
+                    mVertex[lVertexCount].position.z = static_cast<float>(pVertices[lControlPointIndex][2]);
+                    ++lVertexCount;
+                }
             }
         }
     }

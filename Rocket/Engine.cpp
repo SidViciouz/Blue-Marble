@@ -98,6 +98,7 @@ void Engine::Initialize()
 	mTextureManager->Load("earth_displacement", L"../Texture/earth_displacement.dds");
 	mTextureManager->Load("dice", L"../Texture/dice.dds",true);
 	mTextureManager->Load("sophia", L"../Texture/rp_sophia_animated_003_dif.dds");
+	mTextureManager->Load("peasant", L"../Texture/Peasant_Girl_diffuse.dds");
 
 
 	mTextManager = make_shared<TextManager>();
@@ -431,18 +432,6 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
 	mShaders["DefaultPS"] = move(blob);
-
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "DistortionVS", "vs_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["DistortionVS"] = move(blob);
-
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "SelectedVS", "vs_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["SelectedVS"] = move(blob);
-
-	IfError::Throw(D3DCompileFromFile(L"Shader.hlsl", nullptr, nullptr, "SelectedPS", "ps_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["SelectedPS"] = move(blob);
 
 	IfError::Throw(D3DCompileFromFile(L"VolumeSphereShader.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
@@ -1066,7 +1055,7 @@ void Engine::CreatePso()
 	psoDesc.PS.BytecodeLength = mShaders["DefaultPS"]->GetBufferSize();
 
 	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 	psoDesc.RasterizerState.FrontCounterClockwise = FALSE;
 	psoDesc.RasterizerState.DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
 	psoDesc.RasterizerState.DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
@@ -1090,12 +1079,6 @@ void Engine::CreatePso()
 	for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
 		psoDesc.BlendState.RenderTarget[i] = defaultRenderTargetBlendDesc;
 
-	/*
-	psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
-	psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
-	psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
-	psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
-	*/
 	psoDesc.DepthStencilState.DepthEnable = TRUE;
 	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;

@@ -13,7 +13,6 @@ void MeshNode::Draw()
 	if (!mActivated)
 		return;
 
-	//Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["Default"].Get());
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs["Default"].Get());
