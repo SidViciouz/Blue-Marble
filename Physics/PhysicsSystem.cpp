@@ -89,7 +89,7 @@ void PhysicsSystem::Update(float dt)
 		}
 		*/
 		//else {
-			BasicCollisionDetection();
+		BasicCollisionDetection();
 		//}
 
 

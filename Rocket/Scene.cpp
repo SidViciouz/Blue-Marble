@@ -3,7 +3,7 @@
 
 Scene::Scene() :
 	mSceneRoot(make_shared<SceneNode>()),
-	mShadowMap(make_shared<ShadowMap>(500,500)),
+	mShadowMap(make_shared<ShadowMap>(1024,1024)),
 	mPhysicsManager(make_shared<PhysicsManager>())
 {
 

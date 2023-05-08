@@ -129,6 +129,19 @@ void InputManager::Dispatch()
 				}
 			}
 		}
+		else if (msg.msgType == WM_RBUTTONDOWN)
+		{
+			for (auto inputComponent : mInputComponents)
+			{
+				if (inputComponent.second.compare(Engine::mCurrentSceneName) == 0)
+				{
+					if (inputComponent.first->IsOnMouseRightDownOverriden())
+					{
+						inputComponent.first->OnMouseRightDown(msg.param1, msg.param2);
+					}
+				}
+			}
+		}
 	}
 
 	

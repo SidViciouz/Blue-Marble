@@ -3,6 +3,8 @@
 #define MAX_NUM_POINT 250
 
 #include "MeshNode.h"
+#include "AnimationNode.h"
+
 
 struct MoveInfo
 {
@@ -51,7 +53,8 @@ public:
 protected:
 	void										UpdateCharacter();
 
-	shared_ptr<MeshNode>						mCharacter;
+
+	shared_ptr<AnimatedNode> 					mCharacter;
 	bool										isMoving = false;
 	MoveInfo									mMoveInfo;
 

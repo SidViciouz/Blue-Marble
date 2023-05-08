@@ -11,13 +11,19 @@ public:
 												DiceSystem(shared_ptr<PhysicsManager> physicsManager);
 
 	/*
-	* 주사위를 굴리고 나온 수의 합을 반환한다.
+	* 주사위들을 던진다.
 	*/
-	int											Roll();
+	void										Roll();
+	/*
+	* 주사위들의 윗방향이 가리키는 값의 합을 반환한다.
+	*/
+	int											UpperSide();
 	/*
 	* root node를 반환한다.
 	*/
 	shared_ptr<SceneNode>						GetRootNode() const;
+	
+	virtual void								Update() override;
 
 protected:
 	shared_ptr<SceneNode>						mRoot;

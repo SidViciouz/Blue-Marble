@@ -36,6 +36,11 @@ public:
 	* 마우스가 이 컴포넌트가 연결된 객체의 위에서 움직일때 실행하는 메서드이다. 이를 오버로드해서 사용하면된다.
 	*/
 	virtual void								OnMouseHover() override {};
+	/*
+	* 마우스가 오른쪽 버튼이 눌렸을 때 실행하는 메서드이다. 이를 오버로드해서 사용하면된다.
+	*/
+	virtual void								OnMouseRightDown(const int& x, const int& y) override {};
+
 
 	/*
 	* OnClick 메서드가 자식 클래스에서 오버로드되었는지 여부를 확인해서 true,false를 반환한다.
@@ -97,5 +102,14 @@ public:
 		else
 			return false;
 	}
-
+	/*
+	* OnMouseRightDown 메서드가 자식 클래스에서 오버로드되었는지 여부를 확인해서 true,false를 반환한다.
+	*/
+	virtual bool								IsOnMouseRightDownOverriden() const override
+	{
+		if (&InputComponent::OnMouseRightDown != &Derived::OnMouseRightDown)
+			return true;
+		else
+			return false;
+	}
 };

@@ -20,7 +20,7 @@ ShadowMap::ShadowMap(int width,int height)
 		Engine::mResourceManager->GetResource(mTextureIdx),
 		D3D12_DSV_DIMENSION_TEXTURE2D
 	);
-
+	
 	mViewport.TopLeftX = 0;
 	mViewport.TopLeftY = 0;
 	mViewport.Width = static_cast<float>(mWidth);

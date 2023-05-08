@@ -7,9 +7,9 @@
 WorldNode::WorldNode(string name)
 	: MeshNode(name)
 {
-	mCharacter = make_shared<MeshNode>("box");
-	mCharacter->SetRelativePosition(35.0f, 0.0f, 0.0f);
-	mCharacter->SetTextureName("stone");
+	mCharacter = make_shared<AnimatedNode>();
+	mCharacter->SetRelativePosition(0, 0, 30);
+	mCharacter->SetScale(0.02f, 0.02f, 0.02f);
 	AddChild(mCharacter);
 	
 	mBorderTextureIdx = Engine::mResourceManager->CreateTexture2D(3600, 1800,
@@ -272,7 +272,7 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 	
 	mMoveInfo.totalFrame = 60;
 	mMoveInfo.curFrame = 0;
-	mMoveInfo.radius = GetScale().x;
+	mMoveInfo.radius = GetScale().x + 5;
 
 	XMFLOAT3 center = mAccumulatedPosition.v;
 	Vector3 v1(curPos.x - center.x, curPos.y - center.y, curPos.z - center.z);
@@ -283,6 +283,8 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 
 	mMoveInfo.axis = (v1 ^ v2).Normalized().v;
 	mMoveInfo.angle = acos(Vector3::Dot(v1, v2))/ mMoveInfo.totalFrame;
+
+	mCharacter->PlayStart(2);
 }
 
 void WorldNode::PickCountry(const XMFLOAT3& pos)
@@ -394,6 +396,7 @@ void WorldNode::UpdateCharacter()
 	if (mMoveInfo.totalFrame < mMoveInfo.curFrame)
 	{
 		isMoving = false;
+		mCharacter->PlayStart(1);
 		return;
 	}
 

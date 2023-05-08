@@ -60,7 +60,7 @@ void MainScene::Initialize()
 	light2->SetTextureName("sun");
 	light2->mObjFeature.diffuseAlbedo = { 10.0f,10.0f,10.0f };
 	light2->SetColor(0.1f, 0.1f, 0.1f);
-	light2->SetRelativePosition(5.0, 5.0f, 0.0f);
+	light2->SetRelativePosition(50.0, 50.0f, 0.0f);
 	light2->SetDirection(-1.0f, -1.0f, 0.0f);
 	mLightNodes.push_back(light2);
 
@@ -90,6 +90,7 @@ void MainScene::Initialize()
 	mSceneRoot->AddChild(light3);
 	mSceneRoot->AddChild(worldMesh);
 	mSceneRoot->Update();
+
 }
 
 void MainScene::UpdateScene(const Timer& timer)
@@ -97,7 +98,6 @@ void MainScene::UpdateScene(const Timer& timer)
 	Scene::UpdateScene(timer);
 
 	mSceneRoot->Update();
-	
 }
 
 void MainScene::DrawScene() const

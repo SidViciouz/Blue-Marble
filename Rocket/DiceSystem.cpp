@@ -33,7 +33,7 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	mRoot->AddChild(mGround);
 }
 
-int DiceSystem::Roll()
+void DiceSystem::Roll()
 {
 	mDice1->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 3, 0));
 	mDice1->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 3, 0));
@@ -43,11 +43,19 @@ int DiceSystem::Roll()
 
 	mDice3->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 3, 0));
 	mDice3->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 3, 0));
+}
 
-	return 0;
+int	DiceSystem::UpperSide()
+{
+	return mDice1->UpperSide() + mDice2->UpperSide() + mDice3->UpperSide();
 }
 
 shared_ptr<SceneNode> DiceSystem::GetRootNode() const
 {
 	return mRoot;
+}
+
+void DiceSystem::Update()
+{
+
 }

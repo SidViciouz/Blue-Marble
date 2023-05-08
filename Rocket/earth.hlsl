@@ -307,7 +307,7 @@ float4 PS(GeoOut pin) : SV_Target
 		transpose(lights[lightIdx].lightProjection));
 
 	if (shadowMap.Sample(textureSampler, pin.lightTex) < lightNDCPixel.z)
-		color *= 0.2f;
+		color *= 0.1f;
 	
 	float border = borderMap.Sample(textureSampler, pin.tex);
 

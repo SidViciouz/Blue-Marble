@@ -210,6 +210,11 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		mInputManager->SetKeys(wParam, false);
 		mInputManager->SetKeyDown(false);
+
+	case WM_RBUTTONDOWN:
+		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
+		
+		return 0;
 	}
 	
 	return DefWindowProc(hwnd, msg, wParam, lParam);

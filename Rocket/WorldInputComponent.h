@@ -18,6 +18,40 @@ public:
 		prevX = x;
 		prevY = y;
 
+		return;
+	}
+
+	virtual void								OnMouseMove(const int& x, const int& y) override
+	{
+		//printf("%d %d is clicked!\n", x, y);
+			
+		float dx = x - prevX;
+		float dy = y - prevY;
+
+		float degree = XMConvertToRadians((dx*dx + dy*dy)*0.005f);
+
+		Vector3 dir(dx, dy, 0);
+
+		Vector3 axis = dir ^ Vector3(0, 0, 1);
+		axis = axis.Normalized() * sinf(degree);
+
+		//XMFLOAT4 quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
+		Quaternion quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
+		//mNode->MulRelativeQuaternion(quat);
+		Quaternion q = mNode->GetRelativeQuaternion();
+		q =  quat * q;
+		mNode->SetRelativeQuaternion(q.Get());
+
+
+		prevX = x;
+		prevY = y;
+	}
+
+	virtual void								OnMouseRightDown(const int& x, const int& y) override
+	{
+		prevX = x;
+		prevY = y;
+
 		XMFLOAT3 newPos;
 		float p00 = Engine::mAllScenes[Engine::mCurrentSceneName]->envFeature.projection._11;
 		float p11 = Engine::mAllScenes[Engine::mCurrentSceneName]->envFeature.projection._22;
@@ -64,32 +98,6 @@ public:
 			mNode->PickCountry(surface);
 			return;
 		}
-	}
-
-	virtual void								OnMouseMove(const int& x, const int& y) override
-	{
-		//printf("%d %d is clicked!\n", x, y);
-			
-		float dx = x - prevX;
-		float dy = y - prevY;
-
-		float degree = XMConvertToRadians((dx*dx + dy*dy)*0.005f);
-
-		Vector3 dir(dx, dy, 0);
-
-		Vector3 axis = dir ^ Vector3(0, 0, 1);
-		axis = axis.Normalized() * sinf(degree);
-
-		//XMFLOAT4 quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
-		Quaternion quat = { -axis.v.x, axis.v.y, axis.v.z, cosf(degree) };
-		//mNode->MulRelativeQuaternion(quat);
-		Quaternion q = mNode->GetRelativeQuaternion();
-		q =  quat * q;
-		mNode->SetRelativeQuaternion(q.Get());
-
-
-		prevX = x;
-		prevY = y;
 	}
 
 protected:
