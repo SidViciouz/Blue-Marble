@@ -14,6 +14,10 @@ public:
 												PhysicsComponent(shared_ptr<SceneNode> NodeAttachedTo,
 													PhysicsType physicsType = PhysicsType::Static,
 													ColliderType colliderType = ColliderType::None);
+
+	void										ApplyLinearImpulse(const Maths::Vector3& force);
+	void										ApplyAngularImpulse(const Maths::Vector3& force);
+
 protected:
 	/*
 	* physics 관련 데이터를 가지고 있는 오브젝트이다.

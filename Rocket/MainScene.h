@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "../Physics/PhysicsSystem.h"
 #include "../Physics/PhysicsWorld.h"
+#include "DiceSystem.h"
 
 //using namespace Physics;
 /*
@@ -37,4 +38,5 @@ public:
 	*/
 	shared_ptr<InventoryNode>					inventory;
 	shared_ptr<WorldNode>						worldMesh;
+	shared_ptr<DiceSystem>						mDiceSystem;
 };

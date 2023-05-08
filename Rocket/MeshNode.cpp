@@ -76,3 +76,8 @@ void MeshNode::SetPhysicsComponent(shared_ptr<PhysicsComponent> physicsComponent
 {
 	mPhysicsComponent = physicsComponent;
 }
+
+shared_ptr<PhysicsComponent> MeshNode::GetPhysicsComponent() const
+{
+	return mPhysicsComponent;
+}

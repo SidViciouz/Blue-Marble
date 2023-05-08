@@ -149,6 +149,8 @@
     <ClInclude Include="CameraNode.h" />
     <ClInclude Include="CameraInputComponent.h" />
     <ClInclude Include="DiceNode.h" />
+    <ClInclude Include="DiceSystem.h" />
+    <ClInclude Include="DiceSystemInputComponent.h" />
     <ClInclude Include="Fbx.h" />
     <ClInclude Include="HollowSphereVolumeNode.h" />
     <ClInclude Include="ItemInputComponent.h" />
@@ -200,6 +202,7 @@
     <ClCompile Include="Blooming.cpp" />
     <ClCompile Include="CameraNode.cpp" />
     <ClCompile Include="DiceNode.cpp" />
+    <ClCompile Include="DiceSystem.cpp" />
     <ClCompile Include="Fbx.cpp" />
     <ClCompile Include="HollowSphereVolumeNode.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />

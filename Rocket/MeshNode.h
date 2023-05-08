@@ -40,6 +40,10 @@ public:
 	* physics component를 설정한다.
 	*/
 	void										SetPhysicsComponent(shared_ptr<PhysicsComponent> physicsComponent);
+	/*
+	* physics component를 반환한다.
+	*/
+	shared_ptr<PhysicsComponent>				GetPhysicsComponent() const;
 
 protected:
 	/*

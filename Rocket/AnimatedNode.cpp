@@ -3,31 +3,43 @@
 
 AnimatedNode::AnimatedNode()
 {
-    filename = "rp_sophia_animated_003_idling.fbx";
-    
-    sdkManager = FbxManager::Create();
+    filename = "standing_idle.fbx";
+    filename2 = "medium_running.fbx";
 
+    sdkManager = FbxManager::Create();
     ios = FbxIOSettings::Create(sdkManager, IOSROOT);
     sdkManager->SetIOSettings(ios);
-
     FbxImporter* lImporter = FbxImporter::Create(sdkManager, "");
-
     if (!lImporter->Initialize(filename, -1, sdkManager->GetIOSettings()))
     {
         printf("Call to FbxImporter::Initialize() failed.\n");
         printf("Error returned: %s\n\n", lImporter->GetStatus().GetErrorString());
         exit(-1);
     }
-
-    scene = FbxScene::Create(sdkManager, "myScene");
-    
-    lImporter->Import(scene);
-
+    scene1 = FbxScene::Create(sdkManager, "myScene");
+    lImporter->Import(scene1);
     lImporter->Destroy();
 
-    LoadVertexData();
+    sdkManager = FbxManager::Create();
+    ios = FbxIOSettings::Create(sdkManager, IOSROOT);
+    sdkManager->SetIOSettings(ios);
+    lImporter = FbxImporter::Create(sdkManager, "");
+    if (!lImporter->Initialize(filename2, -1, sdkManager->GetIOSettings()))
+    {
+        printf("Call to FbxImporter::Initialize() failed.\n");
+        printf("Error returned: %s\n\n", lImporter->GetStatus().GetErrorString());
+        exit(-1);
+    }
+    scene2 = FbxScene::Create(sdkManager, "myScene");
+    lImporter->Import(scene2);
+    lImporter->Destroy();
 
-    SetCurrentAnimStack(0);
+    LoadVertexData(scene1);
+    /*
+    SetCurrentAnimStack(scene1,0);
+    mCurrentScene = scene1;
+    */
+    PlayStart(1);
 }
 
 void AnimatedNode::Draw()
@@ -40,7 +52,7 @@ void AnimatedNode::Draw()
         Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
         + mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
     Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(
-        Engine::mTextureManager->GetTextureIndex("sophia"), DescType::SRV));
+        Engine::mTextureManager->GetTextureIndex("peasant"), DescType::SRV));
 
     Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
     Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());
@@ -52,15 +64,16 @@ void AnimatedNode::Draw()
 
 void AnimatedNode::Update()
 {
-    TimerTick();
+    if(mIsPlayed)
+        TimerTick();
 
     FbxPose* lPose = nullptr;
     if (mPoseIndex != -1)
-        lPose = scene->GetPose(mPoseIndex);
+        lPose = mCurrentScene->GetPose(mPoseIndex);
 
     FbxAMatrix lDummyGlobalPosition;
 
-    DrawNodeRecursive(scene->GetRootNode(), mCurrentTime, currentAnimLayer, lDummyGlobalPosition, lPose);
+    DrawNodeRecursive(mCurrentScene->GetRootNode(), mCurrentTime, currentAnimLayer, lDummyGlobalPosition, lPose);
 
     SceneNode::Update();
 }
@@ -147,9 +160,9 @@ D3D12_INDEX_BUFFER_VIEW* AnimatedNode::GetIndexBufferView()
     return &mIndexBufferView;
 }
 
-void AnimatedNode::LoadVertexData()
+void AnimatedNode::LoadVertexData(FbxScene* pScene)
 {
-    FbxMesh* mesh = FbxCast<FbxMesh>(scene->GetSrcObject(FbxCriteria::ObjectType(FbxMesh::ClassId)));
+    FbxMesh* mesh = FbxCast<FbxMesh>(pScene->GetSrcObject(FbxCriteria::ObjectType(FbxMesh::ClassId)));
 
     FbxVector4* controlPoints = mesh->GetControlPoints();
     
@@ -306,26 +319,26 @@ void AnimatedNode::LoadVertexData()
     */
 }
 
-bool AnimatedNode::SetCurrentAnimStack(int pIndex)
+bool AnimatedNode::SetCurrentAnimStack(FbxScene* pScene,int pIndex)
 {
     mCacheStart = FBXSDK_TIME_INFINITE;
     mCacheStop = FBXSDK_TIME_MINUS_INFINITE;
-    mFrameTime.SetTime(0, 0, 0, 1, 0, scene->GetGlobalSettings().GetTimeMode());
-    scene->FillAnimStackNameArray(mAnimStackNameArray);
+    mFrameTime.SetTime(0, 0, 0, 1, 0, pScene->GetGlobalSettings().GetTimeMode());
+    pScene->FillAnimStackNameArray(mAnimStackNameArray);
 
     const int lAnimStackCount = mAnimStackNameArray.GetCount();
     if (!lAnimStackCount || pIndex >= lAnimStackCount)
         return false;
 
-    FbxAnimStack* lCurrentAnimationStack = scene->FindMember<FbxAnimStack>(mAnimStackNameArray[pIndex]->Buffer());
+    FbxAnimStack* lCurrentAnimationStack = pScene->FindMember<FbxAnimStack>(mAnimStackNameArray[pIndex]->Buffer());
     if (lCurrentAnimationStack == nullptr)
         return false;
 
     //여기서 첫번째로 애니메이션 스택에 연결된 레이어가 베이스 레이어라고 가정한다.
     currentAnimLayer = lCurrentAnimationStack->GetMember<FbxAnimLayer>();
-    scene->SetCurrentAnimationStack(lCurrentAnimationStack);
+    pScene->SetCurrentAnimationStack(lCurrentAnimationStack);
 
-    FbxTakeInfo* lCurrentTakeInfo = scene->GetTakeInfo(*(mAnimStackNameArray[pIndex]));
+    FbxTakeInfo* lCurrentTakeInfo = pScene->GetTakeInfo(*(mAnimStackNameArray[pIndex]));
     
     if (lCurrentTakeInfo)
     {
@@ -335,7 +348,7 @@ bool AnimatedNode::SetCurrentAnimStack(int pIndex)
     else
     {
         FbxTimeSpan lTimeLineTimeSpan;
-        scene->GetGlobalSettings().GetTimelineDefaultTimeSpan(lTimeLineTimeSpan);
+        pScene->GetGlobalSettings().GetTimelineDefaultTimeSpan(lTimeLineTimeSpan);
 
         mStart = lTimeLineTimeSpan.GetStart();
         mStop = lTimeLineTimeSpan.GetStop();
@@ -1009,4 +1022,27 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
     delete[] lDQClusterDeformation;
     delete[] lClusterWeight;
 
+}
+
+void AnimatedNode::PlayStart(int index)
+{
+    if (index == 1)
+    {
+        SetCurrentAnimStack(scene1, 0);
+
+        mCurrentScene = scene1;
+    }
+    else if (index == 2)
+    {
+        SetCurrentAnimStack(scene2, 0);
+
+        mCurrentScene = scene2;
+    }
+
+    mIsPlayed = true;
+}
+
+void AnimatedNode::PlayEnd()
+{
+    mIsPlayed = false;
 }

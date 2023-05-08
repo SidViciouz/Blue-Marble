@@ -12,6 +12,7 @@
 #include "DiceNode.h"
 #include "Fbx.h"
 #include "AnimationNode.h"
+#include "DiceSystemInputComponent.h"
 
 using namespace Physics;
 
@@ -24,23 +25,9 @@ MainScene::MainScene()
 
 void MainScene::Initialize()
 {
-	shared_ptr<MeshNode> boxMesh = make_shared<DiceNode>("box");
-	boxMesh->SetTextureName("dice");
-	boxMesh->SetPhysicsComponent(mPhysicsManager->BuildCube(boxMesh,PhysicsType::Dynamic,Vector3(10,-5,0),Vector3(1,1,1)));
-
-	shared_ptr<MeshNode> boxMesh2 = make_shared<DiceNode>("box");
-	boxMesh2->SetTextureName("dice");
-	boxMesh2->SetPhysicsComponent(mPhysicsManager->BuildCube(boxMesh2, PhysicsType::Dynamic, Vector3(11, -2, 0), Vector3(1,1,1)));
-
-	shared_ptr<MeshNode> boxMesh3 = make_shared<DiceNode>("box");
-	boxMesh3->SetTextureName("dice");
-	boxMesh3->SetPhysicsComponent(mPhysicsManager->BuildCube(boxMesh3, PhysicsType::Dynamic, Vector3(9.5, 0, 0), Vector3(1,1,1)));
-
-	shared_ptr<MeshNode> groundMesh = make_shared<MeshNode>("box");
-	groundMesh->SetTextureName("stone");
-	groundMesh->SetScale(10.0f, 1.0f, 10.0f);
-	groundMesh->SetPhysicsComponent(mPhysicsManager->BuildCube(groundMesh, PhysicsType::Static, Vector3(10, -15, 0), Vector3(10, 1, 10),0,0));
-
+	mDiceSystem = make_shared<DiceSystem>(mPhysicsManager);
+	mDiceSystem->mInputComponent = Engine::mInputManager->Build<DiceSystemInputComponent>(mDiceSystem,"MainScene");
+	
 	shared_ptr<AnimatedNode> animated = make_shared<AnimatedNode>();
 	animated->SetRelativePosition(30, 0, -10);
 	animated->SetScale(0.1f, 0.1f, 0.1f);
@@ -95,10 +82,7 @@ void MainScene::Initialize()
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(35.0f, 30.0f);
 	worldMesh->AddChild(cloud);
 
-	mSceneRoot->AddChild(boxMesh);
-	mSceneRoot->AddChild(boxMesh2);
-	mSceneRoot->AddChild(boxMesh3);
-	mSceneRoot->AddChild(groundMesh);
+	mSceneRoot->AddChild(mDiceSystem->GetRootNode());
 	mSceneRoot->AddChild(animated);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);

@@ -44,7 +44,7 @@ void PhysicsManager::Update()
 	for (auto physicsComponent : mPhysicsComponents)
 	{
 		const Transform& transform = physicsComponent->mPhysicsObject->GetTransform();
-		physicsComponent->mNode->SetAccumulatedPosition(transform.GetPosition().v);
+		physicsComponent->mNode->SetRelativePosition(transform.GetPosition().v);
 		physicsComponent->mNode->SetRelativeQuaternion(transform.GetOrientation().Get());
 	}
 }

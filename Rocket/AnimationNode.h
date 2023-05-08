@@ -24,11 +24,13 @@ public:
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
 
+	void										PlayStart(int index);
+	void										PlayEnd();
 
 protected:
 
-	void										LoadVertexData();
-	bool										SetCurrentAnimStack(int pIndex);
+	void										LoadVertexData(FbxScene* pScene);
+	bool										SetCurrentAnimStack(FbxScene* pScene,int pIndex);
 	void										DrawNodeRecursive(FbxNode* pNode,FbxTime& pTime,FbxAnimLayer* pAnimLayer,
 													FbxAMatrix& pParentGlobalPositoin, FbxPose* pPose);
 	FbxAMatrix									GetGlobalPosition(FbxNode* pNode,const FbxTime& pTime,FbxPose* pPose = nullptr,
@@ -71,9 +73,12 @@ protected:
 												FbxMesh* pMesh, FbxTime& pTime, FbxVector4* pVertexArray, FbxPose* pPose);
 
 	const char*									filename;
+	const char*									filename2;
 	FbxManager*									sdkManager;
 	FbxIOSettings*								ios;
-	FbxScene*									scene;
+	FbxScene*									scene1;
+	FbxScene*									scene2;
+	FbxScene*									mCurrentScene;
 	FbxAnimEvaluator*							mySceneEvaluator;
 
 	/*
@@ -100,4 +105,6 @@ protected:
 	bool										mAllByControlPoint = true;
 	bool										mMeshCache = false;
 	FbxVector4*									lVertexArray = NULL;
+
+	bool										mIsPlayed = false;
 };
