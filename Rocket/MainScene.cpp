@@ -100,6 +100,8 @@ void MainScene::UpdateScene(const Timer& timer)
 
 	if (curPhase == GamePhase::ReadyToRollDice)
 	{
+		mCameraNode->LookDown();
+		mCameraNode->SetRelativePosition(100.0f, 30.0f, 0.0f);
 		mDiceSystem->mInputComponent->Activate();
 		worldMesh->mInputComponent->Deactivate();
 	}
@@ -118,6 +120,8 @@ void MainScene::UpdateScene(const Timer& timer)
 	}
 	else if (curPhase == GamePhase::PickPlace)
 	{
+		mCameraNode->LookFront();
+		mCameraNode->SetRelativePosition(0.0f, 0.0f, -30.0f);
 		worldMesh->mInputComponent->Activate();
 	}
 	else if (curPhase == GamePhase::CharacterMoving)

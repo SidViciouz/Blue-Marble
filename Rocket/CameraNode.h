@@ -59,6 +59,13 @@ public:
 	*/
 	virtual void								Draw() override;
 
+	virtual void								SetRelativePosition(const XMFLOAT3& position) override;
+	virtual void								SetRelativePosition(const float& x, const float& y, const float& z) override;
+
+	void										LookFront();
+
+	void										LookDown();
+
 protected:
 	/*
 	* 변화된 카메라의 정보를 토대로 view matrix를 업데이트한다.

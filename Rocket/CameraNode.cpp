@@ -138,6 +138,20 @@ void CameraNode::Draw()
 	SceneNode::Draw();
 }
 
+void CameraNode::SetRelativePosition(const XMFLOAT3& position)
+{
+	mViewDirty = true;
+
+	SceneNode::SetRelativePosition(position);
+}
+
+void CameraNode::SetRelativePosition(const float& x, const float& y, const float& z)
+{
+	mViewDirty = true;
+
+	SceneNode::SetRelativePosition(x, y, z);
+}
+
 void CameraNode::UpdateViewMatrix()
 {
 	if (!mViewDirty)
@@ -206,4 +220,22 @@ void CameraNode::ToggleActivate()
 const bool& CameraNode::GetActivate() const
 {
 	return mActivate;
+}
+
+void CameraNode::LookFront()
+{
+	mViewDirty = true;
+
+	mUp = { 0.0f,1.0f,0.0f };
+	mFront = { 0.0f,0.0f,1.0f };
+	mRight = { 1.0f,0.0f,0.0f };
+}
+
+void CameraNode::LookDown()
+{
+	mViewDirty = true;
+
+	mUp = { 0.0f,0.0f,1.0f };
+	mFront = { 0.0f,-1.0f,0.0f };
+	mRight = { 1.0f,0.0f,0.0f };
 }

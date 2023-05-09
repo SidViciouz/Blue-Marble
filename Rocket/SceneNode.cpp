@@ -53,12 +53,25 @@ void SceneNode::Update()
 
 	else
 	{
-		mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
+		XMFLOAT4 parentQuat = mParentNode->mAccumulatedQuaternion.Get();
+		XMMATRIX xmParentQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&parentQuat));
+		XMFLOAT4 currentQuat = mRelativeQuaternion.Get();
+		XMMATRIX xmCurrentQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&currentQuat));
+		XMMATRIX xmCurrentTranslation = XMMatrixTranslation(mRelativePosition.v.x, mRelativePosition.v.y, mRelativePosition.v.z);
+
+		XMVECTOR xmGlobalQuat = XMQuaternionRotationMatrix(xmCurrentQuat * xmCurrentTranslation * xmParentQuat);
+		XMFLOAT4 GlobalQuat;
+		XMStoreFloat4(&GlobalQuat, xmGlobalQuat);
+
+		mAccumulatedQuaternion = Quaternion(GlobalQuat.x, GlobalQuat.y, GlobalQuat.z, GlobalQuat.w);
+
+		//
+		//mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
 		XMVECTOR p = XMLoadFloat3(&mRelativePosition.v);
-		XMFLOAT4 curQuat = mParentNode->mAccumulatedQuaternion.Get();
-		XMMATRIX q = XMMatrixRotationQuaternion(XMLoadFloat4(&curQuat));
+		//XMFLOAT4 curQuat = mParentNode->mAccumulatedQuaternion.Get();
+		//XMMATRIX q = XMMatrixRotationQuaternion(XMLoadFloat4(&curQuat));
 		XMFLOAT3 pq;
-		XMStoreFloat3( &pq ,XMVector3TransformCoord(p, q));
+		XMStoreFloat3( &pq ,XMVector3TransformCoord(p, xmParentQuat));
 		mAccumulatedPosition.v = pq;
 		mAccumulatedPosition = mAccumulatedPosition + mParentNode->mAccumulatedPosition;
 	}
@@ -166,6 +179,61 @@ void SceneNode::SetAccumulatedPosition(const float& x, const float& y, const flo
 	}
 }
 
+void SceneNode::SetAccumulatedQuaternion(const XMFLOAT4& quaternion)
+{
+	mAccumulatedQuaternion = Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+	if(mParentNode == nullptr)
+		mRelativeQuaternion = Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+	else
+	{
+		XMFLOAT4 lGlobalQuat = mAccumulatedQuaternion.Get();
+		XMMATRIX lXmGlobalQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&lGlobalQuat));
+
+		XMFLOAT4 lParentGlobalQuat = mParentNode->mAccumulatedQuaternion.Get();
+		XMMATRIX lXmParentGlobalQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&lParentGlobalQuat));
+		XMVECTOR lParentDeterminant = XMMatrixDeterminant(lXmParentGlobalQuat);
+		XMMATRIX lXmInvParentGlobalQuat = XMMatrixInverse(&lParentDeterminant, lXmParentGlobalQuat);
+
+		XMFLOAT3 lRelativeTranslation = mRelativePosition.v;
+		XMMATRIX lXmRelativeTranslation = XMMatrixTranslation(lRelativeTranslation.x, lRelativeTranslation.y, lRelativeTranslation.z);
+		XMVECTOR lRelativeDeterminant = XMMatrixDeterminant(lXmRelativeTranslation);
+		XMMATRIX lXmInvRelativeTranslation = XMMatrixInverse(&lRelativeDeterminant, lXmRelativeTranslation);
+
+		XMMATRIX lXmRelativeQuat = lXmGlobalQuat * lXmInvParentGlobalQuat * lXmInvRelativeTranslation;
+		XMFLOAT4 lRelativeQuat;
+		XMStoreFloat4(&lRelativeQuat, XMQuaternionRotationMatrix(lXmRelativeQuat));
+
+		mRelativeQuaternion = Quaternion(lRelativeQuat.x, lRelativeQuat.y, lRelativeQuat.z, lRelativeQuat.w);
+	}
+}
+void SceneNode::SetAccumulatedQuaternion(const float& x, const float& y, const float& z, const float& w)
+{
+	mAccumulatedQuaternion = Quaternion(x, y, z, w);
+	if (mParentNode == nullptr)
+		mRelativeQuaternion = Quaternion(x, y, z, w);
+	else
+	{
+		XMFLOAT4 lGlobalQuat = mAccumulatedQuaternion.Get();
+		XMMATRIX lXmGlobalQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&lGlobalQuat));
+
+		XMFLOAT4 lParentGlobalQuat = mParentNode->mAccumulatedQuaternion.Get();
+		XMMATRIX lXmParentGlobalQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&lParentGlobalQuat));
+		XMVECTOR lParentDeterminant = XMMatrixDeterminant(lXmParentGlobalQuat);
+		XMMATRIX lXmInvParentGlobalQuat = XMMatrixInverse(&lParentDeterminant, lXmParentGlobalQuat);
+
+		XMFLOAT3 lRelativeTranslation = mRelativePosition.v;
+		XMMATRIX lXmRelativeTranslation = XMMatrixTranslation(lRelativeTranslation.x, lRelativeTranslation.y, lRelativeTranslation.z);
+		XMVECTOR lRelativeDeterminant = XMMatrixDeterminant(lXmRelativeTranslation);
+		XMMATRIX lXmInvRelativeTranslation = XMMatrixInverse(&lRelativeDeterminant, lXmRelativeTranslation);
+
+		XMMATRIX lXmRelativeQuat = lXmGlobalQuat * lXmInvParentGlobalQuat * lXmInvRelativeTranslation;
+		XMFLOAT4 lRelativeQuat;
+		XMStoreFloat4(&lRelativeQuat, XMQuaternionRotationMatrix(lXmRelativeQuat));
+
+		mRelativeQuaternion = Quaternion(lRelativeQuat.x, lRelativeQuat.y, lRelativeQuat.z, lRelativeQuat.w);
+	}
+}
+
 void SceneNode::AddRelativePosition(const XMFLOAT3& position)
 {
 	mRelativePosition += position;
@@ -177,22 +245,7 @@ void SceneNode::AddRelativePosition(const float& x, const float& y, const float&
 	mRelativePosition.v.y += y;
 	mRelativePosition.v.z += z;
 }
-/*
-void SceneNode::MulRelativeQuaternion(const Quaternion& quaternion)
-{
-	mRelativeQuaternion *= quaternion;
-}
 
-void SceneNode::MulRelativeQuaternion(const XMFLOAT4& quaternion)
-{
-	mRelativeQuaternion *= quaternion;
-}
-
-void SceneNode::MulRelativeQuaternion(const float& x, const float& y, const float& z, const float& w)
-{
-	mRelativeQuaternion.Mul(x, y, z, w);
-}
-*/
 void SceneNode::MulAddRelativePosition(const float& d,const XMFLOAT3& position)
 {
 	mRelativePosition += Vector3(d * position.x, d * position.y, d * position.z);

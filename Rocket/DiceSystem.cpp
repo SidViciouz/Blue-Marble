@@ -7,7 +7,7 @@ using namespace Physics;
 DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	mPhysicsManager(physicsManager)
 {
-	SetRelativePosition(20, -15, 0);
+	SetRelativePosition(100, 0, 0);
 
 	mDice1 = make_shared<DiceNode>("box");
 	mDice1->SetTextureName("dice");
@@ -23,13 +23,39 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 
 	mGround = make_shared<MeshNode>("box");
 	mGround->SetTextureName("stone");
-	mGround->SetScale(10.0f, 1.0f, 10.0f);
-	mGround->SetPhysicsComponent(mPhysicsManager->BuildCube(mGround, PhysicsType::Static, Vector3(0, 0, 0), Vector3(10, 1, 10), 0, 0));
+	mGround->SetScale(10.0f, 0.5f, 10.0f);
+	mGround->SetPhysicsComponent(mPhysicsManager->BuildCube(mGround, PhysicsType::Static, Vector3(0, -5, 0), Vector3(10, 0.5, 10), 0, 0));
+
+	mLeftWall = make_shared<MeshNode>("box");
+	mLeftWall->SetTextureName("stone");
+	mLeftWall->SetScale(0.5f, 10.0f, 10.0f);
+	mLeftWall->SetPhysicsComponent(mPhysicsManager->BuildCube(mLeftWall, PhysicsType::Static, Vector3(-10, 5, 0), Vector3(0.5, 10, 10), 0, 0));
+	
+	mRightWall = make_shared<MeshNode>("box");
+	mRightWall->SetTextureName("stone");
+	mRightWall->SetScale(0.5f, 10.0f, 10.0f);
+	mRightWall->SetPhysicsComponent(mPhysicsManager->BuildCube(mRightWall, PhysicsType::Static, Vector3(10, 5, 0), Vector3(0.5, 10, 10), 0, 0));
+	
+	mBackWall = make_shared<MeshNode>("box");
+	mBackWall->SetTextureName("stone");
+	mBackWall->SetScale(10.0f, 10.0f, 0.5f);
+	mBackWall->SetPhysicsComponent(mPhysicsManager->BuildCube(mBackWall, PhysicsType::Static, Vector3(0, 5, 10), Vector3(10, 10, 0.5), 0, 0));
+
+	mFrontWall = make_shared<MeshNode>("box");
+	mFrontWall->SetTextureName("stone");
+	mFrontWall->SetScale(10.0f, 10.0f, 0.5f);
+	mFrontWall->SetPhysicsComponent(mPhysicsManager->BuildCube(mFrontWall, PhysicsType::Static, Vector3(0, 5, -10), Vector3(10, 10, 0.5), 0, 0));
 
 	AddChild(mDice1);
 	AddChild(mDice2);
 	AddChild(mDice3);
 	AddChild(mGround);
+	AddChild(mLeftWall);
+	AddChild(mRightWall);
+	AddChild(mBackWall);
+	AddChild(mFrontWall);
+
+
 }
 
 void DiceSystem::Roll()

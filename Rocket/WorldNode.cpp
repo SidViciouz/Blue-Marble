@@ -419,6 +419,16 @@ void WorldNode::UpdateCharacter()
 	XMStoreFloat3(&curPos, xmCurPos);
 
 	mCharacter->SetAccumulatedPosition(curPos);
+
+	//
+
+	XMFLOAT4 lDQuat;
+	XMStoreFloat4(&lDQuat, quat);
+	Quaternion lDsQuat(lDQuat.x, lDQuat.y, lDQuat.z, lDQuat.w);
+	Quaternion lGlobalQuat = mCharacter->GetAccumulatedQuaternion();
+	lGlobalQuat = lDsQuat * lGlobalQuat;
+
+	//mCharacter->SetAccumulatedQuaternion(lGlobalQuat.Get());
 }
 
 bool WorldNode::GetIsMoving() const

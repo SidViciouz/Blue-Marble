@@ -35,8 +35,8 @@ public:
 	/*
 	* 부모 노드와의 상대적인 위치를 설정한다.
 	*/
-	void										SetRelativePosition(const XMFLOAT3& position);
-	void										SetRelativePosition(const float& x,const float& y, const float& z);
+	virtual void								SetRelativePosition(const XMFLOAT3& position);
+	virtual void								SetRelativePosition(const float& x,const float& y, const float& z);
 	/*
 	* 부모 노드와의 상대적인 quaternion을 설정한다.
 	*/
@@ -53,16 +53,15 @@ public:
 	void										SetAccumulatedPosition(const XMFLOAT3& position);
 	void										SetAccumulatedPosition(const float& x, const float& y, const float& z);
 	/*
+	* 이 노드의 global quaternion을 설정한다.
+	*/
+	void										SetAccumulatedQuaternion(const XMFLOAT4& quaternion);
+	void										SetAccumulatedQuaternion(const float& x, const float& y, const float& z, const float& w);
+	/*
 	* 상대적인 위치에 입력으로 들어온 크기만큼 더한다.
 	*/
 	void										AddRelativePosition(const XMFLOAT3& position);
 	void										AddRelativePosition(const float& x, const float& y, const float& z);
-	/*
-	* 상대적인 quaternion에 입력으로 들어온 quaternion을 곱한다.
-	*/
-	//void										MulRelativeQuaternion(const Quaternion& quaternion);
-	//void										MulRelativeQuaternion(const XMFLOAT4& quaternion);
-	//void										MulRelativeQuaternion(const float& x, const float& y, const float& z, const float& w);
 
 	/*
 	* 상대적인 위치에 d*position을 더한다.
