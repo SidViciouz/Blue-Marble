@@ -74,9 +74,6 @@ void Engine::Initialize()
 	//DirectX 객체들 생성 (swapchain, depth buffer, root signature, shader 등)
 	CreateObjects();
 
-	//각 Scene들에 모델, 카메라, 조명 생성
-	//LoadScene();
-
 	mInputManager = make_shared<InputManager>();
 
 	mMeshManager = make_unique<MeshManager>();
@@ -210,10 +207,14 @@ LRESULT Engine::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		mInputManager->SetKeys(wParam, false);
 		mInputManager->SetKeyDown(false);
+		return 0;
 
 	case WM_RBUTTONDOWN:
 		mInputManager->Push(msg, LOWORD(lParam), HIWORD(lParam));
-		
+		return 0;
+
+	case WM_MOUSEWHEEL:
+		mInputManager->Push(msg, GET_WHEEL_DELTA_WPARAM(wParam));
 		return 0;
 	}
 	
@@ -1181,7 +1182,7 @@ void Engine::CreatePso()
 	psoDesc.DS.BytecodeLength = mShaders["planetDS"]->GetBufferSize();
 	psoDesc.GS.pShaderBytecode = mShaders["planetGS"]->GetBufferPointer();
 	psoDesc.GS.BytecodeLength = mShaders["planetGS"]->GetBufferSize();
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 	psoDesc.RasterizerState.DepthClipEnable = true;
 	psoDesc.RasterizerState.DepthBias = 100;
 	psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
@@ -1209,12 +1210,16 @@ void Engine::CreatePso()
 	psoDesc.DS.BytecodeLength = 0;
 	psoDesc.GS.pShaderBytecode = nullptr;
 	psoDesc.GS.BytecodeLength = 0;
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 	psoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
 	psoDesc.RasterizerState.DepthClipEnable = true;
 	psoDesc.DepthStencilState.DepthEnable = true;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
+	psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
+	psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
+	psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_SRC_ALPHA;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
@@ -1245,6 +1250,7 @@ void Engine::CreatePso()
 	psoDesc.DepthStencilState.DepthEnable = true;
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 	psoDesc.DepthStencilState.StencilEnable = false;
+	psoDesc.BlendState.RenderTarget[0].BlendEnable = false;
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = 0;
 	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),

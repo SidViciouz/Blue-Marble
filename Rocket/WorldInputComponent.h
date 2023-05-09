@@ -104,6 +104,12 @@ public:
 		}
 	}
 
+	virtual void								OnMouseWheel(const int& angle) override
+	{
+		MainScene* scene = dynamic_cast<MainScene*>(mNode->mParentNode->GetScene());
+		scene->mCameraNode->AddAngle(angle / 120);
+	}
+
 protected:
 
 	int											prevX;

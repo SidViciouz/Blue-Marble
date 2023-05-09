@@ -142,6 +142,19 @@ void InputManager::Dispatch()
 				}
 			}
 		}
+		else if (msg.msgType == WM_MOUSEWHEEL)
+		{
+			for (auto inputComponent : mInputComponents)
+			{
+				if (inputComponent.second.compare(Engine::mCurrentSceneName) == 0)
+				{
+					if (inputComponent.first->IsOnMouseWheelOverriden())
+					{
+						inputComponent.first->OnMouseWheel(msg.param1);
+					}
+				}
+			}
+		}
 	}
 
 	

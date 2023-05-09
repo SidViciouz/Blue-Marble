@@ -161,16 +161,8 @@ WorldNode::WorldNode(string name)
 			++area;
 			num += points.size();
 		}
-		//cout << "country : " << country.first << ", area : " << area << ", points :" << num << "\n";
 	}
 
-	/*
-	printf("area size : %d\n", i);
-	for (int j = 0; j < i; ++j)
-	{
-		printf("index : %d, num of points : %d\n", mCountryInfos[j].countryIndex, mCountryInfos[j].numOfPoint);
-	}
-	*/
 
 	Engine::mResourceManager->UploadTexture2D(mUploadBufferIdx, data, 3600, 1800, 0, 0);
 	Engine::mResourceManager->CopyUploadToTexture(mUploadBufferIdx, mBorderTextureIdx, 3600, 1800, 1, DXGI_FORMAT_R8_UNORM, 1);
@@ -272,7 +264,7 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 	
 	mMoveInfo.totalFrame = 60;
 	mMoveInfo.curFrame = 0;
-	mMoveInfo.radius = GetScale().x + 5;
+	mMoveInfo.radius = GetScale().x;
 
 	XMFLOAT3 center = mAccumulatedPosition.v;
 	Vector3 v1(curPos.x - center.x, curPos.y - center.y, curPos.z - center.z);
@@ -422,13 +414,13 @@ void WorldNode::UpdateCharacter()
 
 	//
 
-	XMFLOAT4 lDQuat;
-	XMStoreFloat4(&lDQuat, quat);
-	Quaternion lDsQuat(lDQuat.x, lDQuat.y, lDQuat.z, lDQuat.w);
-	Quaternion lGlobalQuat = mCharacter->GetAccumulatedQuaternion();
-	lGlobalQuat = lDsQuat * lGlobalQuat;
+	XMVECTOR up = XMVectorSet(0, 1, 0, 1);
+	XMVECTOR axis = XMVector3Cross(up, cur);
+	float angle = XMVectorGetX(XMVector3AngleBetweenVectors(up, cur));
+	XMFLOAT4 newQuat;
+	XMStoreFloat4(&newQuat, XMQuaternionRotationAxis(axis, angle));
 
-	//mCharacter->SetAccumulatedQuaternion(lGlobalQuat.Get());
+	mCharacter->SetAccumulatedQuaternion(newQuat);
 }
 
 bool WorldNode::GetIsMoving() const

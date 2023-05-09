@@ -14,7 +14,6 @@ CameraNode::CameraNode(int width, int height)
 	mRatio = static_cast<float>(width) / height;
 
 	SetRelativePosition(0.0f, 0.0f, -30.0f);
-	//SetRelativeQuaternion(0.0f,cosf(XMConvertToRadians(0.0f)),0.0f,sinf(XMConvertToRadians(0.0f)));
 	UpdateViewMatrix();
 	UpdateProjectionMatrix();
 }
@@ -238,4 +237,18 @@ void CameraNode::LookDown()
 	mUp = { 0.0f,0.0f,1.0f };
 	mFront = { 0.0f,-1.0f,0.0f };
 	mRight = { 1.0f,0.0f,0.0f };
+}
+
+void CameraNode::AddAngle(const float& pAngle)
+{
+	mProjectionDirty = true;
+
+	mAngle += XMConvertToRadians(pAngle);
+}
+
+void CameraNode::SetAngle(const float& pAngle)
+{
+	mProjectionDirty = true;
+
+	mAngle = XMConvertToRadians(pAngle);
 }

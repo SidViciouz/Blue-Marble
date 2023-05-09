@@ -61,10 +61,22 @@ public:
 
 	virtual void								SetRelativePosition(const XMFLOAT3& position) override;
 	virtual void								SetRelativePosition(const float& x, const float& y, const float& z) override;
-
+	/*
+	* 카메라가 앞쪽을 바라보도록 설정한다.
+	*/
 	void										LookFront();
-
+	/*
+	* 카메라가 밑을 바라보도록 설정한다.
+	*/
 	void										LookDown();
+	/*
+	* 카메라의 절두체 각도를 더한다.
+	*/
+	void										AddAngle(const float& pAngle);
+	/*
+	* 카메라의 절두체 각도를 설정한다.
+	*/
+	void										SetAngle(const float& pAngle);
 
 protected:
 	/*

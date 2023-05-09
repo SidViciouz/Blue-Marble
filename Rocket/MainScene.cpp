@@ -36,14 +36,14 @@ void MainScene::Initialize()
 	shared_ptr<CameraNode> camera = make_shared<CameraNode>(800,600);
 	//camera->mInputComponent = Engine::mInputManager->Build<CameraInputComponent>(camera,"MainScene");
 	mCameraNode = camera;
-
+	/*
 	inventory = make_shared<InventoryNode>("menu");
 	inventory->SetTextureName("backPack");
 	inventory->SetRelativePosition(0.0f,2.0f,5.0f);
 	inventory->mInputComponent = Engine::mInputManager->Build<UIInputComponent>(inventory,"MainScene");
 	inventory->SetIsShowUp(false);
 	camera->AddChild(inventory);
-
+	*/
 	shared_ptr<TextNode> text1 = make_shared<TextNode>();
 	text1->SetText("inventory E");
 	text1->SetScale(5.0f, 5.0f, 5.0f);
@@ -68,6 +68,7 @@ void MainScene::Initialize()
 	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
 	light3->SetTextureName("sun");
 	light3->SetColor(0.1f, 0.1f, 0.1f);
+	light3->mObjFeature.diffuseAlbedo = { 10.0f,10.0f,10.0f };
 	light3->SetRelativePosition(0.0, 0.0f, 0.0f);
 	light3->SetDirection(0.0f, 0.0f, 1.0f);
 	mLightNodes.push_back(light3);
@@ -100,8 +101,9 @@ void MainScene::UpdateScene(const Timer& timer)
 
 	if (curPhase == GamePhase::ReadyToRollDice)
 	{
+		mCameraNode->SetAngle(60);
 		mCameraNode->LookDown();
-		mCameraNode->SetRelativePosition(100.0f, 30.0f, 0.0f);
+		mCameraNode->SetRelativePosition(100.0f, 50.0f, 0.0f);
 		mDiceSystem->mInputComponent->Activate();
 		worldMesh->mInputComponent->Deactivate();
 	}
@@ -121,7 +123,7 @@ void MainScene::UpdateScene(const Timer& timer)
 	else if (curPhase == GamePhase::PickPlace)
 	{
 		mCameraNode->LookFront();
-		mCameraNode->SetRelativePosition(0.0f, 0.0f, -30.0f);
+		mCameraNode->SetRelativePosition(0.0f, 0.0f, -35.0f);
 		worldMesh->mInputComponent->Activate();
 	}
 	else if (curPhase == GamePhase::CharacterMoving)

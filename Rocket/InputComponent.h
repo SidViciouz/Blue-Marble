@@ -41,6 +41,10 @@ public:
 	*/
 	virtual void								OnMouseRightDown(const int& x, const int& y) override {};
 	/*
+	* 마우스 휠이 돌아갈 때 실행하는 메서드이다. 이를 오버로드해서 사용하면된다.
+	*/
+	virtual void								OnMouseWheel(const int& angle) {};
+	/*
 	* 이 input component를 활성화한다.
 	*/
 	virtual void								Activate() override { mActivated = true; }
@@ -137,6 +141,19 @@ public:
 			return false;
 
 		if (&InputComponent::OnMouseRightDown != &Derived::OnMouseRightDown)
+			return true;
+		else
+			return false;
+	}
+	/*
+	* OnMouseWheel 메서드가 자식 클래스에서 오버로드되었는지 여부를 확인해서 true,false를 반환한다.
+	*/
+	virtual bool								IsOnMouseWheelOverriden() const override
+	{
+		if (!mActivated)
+			return false;
+
+		if (&InputComponent::OnMouseWheel != &Derived::OnMouseWheel)
 			return true;
 		else
 			return false;
