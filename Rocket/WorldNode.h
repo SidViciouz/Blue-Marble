@@ -49,6 +49,7 @@ public:
 	virtual void								Update() override;
 	void										MoveCharacter(const XMFLOAT3& pos);
 	void										PickCountry(const XMFLOAT3& pos);
+	bool										GetIsMoving() const;
 
 protected:
 	void										UpdateCharacter();

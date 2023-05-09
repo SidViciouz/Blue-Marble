@@ -152,6 +152,7 @@
     <ClInclude Include="DiceSystem.h" />
     <ClInclude Include="DiceSystemInputComponent.h" />
     <ClInclude Include="Fbx.h" />
+    <ClInclude Include="GameState.h" />
     <ClInclude Include="HollowSphereVolumeNode.h" />
     <ClInclude Include="ItemInputComponent.h" />
     <ClInclude Include="ItemNode.h" />
@@ -204,6 +205,7 @@
     <ClCompile Include="DiceNode.cpp" />
     <ClCompile Include="DiceSystem.cpp" />
     <ClCompile Include="Fbx.cpp" />
+    <ClCompile Include="GameState.cpp" />
     <ClCompile Include="HollowSphereVolumeNode.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />

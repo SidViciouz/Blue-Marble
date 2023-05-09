@@ -420,3 +420,8 @@ void WorldNode::UpdateCharacter()
 
 	mCharacter->SetAccumulatedPosition(curPos);
 }
+
+bool WorldNode::GetIsMoving() const
+{
+	return isMoving;
+}

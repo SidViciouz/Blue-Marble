@@ -99,6 +99,34 @@ namespace Maths
 		static Matrix3x3						Scale(const Vector3& scale);
 
 		static Matrix3x3						FromEuler(const Vector3& euler);
+
+		Matrix3x3								Inverse()
+		{
+			float a = array[0];
+			float b = array[1];
+			float c = array[2];
+			float d = array[3];
+			float e = array[4];
+			float f = array[5];
+			float g = array[6];
+			float h = array[7];
+			float i = array[8];
+			
+
+			float D = 1.0f/(a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h);
+
+			float element[9] = 
+			{
+				D*(e*i-f*h), -D*(b*i -c*h), D*(b*f-c*e),
+				-D*(d*i-f*g),D*(a*i-c*g),-D*(a*f-c*d),
+				D*(d*h-e*g),-D*(a*h-b*g),D*(a*e-b*d)
+			};
+
+			Matrix3x3 inv(element);
+
+			return inv;
+		}
+
 	public:
 		float									array[9];
 	};

@@ -4,6 +4,7 @@
 #include "../Physics/PhysicsSystem.h"
 #include "../Physics/PhysicsWorld.h"
 #include "DiceSystem.h"
+#include "GameState.h"
 
 //using namespace Physics;
 /*
@@ -31,12 +32,13 @@ public:
 	virtual void								UpdateScene(const Timer& timer) override;
 
 	virtual void								DrawScene() const override;
-	
-	/*
-	* 이 scene내의 몇몇 노드들을 임시로 가리키고 있는 포인터이다.
-	* 수정 예정이다.
-	*/
+
+	void										NextGameState();
+
+protected:
+
 	shared_ptr<InventoryNode>					inventory;
 	shared_ptr<WorldNode>						worldMesh;
 	shared_ptr<DiceSystem>						mDiceSystem;
+	shared_ptr<GameState>						mGameState;
 };

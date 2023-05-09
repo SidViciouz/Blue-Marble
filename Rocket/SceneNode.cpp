@@ -223,3 +223,13 @@ Quaternion SceneNode::GetAccumulatedQuaternion()
 {
 	return mAccumulatedQuaternion;
 }
+
+void SceneNode::SetScene(Scene* scene)
+{
+	mScene = scene;
+}
+
+Scene* SceneNode::GetScene() const
+{
+	return mScene;
+}

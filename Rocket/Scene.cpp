@@ -6,7 +6,7 @@ Scene::Scene() :
 	mShadowMap(make_shared<ShadowMap>(1024,1024)),
 	mPhysicsManager(make_shared<PhysicsManager>())
 {
-
+	mSceneRoot->SetScene(this);
 }
 
 void Scene::UpdateScene(const Timer& timer)

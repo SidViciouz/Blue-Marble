@@ -3,6 +3,7 @@
 #include "InputComponent.h"
 #include "Engine.h"
 #include "DiceSystem.h"
+#include "MainScene.h"
 
 class DiceSystemInputComponent : public InputComponent<DiceSystemInputComponent>
 {
@@ -16,6 +17,11 @@ public:
 	virtual void								OnMouseDown(const int& x, const int& y) override
 	{
 		mNode->Roll();
+		MainScene* scene = dynamic_cast<MainScene*>(mNode->mParentNode->GetScene());
+		if (scene != nullptr)
+		{
+			scene->NextGameState();
+		}
 	}
 
 protected:

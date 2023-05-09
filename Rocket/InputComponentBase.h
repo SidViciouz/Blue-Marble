@@ -6,7 +6,7 @@ class InputComponentBase
 {
 public:
 												InputComponentBase(shared_ptr<SceneNode> NodeAttachedTo)
-		: mNodeAttachedTo{ NodeAttachedTo }
+		: mNodeAttachedTo{ NodeAttachedTo }, mActivated{true}
 	{
 
 	}
@@ -17,6 +17,8 @@ public:
 	virtual void								OnKeyDown(const int& key) = 0;
 	virtual void								OnMouseHover() = 0;
 	virtual void								OnMouseRightDown(const int& x, const int& y) = 0;
+	virtual void								Activate() = 0;
+	virtual void								Deactivate() = 0;
 
 	virtual bool								IsOnClickOverriden() const = 0;
 	virtual bool								IsOnMouseDownOverriden() const = 0;
@@ -27,4 +29,5 @@ public:
 	virtual bool								IsOnMouseRightDownOverriden() const = 0;
 
 	shared_ptr<SceneNode>						mNodeAttachedTo;
+	bool										mActivated;
 };

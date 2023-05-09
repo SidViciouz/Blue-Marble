@@ -48,3 +48,21 @@ void PhysicsManager::Update()
 		physicsComponent->mNode->SetRelativeQuaternion(transform.GetOrientation().Get());
 	}
 }
+
+float PhysicsManager::GetSystemVelocity()
+{
+	float lTotalKineticVelocity = 0;
+
+	for (auto physicsComponent : mPhysicsComponents)
+	{
+		if (physicsComponent->mPhysicsObject->GetInverseMass() == 0)
+			continue;
+
+		Vector3 lLinearVelocity = physicsComponent->mPhysicsObject->GetLinearVelocity();
+		Vector3 lAngularVelocity = physicsComponent->mPhysicsObject->GetAngularVelocity();
+
+		lTotalKineticVelocity += lAngularVelocity.Length() + lLinearVelocity.Length();
+	}
+
+	return lTotalKineticVelocity;
+}

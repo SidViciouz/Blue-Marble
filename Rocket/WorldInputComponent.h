@@ -96,6 +96,10 @@ public:
 
 			mNode->MoveCharacter(surface);
 			mNode->PickCountry(surface);
+
+			MainScene* lScene = dynamic_cast<MainScene*>(mNode->mParentNode->GetScene());
+			lScene->NextGameState();
+
 			return;
 		}
 	}

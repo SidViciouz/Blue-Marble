@@ -40,6 +40,14 @@ public:
 	* 마우스가 오른쪽 버튼이 눌렸을 때 실행하는 메서드이다. 이를 오버로드해서 사용하면된다.
 	*/
 	virtual void								OnMouseRightDown(const int& x, const int& y) override {};
+	/*
+	* 이 input component를 활성화한다.
+	*/
+	virtual void								Activate() override { mActivated = true; }
+	/*
+	* 이 input component를 비활성화한다.
+	*/
+	virtual void								Deactivate() override { mActivated = false; }
 
 
 	/*
@@ -47,6 +55,9 @@ public:
 	*/
 	virtual bool								IsOnClickOverriden() const override
 	{
+		if (!mActivated)
+			return false;
+
 		if (&InputComponent::OnClick != &Derived::OnClick)
 			return true;
 		else
@@ -57,6 +68,9 @@ public:
 	*/
 	virtual bool								IsOnMouseDownOverriden() const override
 	{
+		if (!mActivated)
+			return false;
+
 		if (&InputComponent::OnMouseDown != &Derived::OnMouseDown)
 			return true;
 		else
@@ -67,6 +81,9 @@ public:
 	*/
 	virtual bool								IsOnMouseUpOverriden() const override
 	{
+		if (!mActivated)
+			return false;
+
 		if (&InputComponent::OnMouseUp != &Derived::OnMouseUp)
 			return true;
 		else
@@ -77,6 +94,9 @@ public:
 	*/
 	virtual bool								IsOnMouseMoveOverriden() const override
 	{
+		if (!mActivated)
+			return false;
+
 		if (&InputComponent::OnMouseMove != &Derived::OnMouseMove)
 			return true;
 		else
@@ -87,6 +107,9 @@ public:
 	*/
 	virtual bool								IsOnKeyDownOverriden() const override
 	{
+		if (!mActivated)
+			return false;
+
 		if (&InputComponent::OnKeyDown != &Derived::OnKeyDown)
 			return true;
 		else
@@ -97,6 +120,9 @@ public:
 	*/
 	virtual bool								IsOnMouseHoverOverriden() const override
 	{
+		if (!mActivated)
+			return false;
+
 		if (&InputComponent::OnMouseHover != &Derived::OnMouseHover)
 			return true;
 		else
@@ -107,6 +133,9 @@ public:
 	*/
 	virtual bool								IsOnMouseRightDownOverriden() const override
 	{
+		if (!mActivated)
+			return false;
+
 		if (&InputComponent::OnMouseRightDown != &Derived::OnMouseRightDown)
 			return true;
 		else

@@ -7,8 +7,7 @@ using namespace Physics;
 DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	mPhysicsManager(physicsManager)
 {
-	mRoot = make_shared<SceneNode>();
-	mRoot->SetRelativePosition(20, -15, 0);
+	SetRelativePosition(20, -15, 0);
 
 	mDice1 = make_shared<DiceNode>("box");
 	mDice1->SetTextureName("dice");
@@ -27,10 +26,10 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	mGround->SetScale(10.0f, 1.0f, 10.0f);
 	mGround->SetPhysicsComponent(mPhysicsManager->BuildCube(mGround, PhysicsType::Static, Vector3(0, 0, 0), Vector3(10, 1, 10), 0, 0));
 
-	mRoot->AddChild(mDice1);
-	mRoot->AddChild(mDice2);
-	mRoot->AddChild(mDice3);
-	mRoot->AddChild(mGround);
+	AddChild(mDice1);
+	AddChild(mDice2);
+	AddChild(mDice3);
+	AddChild(mGround);
 }
 
 void DiceSystem::Roll()
@@ -48,14 +47,4 @@ void DiceSystem::Roll()
 int	DiceSystem::UpperSide()
 {
 	return mDice1->UpperSide() + mDice2->UpperSide() + mDice3->UpperSide();
-}
-
-shared_ptr<SceneNode> DiceSystem::GetRootNode() const
-{
-	return mRoot;
-}
-
-void DiceSystem::Update()
-{
-
 }

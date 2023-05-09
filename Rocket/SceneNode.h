@@ -6,6 +6,8 @@
 
 using namespace Maths;
 
+class Scene;
+
 class SceneNode
 {
 public:
@@ -110,6 +112,14 @@ public:
 	* 모든 node들을 담고있는 table이다.
 	*/
 	static bool									mSceneNodeNumTable[MAX_SCENE_NODE_NUM];
+	/*
+	* 이 노드가 속한 Scene을 설정한다.
+	*/
+	void										SetScene(Scene* scene);
+	/*
+	* 이 노드가 속한 Scene을 반환한다.
+	*/
+	Scene*										GetScene() const;
 
 protected:
 	/*
@@ -132,4 +142,8 @@ protected:
 	* global quaternion을 나타낸다.
 	*/
 	Quaternion									mAccumulatedQuaternion;
+	/*
+	* 이 노드가 속한 Scene을 가리킨다. 
+	*/
+	Scene*										mScene;
 };

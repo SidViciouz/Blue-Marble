@@ -19,6 +19,7 @@ using namespace Physics;
 MainScene::MainScene()
 	: Scene()
 {
+	mGameState = make_shared<GameState>();
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
 }
@@ -81,8 +82,8 @@ void MainScene::Initialize()
 
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(35.0f, 30.0f);
 	worldMesh->AddChild(cloud);
-
-	mSceneRoot->AddChild(mDiceSystem->GetRootNode());
+	
+	mSceneRoot->AddChild(mDiceSystem);
 	mSceneRoot->AddChild(animated);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);
@@ -95,6 +96,37 @@ void MainScene::Initialize()
 
 void MainScene::UpdateScene(const Timer& timer)
 {
+	GamePhase curPhase = mGameState->GetPhase();
+
+	if (curPhase == GamePhase::ReadyToRollDice)
+	{
+		mDiceSystem->mInputComponent->Activate();
+		worldMesh->mInputComponent->Deactivate();
+	}
+	else if (curPhase == GamePhase::DiceRolling)
+	{
+		mDiceSystem->mInputComponent->Deactivate();
+		if (mPhysicsManager->GetSystemVelocity() < 1.0f)
+		{
+			mGameState->Next();
+		}
+	}
+	else if (curPhase == GamePhase::DiceStop)
+	{
+		printf("sum : %d\n",mDiceSystem->UpperSide());
+		mGameState->Next();
+	}
+	else if (curPhase == GamePhase::PickPlace)
+	{
+		worldMesh->mInputComponent->Activate();
+	}
+	else if (curPhase == GamePhase::CharacterMoving)
+	{
+		worldMesh->mInputComponent->Deactivate();
+		if (!worldMesh->GetIsMoving())
+			mGameState->Next();
+	}
+
 	Scene::UpdateScene(timer);
 
 	mSceneRoot->Update();
@@ -107,4 +139,9 @@ void MainScene::DrawScene() const
 	mBlooming->DownScalePass();
 	mBlooming->BrightPass();
 	mBlooming->BlurPass();
+}
+
+void MainScene::NextGameState()
+{
+	mGameState->Next();
 }

@@ -18,15 +18,10 @@ public:
 	* 주사위들의 윗방향이 가리키는 값의 합을 반환한다.
 	*/
 	int											UpperSide();
-	/*
-	* root node를 반환한다.
-	*/
-	shared_ptr<SceneNode>						GetRootNode() const;
-	
-	virtual void								Update() override;
 
+	
 protected:
-	shared_ptr<SceneNode>						mRoot;
+
 	shared_ptr<DiceNode>						mDice1;
 	shared_ptr<DiceNode>						mDice2;
 	shared_ptr<DiceNode>						mDice3;

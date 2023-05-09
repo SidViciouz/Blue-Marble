@@ -30,6 +30,8 @@ public:
 	*/
 	void										Update();
 
+	float										GetSystemVelocity();
+
 protected:
 
 	vector<shared_ptr<PhysicsComponent>>		mPhysicsComponents;
