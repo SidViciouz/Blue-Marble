@@ -11,8 +11,8 @@ struct MoveInfo
 	XMFLOAT3 axis;
 	float	 angle;
 	float	 radius;
-	int		 totalFrame;
-	int		 curFrame;
+	float	 totalDistance;
+	float	 currentDistance;
 };
 
 struct P

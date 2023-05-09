@@ -261,10 +261,7 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 	isMoving = true;
 
 	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().v;
-	
-	mMoveInfo.totalFrame = 60;
-	mMoveInfo.curFrame = 0;
-	mMoveInfo.radius = GetScale().x;
+
 
 	XMFLOAT3 center = mAccumulatedPosition.v;
 	Vector3 v1(curPos.x - center.x, curPos.y - center.y, curPos.z - center.z);
@@ -273,8 +270,11 @@ void WorldNode::MoveCharacter(const XMFLOAT3& pos)
 	v1.Normalize();
 	v2.Normalize();
 
+	mMoveInfo.radius = GetScale().x;
 	mMoveInfo.axis = (v1 ^ v2).Normalized().v;
-	mMoveInfo.angle = acos(Vector3::Dot(v1, v2))/ mMoveInfo.totalFrame;
+	mMoveInfo.angle = acos(Vector3::Dot(v1, v2));
+	mMoveInfo.totalDistance = mMoveInfo.angle * mMoveInfo.radius;
+	mMoveInfo.currentDistance = 0;
 
 	mCharacter->PlayStart(2);
 }
@@ -385,16 +385,22 @@ void WorldNode::UpdateCharacter()
 	if (!isMoving)
 		return;
 
-	if (mMoveInfo.totalFrame < mMoveInfo.curFrame)
+	float lDeltaTime = Engine::mTimer.GetDeltaTime();
+	float lAngularSpeed = 10.0f;
+	float lAngularDistance = lAngularSpeed * lDeltaTime;
+	mMoveInfo.currentDistance += lAngularDistance;
+	
+	if (mMoveInfo.currentDistance >= mMoveInfo.totalDistance)
 	{
 		isMoving = false;
 		mCharacter->PlayStart(1);
 		return;
 	}
 
-	++mMoveInfo.curFrame;
+	float lAngle = lAngularDistance / mMoveInfo.radius;
 
-	XMVECTOR quat = XMQuaternionRotationAxis(XMLoadFloat3(&mMoveInfo.axis), mMoveInfo.angle);
+	XMVECTOR quat = XMQuaternionRotationAxis(XMLoadFloat3(&mMoveInfo.axis), lAngle);
+	//XMVECTOR quat = XMQuaternionRotationAxis(XMLoadFloat3(&mMoveInfo.axis), mMoveInfo.angle);
 
 	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().v;
 	XMFLOAT3 center = mAccumulatedPosition.v;
