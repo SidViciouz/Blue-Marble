@@ -10,6 +10,9 @@ WorldNode::WorldNode(string name)
 	mCharacter = make_shared<AnimatedNode>();
 	mCharacter->SetRelativePosition(0, 0, 30);
 	mCharacter->SetScale(0.02f, 0.02f, 0.02f);
+	mCharacter->SetDiffuseAlbedo(3.0f, 3.0f, 3.0f);
+	mCharacter->SetRoughness(0.5f);
+	mCharacter->SetFresnel(0.1f, 0.1f, 0.1f);
 	AddChild(mCharacter);
 	
 	mBorderTextureIdx = Engine::mResourceManager->CreateTexture2D(3600, 1800,

@@ -55,7 +55,6 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	AddChild(mBackWall);
 	AddChild(mFrontWall);
 
-
 }
 
 void DiceSystem::Roll()

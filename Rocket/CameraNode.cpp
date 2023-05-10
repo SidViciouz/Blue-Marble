@@ -244,6 +244,10 @@ void CameraNode::AddAngle(const float& pAngle)
 	mProjectionDirty = true;
 
 	mAngle += XMConvertToRadians(pAngle);
+	if (mAngle > XMConvertToRadians(120))
+		mAngle = XMConvertToRadians(120);
+	else if (mAngle < XMConvertToRadians(30))
+		mAngle = XMConvertToRadians(30);
 }
 
 void CameraNode::SetAngle(const float& pAngle)

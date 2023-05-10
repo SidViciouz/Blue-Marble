@@ -34,6 +34,7 @@ AnimatedNode::AnimatedNode()
     lImporter->Import(scene2);
     lImporter->Destroy();
 
+    LoadMaterialData(scene1);
     LoadVertexData(scene1);
     /*
     SetCurrentAnimStack(scene1,0);
@@ -158,6 +159,72 @@ D3D12_INDEX_BUFFER_VIEW* AnimatedNode::GetIndexBufferView()
     mIndexBufferView.SizeInBytes = sizeof(uint16_t) * mIndex.size();
 
     return &mIndexBufferView;
+}
+
+void AnimatedNode::LoadMaterialData(FbxScene* pScene)
+{
+
+    const int lMaterialCount = pScene->GetMaterialCount();
+
+    for (int i = 0; i < lMaterialCount; ++i)
+    {
+        FbxSurfaceMaterial* lMaterial = pScene->GetMaterial(i);
+        
+        unsigned int lEmissiveTextureName;
+        const FbxDouble3 lEmissive = GetMaterialProperty(lMaterial,
+            FbxSurfaceMaterial::sEmissive, FbxSurfaceMaterial::sEmissiveFactor, lEmissiveTextureName);
+        printf("emissive %f %f %f, %u\n", lEmissive[0], lEmissive[1], lEmissive[2],lEmissiveTextureName);
+        
+        unsigned int lAmbientTextureName;
+        const FbxDouble3 lAmbient = GetMaterialProperty(lMaterial,
+            FbxSurfaceMaterial::sAmbient, FbxSurfaceMaterial::sAmbientFactor, lAmbientTextureName);
+        printf("ambient  %f %f %f, %u\n", lAmbient[0], lAmbient[1], lAmbient[2],lAmbientTextureName);
+
+        unsigned int lDiffuseTextureName;
+        const FbxDouble3 lDiffuse = GetMaterialProperty(lMaterial,
+            FbxSurfaceMaterial::sDiffuse, FbxSurfaceMaterial::sDiffuseFactor, lDiffuseTextureName);
+        printf("diffuse  %f %f %f, %u\n", lDiffuse[0], lDiffuse[1], lDiffuse[2],lDiffuseTextureName);
+
+        unsigned int lSpecularTextureName;
+        const FbxDouble3 lSpecular = GetMaterialProperty(lMaterial,
+            FbxSurfaceMaterial::sSpecular, FbxSurfaceMaterial::sSpecularFactor, lSpecularTextureName);
+        printf("specular  %f %f %f, %u\n", lSpecular[0], lSpecular[1], lSpecular[2],lSpecularTextureName);
+    }
+
+}
+
+FbxDouble3 AnimatedNode::GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
+    const char* pPropertyName, const char* pFactorPropertyName, unsigned int& pTextureName)
+{
+    FbxDouble3 lResult(0, 0, 0);
+    const FbxProperty lProperty = pMaterial->FindProperty(pPropertyName);
+    const FbxProperty lFactorProeprty = pMaterial->FindProperty(pFactorPropertyName);
+    if (lProperty.IsValid() && lFactorProeprty.IsValid())
+    {
+        lResult = lProperty.Get<FbxDouble3>();
+        double lFactor = lFactorProeprty.Get<FbxDouble>();
+        if (lFactor != 1)
+        {
+            lResult[0] *= lFactor;
+            lResult[1] *= lFactor;
+            lResult[2] *= lFactor;
+        }
+    }
+
+    if (lProperty.IsValid())
+    {
+        const int lTextureCount = lProperty.GetSrcObjectCount<FbxFileTexture>();
+        if (lTextureCount)
+        {
+            const FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>();
+            if (lTexture && lTexture->GetUserDataPtr())
+            {
+                pTextureName = *(static_cast<int*>(lTexture->GetUserDataPtr()));
+            }
+        }
+    }
+
+    return lResult;
 }
 
 void AnimatedNode::LoadVertexData(FbxScene* pScene)

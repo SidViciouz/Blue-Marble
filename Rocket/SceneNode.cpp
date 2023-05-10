@@ -65,11 +65,7 @@ void SceneNode::Update()
 
 		mAccumulatedQuaternion = Quaternion(GlobalQuat.x, GlobalQuat.y, GlobalQuat.z, GlobalQuat.w);
 
-		//
-		//mAccumulatedQuaternion = mRelativeQuaternion * mParentNode->mAccumulatedQuaternion;
 		XMVECTOR p = XMLoadFloat3(&mRelativePosition.v);
-		//XMFLOAT4 curQuat = mParentNode->mAccumulatedQuaternion.Get();
-		//XMMATRIX q = XMMatrixRotationQuaternion(XMLoadFloat4(&curQuat));
 		XMFLOAT3 pq;
 		XMStoreFloat3( &pq ,XMVector3TransformCoord(p, xmParentQuat));
 		mAccumulatedPosition.v = pq;
@@ -285,4 +281,20 @@ void SceneNode::SetScene(Scene* scene)
 Scene* SceneNode::GetScene() const
 {
 	return mScene;
+}
+
+
+void SceneNode::SetDiffuseAlbedo(const float& x, const float& y, const float& z)
+{
+	mObjFeature.diffuseAlbedo = { x,y,z };
+}
+
+void SceneNode::SetRoughness(const float& roughness)
+{
+	mObjFeature.roughness = roughness;
+}
+
+void SceneNode::SetFresnel(const float& x, const float& y, const float& z)
+{
+	mObjFeature.fresnel = { x,y,z };
 }

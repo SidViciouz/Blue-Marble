@@ -29,6 +29,10 @@ public:
 
 protected:
 
+	void										LoadMaterialData(FbxScene* pScene);
+	FbxDouble3									GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
+													const char* pPropertyName, const char* pFactorPropertyName, unsigned int& pTextureName);
+
 	void										LoadVertexData(FbxScene* pScene);
 	bool										SetCurrentAnimStack(FbxScene* pScene,int pIndex);
 	void										DrawNodeRecursive(FbxNode* pNode,FbxTime& pTime,FbxAnimLayer* pAnimLayer,

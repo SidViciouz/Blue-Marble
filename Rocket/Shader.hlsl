@@ -76,9 +76,10 @@ VertexOut VS(VertexIn vin)
 
 float4 PS(VertexOut pin) : SV_Target
 {
+	float3 diffuse = diffuseAlbedo * textureMap.Sample(textureSampler, pin.tex);
 	float3 L = {1.0f,1.0f,1.0f};
 	float rambertTerm = 0.0f;
-	float4 color = float4(diffuseAlbedo *float3(0.1f,0.1f,0.1f), 1.0f);
+	float4 color = float4(diffuse *float3(0.1f,0.1f,0.1f), 1.0f);
 	float3 fresnelTerm;
 	float roughnessTerm;
 	
@@ -116,8 +117,6 @@ float4 PS(VertexOut pin) : SV_Target
 		float m = (1.0f - roughness) * 32.0f;
 		roughnessTerm = (m + 8.0f) * pow(max(dot(halfway, pin.normal), 0.0f), m) / 8.0f;
 		
-		float3 diffuse = textureMap.Sample(textureSampler, pin.tex);
-
 		color += float4(rambertTerm * lights[i].color * (diffuse + fresnelTerm*roughnessTerm), 1.0f);
 	}
 	

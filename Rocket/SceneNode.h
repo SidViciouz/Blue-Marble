@@ -119,6 +119,18 @@ public:
 	* 이 노드가 속한 Scene을 반환한다.
 	*/
 	Scene*										GetScene() const;
+	/*
+	* diffuse albedo를 설정한다.
+	*/
+	void										SetDiffuseAlbedo(const float& x, const float& y, const float& z);
+	/*
+	* roughness를 설정한다.
+	*/
+	void										SetRoughness(const float& roughness);
+	/*
+	* Fresnel값을 설정한다.
+	*/
+	void										SetFresnel(const float& x, const float& y, const float& z);
 
 protected:
 	/*
