@@ -3,11 +3,10 @@
 #include "SceneNode.h"
 #include <fbxsdk.h>
 
-
-class AnimatedNode : public SceneNode
+class TestNode : public SceneNode
 {
 public:
-												AnimatedNode();
+												TestNode();
 	/*
 	* 이 노드를 먼저 그리고 자식 노드들을 그린다.
 	*/
@@ -17,7 +16,7 @@ public:
 	*/
 	virtual void								Update() override;
 
-	void										Print(FbxNode* obj,int tabs);
+	void										Print(FbxNode* obj, int tabs);
 
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
@@ -29,41 +28,41 @@ protected:
 
 	void										LoadMaterialData(FbxScene* pScene);
 	FbxDouble3									GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
-													const char* pPropertyName, const char* pFactorPropertyName, unsigned int& pTextureName);
+		const char* pPropertyName, const char* pFactorPropertyName, unsigned int& pTextureName);
 
 	void										LoadVertexData(FbxScene* pScene);
-	bool										SetCurrentAnimStack(FbxScene* pScene,int pIndex);
-	void										DrawNodeRecursive(FbxNode* pNode,FbxTime& pTime,FbxAnimLayer* pAnimLayer,
-													FbxAMatrix& pParentGlobalPositoin, FbxPose* pPose);
-	FbxAMatrix									GetGlobalPosition(FbxNode* pNode,const FbxTime& pTime,FbxPose* pPose = nullptr,
-													FbxAMatrix* pParentGlobalPosition = nullptr);
+	bool										SetCurrentAnimStack(FbxScene* pScene, int pIndex);
+	void										DrawNodeRecursive(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimLayer,
+		FbxAMatrix& pParentGlobalPositoin, FbxPose* pPose);
+	FbxAMatrix									GetGlobalPosition(FbxNode* pNode, const FbxTime& pTime, FbxPose* pPose = nullptr,
+		FbxAMatrix* pParentGlobalPosition = nullptr);
 	FbxAMatrix									GetPoseMatrix(FbxPose* pPose, int pNodeIndex);
 	void										TimerTick();
 	FbxAMatrix									GetGeometry(FbxNode* pNode);
 	void										DrawNode(
-													FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimLayer, FbxAMatrix& pParentGlobalPosition,
-													FbxAMatrix& pGlobalPosition, FbxPose* pPose);
+		FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimLayer, FbxAMatrix& pParentGlobalPosition,
+		FbxAMatrix& pGlobalPosition, FbxPose* pPose);
 	void										DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimLayer,
-														FbxAMatrix& pGlobalPosition, FbxPose* pPose);
+		FbxAMatrix& pGlobalPosition, FbxPose* pPose);
 
 	void										ReadVertexCacheData(FbxMesh* pMesh, FbxTime& pTime, FbxVector4* pVertexArray);
 	void										UpdateVertexPosition(const FbxMesh* pMesh, const FbxVector4* pVertices);
 
 	void										ComputeSkinDeformation(
-													FbxAMatrix& pGlobalPosition,
-													FbxMesh* pMesh,
-													FbxTime& pTime,
-													FbxVector4* pVertexArray,
-													FbxPose* pPose);
+		FbxAMatrix& pGlobalPosition,
+		FbxMesh* pMesh,
+		FbxTime& pTime,
+		FbxVector4* pVertexArray,
+		FbxPose* pPose);
 
 	void										ComputeLinearDeformation(
-													FbxAMatrix& pGlobalPosition,
-													FbxMesh* pMesh,
-													FbxTime& pTime,
-													FbxVector4* pVertexArray,
-													FbxPose* pPose);
+		FbxAMatrix& pGlobalPosition,
+		FbxMesh* pMesh,
+		FbxTime& pTime,
+		FbxVector4* pVertexArray,
+		FbxPose* pPose);
 	void										ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
-												FbxMesh* pMesh, FbxCluster* pCluster, FbxAMatrix& pVertexTransformMatrix, FbxTime pTime, FbxPose* pPose);
+		FbxMesh* pMesh, FbxCluster* pCluster, FbxAMatrix& pVertexTransformMatrix, FbxTime pTime, FbxPose* pPose);
 
 	void										MatrixScale(FbxAMatrix& pMatrix, double pValue);
 
@@ -72,16 +71,14 @@ protected:
 	void										MatrixAdd(FbxAMatrix& pDstMatrix, FbxAMatrix& pSrcMatrix);
 
 	void										ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
-												FbxMesh* pMesh, FbxTime& pTime, FbxVector4* pVertexArray, FbxPose* pPose);
+		FbxMesh* pMesh, FbxTime& pTime, FbxVector4* pVertexArray, FbxPose* pPose);
 
-	const char*									filename;
-	const char*									filename2;
-	FbxManager*									sdkManager;
-	FbxIOSettings*								ios;
-	FbxScene*									scene1;
-	FbxScene*									scene2;
-	FbxScene*									mCurrentScene;
-	FbxAnimEvaluator*							mySceneEvaluator;
+	const char* filename;
+	FbxManager* sdkManager;
+	FbxIOSettings* ios;
+	FbxScene* scene1;
+	FbxScene* mCurrentScene;
+	FbxAnimEvaluator* mySceneEvaluator;
 
 	/*
 	* mesh data
@@ -95,7 +92,7 @@ protected:
 
 
 	FbxArray<FbxString*>						mAnimStackNameArray;
-	FbxAnimLayer*								currentAnimLayer;
+	FbxAnimLayer* currentAnimLayer;
 	FbxTime										mStart;
 	FbxTime										mStop;
 	FbxTime										mCurrentTime;
@@ -106,7 +103,7 @@ protected:
 
 	bool										mAllByControlPoint = true;
 	bool										mMeshCache = false;
-	FbxVector4*									lVertexArray = NULL;
+	FbxVector4* lVertexArray = NULL;
 
 	bool										mIsPlayed = false;
 };

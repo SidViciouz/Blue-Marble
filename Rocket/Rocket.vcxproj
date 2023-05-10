@@ -163,6 +163,7 @@
     <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="ShadowMap.h" />
     <ClInclude Include="StartButtonInputComponent.h" />
+    <ClInclude Include="TestNode.h" />
     <ClInclude Include="TextManager.h" />
     <ClInclude Include="TextNode.h" />
     <ClInclude Include="TextureManager.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="HollowSphereVolumeNode.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
+    <ClCompile Include="TestNode.cpp" />
     <ClCompile Include="UINode.cpp" />
     <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="DescriptorManager.cpp" />

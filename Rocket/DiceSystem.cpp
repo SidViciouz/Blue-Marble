@@ -10,14 +10,17 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	SetRelativePosition(100, 0, 0);
 
 	mDice1 = make_shared<DiceNode>("box");
+	mDice1->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	mDice1->SetTextureName("dice");
 	mDice1->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice1, PhysicsType::Dynamic, Vector3(0, 10, 0), Vector3(1, 1, 1)));
 
 	mDice2 = make_shared<DiceNode>("box");
+	mDice2->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	mDice2->SetTextureName("dice");
 	mDice2->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice2, PhysicsType::Dynamic, Vector3(1, 13, 0), Vector3(1, 1, 1)));
 
 	mDice3 = make_shared<DiceNode>("box");
+	mDice3->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	mDice3->SetTextureName("dice");
 	mDice3->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice3, PhysicsType::Dynamic, Vector3(-0.5, 15, 0), Vector3(1, 1, 1)));
 

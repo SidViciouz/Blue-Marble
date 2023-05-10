@@ -213,7 +213,7 @@ void GS(triangle DomainOut gin[3], uint id : SV_PrimitiveID, inout TriangleStrea
 		if (countryColor == -1)
 			height = 0.0f;
 		else
-			height = ((heightMap.Load(float3(tex*float2(5400,2700),0.0f)).x)-0.5f)*10.0f;
+			height = ((heightMap.Load(float3(tex*float2(5400,2700),0.0f)).x)-0.4f)*10.0f;
 		gout.posL = gin[i].posL;
 		gout.posW = gin[i].posW + gin[i].normal * height;
 		gout.pos = mul(mul(float4(gout.posW, 1.0f), transpose(view)), transpose(projection));

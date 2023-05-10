@@ -13,6 +13,7 @@
 #include "Fbx.h"
 #include "AnimationNode.h"
 #include "DiceSystemInputComponent.h"
+#include "TestNode.h"
 
 using namespace Physics;
 
@@ -50,23 +51,23 @@ void MainScene::Initialize()
 	light1->SetTextureName("sun");
 	light1->SetDiffuseAlbedo( 10.0f,1.0f,1.0f);
 	light1->SetColor( 0.1f,0.1f,0.1f );
-	light1->SetRelativePosition(0.0, 10.0f, 0.0f);
+	light1->SetRelativePosition(0.0, 50.0f, 0.0f);
 	mLightNodes.push_back(light1);
 
 	shared_ptr<LightNode> light2 = make_shared<LightNode>("ball", Directional);
 	light2->SetTextureName("sun");
 	light2->SetDiffuseAlbedo( 10.0f,10.0f,10.0f);
 	light2->SetColor(0.1f, 0.1f, 0.1f);
-	light2->SetRelativePosition(50.0, 50.0f, 0.0f);
-	light2->SetDirection(-1.0f, -1.0f, 0.0f);
+	light2->SetRelativePosition(0.0, 0.0f, -50.0f);
+	light2->SetDirection(0.0f, 0.0f, 1.0f);
 	mLightNodes.push_back(light2);
 
 	shared_ptr<LightNode> light3 = make_shared<LightNode>("ball", Directional);
 	light3->SetTextureName("sun");
 	light3->SetColor(0.1f, 0.1f, 0.1f);
 	light3->SetDiffuseAlbedo(10.0f,10.0f,10.0f );
-	light3->SetRelativePosition(0.0, 0.0f, 0.0f);
-	light3->SetDirection(0.0f, 0.0f, 1.0f);
+	light3->SetRelativePosition(50.0, 50.0f, 0.0f);
+	light3->SetDirection(-1.0f, -1.0f, 0.0f);
 	mLightNodes.push_back(light3);
 	
 	worldMesh = make_shared<WorldNode>("ball");
@@ -77,9 +78,16 @@ void MainScene::Initialize()
 	worldMesh->SetScale(30.0f, 30.0f, 30.0f);
 	worldMesh->mInputComponent = Engine::mInputManager->Build<WorldInputComponent>(worldMesh, "MainScene");
 
+	/*
+	shared_ptr<TestNode> lTestNode = make_shared<TestNode>();
+	lTestNode->SetScale(0.1f, 0.1f, 0.1f);
+	lTestNode->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
+	lTestNode->SetRelativePosition(5.0f, 5.0f, 0.0f);
+	*/
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(35.0f, 30.0f);
 	worldMesh->AddChild(cloud);
 	
+	//mSceneRoot->AddChild(lTestNode);
 	mSceneRoot->AddChild(mDiceSystem);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);

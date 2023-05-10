@@ -175,14 +175,23 @@ void CameraNode::UpdateViewMatrix()
 	float y = -XMVectorGetX(XMVector3Dot(position, up));
 	float z = -XMVectorGetX(XMVector3Dot(position, front));
 
-
+	/*
 	mView = {
 		mRight.x, mUp.x, mFront.x, 0.0f,
 		mRight.y, mUp.y, mFront.y, 0.0f,
 		mRight.z, mUp.z, mFront.z, 0.0f,
 		x,y,z,1.0f
 	};
+	*/
 	
+	mView =
+	{
+		mRight.x, mRight.y, mRight.z, 0.0f,
+		mUp.x, mUp.y, mUp.z, 0.0f,
+		mFront.x, mFront.y, mFront.z, 0.0f,
+		x,y,z,1.0f
+	};
+
 	XMMATRIX v = XMLoadFloat4x4(&mView);
 	XMMATRIX p = XMLoadFloat4x4(&mProjection);
 
@@ -236,7 +245,7 @@ void CameraNode::LookDown()
 
 	mUp = { 0.0f,0.0f,1.0f };
 	mFront = { 0.0f,-1.0f,0.0f };
-	mRight = { 1.0f,0.0f,0.0f };
+	mRight = { -1.0f,0.0f,0.0f };
 }
 
 void CameraNode::AddAngle(const float& pAngle)
