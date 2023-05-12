@@ -57,9 +57,8 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
-Texture/earth.dds filter=lfs diff=lfs merge=lfs -text
-Texture/world.dds filter=lfs diff=lfs merge=lfs -text
-Texture/earth_displacement.dds filter=lfs diff=lfs merge=lfs -text
-Texture/earth_normal.dds filter=lfs diff=lfs merge=lfs -text
-Rocket/rp_sophia_animated_003_idling.fbm filter=lfs diff=lfs merge=lfs -text
-Texture/rp_sophia_animated_003_dif.dds filter=lfs diff=lfs merge=lfs -text
+Rocket/Texture/earth_displacement.dds filter=lfs diff=lfs merge=lfs -text
+Rocket/Texture/earth.dds filter=lfs diff=lfs merge=lfs -text
+Rocket/Texture/earth_normal.dds filter=lfs diff=lfs merge=lfs -text
+Rocket/Texture/rp_sophia_animated_003_dif.dds filter=lfs diff=lfs merge=lfs -text
+Rocket/Texture/world.dds filter=lfs diff=lfs merge=lfs -text

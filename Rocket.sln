@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rocket", "Rocket\Rocket.vcxproj", "{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Physics", "Physics\Physics.vcxproj", "{76AA2FE6-3569-4C7C-9372-BD21580F098C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B} = {4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Maths", "Maths\Maths.vcxproj", "{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}"
 EndProject

@@ -77,25 +77,25 @@ void Engine::Initialize()
 	mInputManager = make_shared<InputManager>();
 
 	mMeshManager = make_unique<MeshManager>();
-	mMeshManager->Load("ball", "../Model/ball.obj");
-	mMeshManager->Load("box", "../Model/box.obj");
-	mMeshManager->Load("inventory", "../Model/inventory.obj");
-	mMeshManager->Load("menu", "../Model/menu.obj");
+	mMeshManager->Load("ball", "Model/ball.obj");
+	mMeshManager->Load("box", "Model/box.obj");
+	mMeshManager->Load("inventory", "Model/inventory.obj");
+	mMeshManager->Load("menu", "Model/menu.obj");
 
 	mTextureManager = make_shared<TextureManager>();
-	mTextureManager->Load("brick", L"../Texture/bricks3.dds");
-	mTextureManager->Load("canvas", L"../Texture/canvas.dds");
-	mTextureManager->Load("backPack", L"../Texture/backpack.dds");
-	mTextureManager->Load("stone", L"../Texture/stone.dds");
-	mTextureManager->Load("sun", L"../Texture/sun.dds");
-	mTextureManager->Load("earth", L"../Texture/earth.dds");
-	mTextureManager->Load("water", L"../Texture/water.dds");
-	mTextureManager->Load("water2", L"../Texture/water2.dds");
-	mTextureManager->Load("earth_normal", L"../Texture/earth_normal.dds");
-	mTextureManager->Load("earth_displacement", L"../Texture/earth_displacement.dds");
-	mTextureManager->Load("dice", L"../Texture/dice.dds",true);
-	mTextureManager->Load("sophia", L"../Texture/rp_sophia_animated_003_dif.dds");
-	mTextureManager->Load("peasant", L"../Texture/Peasant_Girl_diffuse.dds");
+	mTextureManager->Load("brick", L"Texture/bricks3.dds");
+	mTextureManager->Load("canvas", L"Texture/canvas.dds");
+	mTextureManager->Load("backPack", L"Texture/backpack.dds");
+	mTextureManager->Load("stone", L"Texture/stone.dds");
+	mTextureManager->Load("sun", L"Texture/sun.dds");
+	mTextureManager->Load("earth", L"Texture/earth.dds");
+	mTextureManager->Load("water", L"Texture/water.dds");
+	mTextureManager->Load("water2", L"Texture/water2.dds");
+	mTextureManager->Load("earth_normal", L"Texture/earth_normal.dds");
+	mTextureManager->Load("earth_displacement", L"Texture/earth_displacement.dds");
+	mTextureManager->Load("dice", L"Texture/dice.dds",true);
+	mTextureManager->Load("sophia", L"Texture/rp_sophia_animated_003_dif.dds");
+	mTextureManager->Load("peasant", L"Texture/Peasant_Girl_diffuse.dds");
 
 
 	mTextManager = make_shared<TextManager>();

@@ -10,7 +10,7 @@ TextManager::TextManager()
 		printf("FT_Init_FreeType Error!\n");
 	}
 
-	error = FT_New_Face(mLibrary, "../Font/ChrustyRock-ORLA.ttf", 0, &mFace);
+	error = FT_New_Face(mLibrary, "Font/ChrustyRock-ORLA.ttf", 0, &mFace);
 
 	if (error == FT_Err_Unknown_File_Format)
 	{

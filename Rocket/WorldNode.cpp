@@ -37,7 +37,7 @@ WorldNode::WorldNode(string name)
 	);
 
 	Json::Value root;
-	std::ifstream config_doc("../Data/world-administrative-boundaries.json", std::ifstream::binary);
+	std::ifstream config_doc("Data/world-administrative-boundaries.json", std::ifstream::binary);
 	config_doc >> root;
 	string str;
 
