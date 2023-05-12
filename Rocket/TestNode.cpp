@@ -3,7 +3,7 @@
 
 TestNode::TestNode()
 {
-    filename = "standing_idle.fbx";
+    filename = "Model/standing_idle.fbx";
 
     sdkManager = FbxManager::Create();
     ios = FbxIOSettings::Create(sdkManager, IOSROOT);

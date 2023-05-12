@@ -12,17 +12,17 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	mDice1 = make_shared<DiceNode>("box");
 	mDice1->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	mDice1->SetTextureName("dice");
-	mDice1->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice1, PhysicsType::Dynamic, Vector3(0, 10, 0), Vector3(1, 1, 1)));
+	mDice1->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice1, PhysicsType::Dynamic, Vector3(0, 0, 0), Vector3(1, 1, 1)));
 
 	mDice2 = make_shared<DiceNode>("box");
 	mDice2->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	mDice2->SetTextureName("dice");
-	mDice2->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice2, PhysicsType::Dynamic, Vector3(1, 13, 0), Vector3(1, 1, 1)));
+	mDice2->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice2, PhysicsType::Dynamic, Vector3(3, 0, 0), Vector3(1, 1, 1)));
 
 	mDice3 = make_shared<DiceNode>("box");
 	mDice3->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	mDice3->SetTextureName("dice");
-	mDice3->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice3, PhysicsType::Dynamic, Vector3(-0.5, 15, 0), Vector3(1, 1, 1)));
+	mDice3->SetPhysicsComponent(mPhysicsManager->BuildCube(mDice3, PhysicsType::Dynamic, Vector3(-3, 0, 0), Vector3(1, 1, 1)));
 
 	mGround = make_shared<MeshNode>("box");
 	mGround->SetTextureName("stone");
@@ -62,14 +62,14 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 
 void DiceSystem::Roll()
 {
-	mDice1->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 3, 0));
-	mDice1->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 3, 0));
+	mDice1->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 5, 0));
+	mDice1->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(1, 5, 0));
 
-	mDice2->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 3, 0));
-	mDice2->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 3, 0));
+	mDice2->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 5, 0));
+	mDice2->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 6, 0));
 
-	mDice3->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 3, 0));
-	mDice3->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 3, 0));
+	mDice3->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(0, 5, 0));
+	mDice3->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 5, 1));
 }
 
 int	DiceSystem::UpperSide()

@@ -3,8 +3,8 @@
 
 AnimatedNode::AnimatedNode()
 {
-    filename = "standing_idle.fbx";
-    filename2 = "medium_running.fbx";
+    filename = "Model/standing_idle.fbx";
+    filename2 = "Model/medium_running.fbx";
 
     sdkManager = FbxManager::Create();
     ios = FbxIOSettings::Create(sdkManager, IOSROOT);

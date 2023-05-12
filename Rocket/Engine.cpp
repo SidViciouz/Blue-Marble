@@ -341,7 +341,7 @@ void Engine::Draw()
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mDescriptorManager->GetCpuHandle(mCurrentBackBuffer, DescType::RTV);
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = mDescriptorManager->GetCpuHandle(0, DescType::DSV);
-	float rgba[4] = { 0.0f,0.1f,0.0f,1.0f };
+	float rgba[4] = { 0.01f,0.01f,0.01f,1.0f };
 	mCommandList->ClearRenderTargetView(rtvHandle, rgba, 0, nullptr);
 	mCommandList->ClearDepthStencilView(dsvHandle,
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
