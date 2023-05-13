@@ -20,7 +20,7 @@ using namespace Physics;
 MainScene::MainScene()
 	: Scene()
 {
-	mGameState = make_shared<GameState>();
+	mGameState = make_shared<GameState>(*this);
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
 }
@@ -40,13 +40,13 @@ void MainScene::Initialize()
 	inventory->mInputComponent = Engine::mInputManager->Build<UIInputComponent>(inventory,"MainScene");
 	inventory->SetIsShowUp(false);
 	camera->AddChild(inventory);
-	*/
+
 	shared_ptr<TextNode> text1 = make_shared<TextNode>();
 	text1->SetText("inventory E");
 	text1->SetScale(5.0f, 5.0f, 5.0f);
 	text1->SetRelativePosition(-3.5, 3.5f, 11.0f);
 	camera->AddChild(text1);
-
+	*/
 	shared_ptr<LightNode> light1 = make_shared<LightNode>("ball", Directional);
 	light1->SetTextureName("sun");
 	light1->SetDiffuseAlbedo( 10.0f,1.0f,1.0f);
@@ -70,13 +70,13 @@ void MainScene::Initialize()
 	light3->SetDirection(-1.0f, -1.0f, 0.0f);
 	mLightNodes.push_back(light3);
 	
-	worldMesh = make_shared<WorldNode>("ball");
-	worldMesh->SetTextureName("earth");
-	worldMesh->SetDiffuseAlbedo( 1.0f,1.0f,1.0f);
-	worldMesh->SetRelativePosition(0.0f, 0.0f, 30.0f);
+	mEarth = make_shared<WorldNode>("ball");
+	mEarth->SetTextureName("earth");
+	mEarth->SetDiffuseAlbedo( 1.0f,1.0f,1.0f);
+	mEarth->SetRelativePosition(0.0f, 0.0f, 30.0f);
 	//worldMesh->SetRelativeQuaternion(0.0f, sinf(XMConvertToRadians(90.0f)), 0.0f,cosf(XMConvertToRadians(90.0f)));
-	worldMesh->SetScale(30.0f, 30.0f, 30.0f);
-	worldMesh->mInputComponent = Engine::mInputManager->Build<WorldInputComponent>(worldMesh, "MainScene");
+	mEarth->SetScale(30.0f, 30.0f, 30.0f);
+	mEarth->mInputComponent = Engine::mInputManager->Build<WorldInputComponent>(mEarth, "MainScene");
 
 	/*
 	shared_ptr<TestNode> lTestNode = make_shared<TestNode>();
@@ -84,8 +84,8 @@ void MainScene::Initialize()
 	lTestNode->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	lTestNode->SetRelativePosition(5.0f, 5.0f, 0.0f);
 	*/
-	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(35.0f, 30.0f);
-	worldMesh->AddChild(cloud);
+	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(32.0f, 30.0f);
+	mEarth->AddChild(cloud);
 	
 	//mSceneRoot->AddChild(lTestNode);
 	mSceneRoot->AddChild(mDiceSystem);
@@ -93,64 +93,37 @@ void MainScene::Initialize()
 	mSceneRoot->AddChild(light1);
 	mSceneRoot->AddChild(light2);
 	mSceneRoot->AddChild(light3);
-	mSceneRoot->AddChild(worldMesh);
+	mSceneRoot->AddChild(mEarth);
 	mSceneRoot->Update();
 
 }
 
-void MainScene::UpdateScene(const Timer& timer)
+void MainScene::Update(const Timer& timer)
 {
-	GamePhase curPhase = mGameState->GetPhase();
+	mGameState->Update();
 
-	if (curPhase == GamePhase::ReadyToRollDice)
-	{
-		mCameraNode->SetAngle(60);
-		mCameraNode->LookDown();
-		mCameraNode->SetRelativePosition(100.0f, 50.0f, 0.0f);
-		mDiceSystem->mInputComponent->Activate();
-		worldMesh->mInputComponent->Deactivate();
-	}
-	else if (curPhase == GamePhase::DiceRolling)
-	{
-		mDiceSystem->mInputComponent->Deactivate();
-		if (mPhysicsManager->GetSystemVelocity() < 1.0f)
-		{
-			mGameState->Next();
-		}
-	}
-	else if (curPhase == GamePhase::DiceStop)
-	{
-		printf("sum : %d\n",mDiceSystem->UpperSide());
-		mGameState->Next();
-	}
-	else if (curPhase == GamePhase::PickPlace)
-	{
-		mCameraNode->LookFront();
-		mCameraNode->SetRelativePosition(0.0f, 0.0f, -35.0f);
-		worldMesh->mInputComponent->Activate();
-	}
-	else if (curPhase == GamePhase::CharacterMoving)
-	{
-		worldMesh->mInputComponent->Deactivate();
-		if (!worldMesh->GetIsMoving())
-			mGameState->Next();
-	}
-
-	Scene::UpdateScene(timer);
+	Scene::Update(timer);
 
 	mSceneRoot->Update();
 }
 
-void MainScene::DrawScene() const
+void MainScene::Draw() const
 {
-	Scene::DrawScene();
+	Scene::Draw();
 
-	mBlooming->DownScalePass();
-	mBlooming->BrightPass();
-	mBlooming->BlurPass();
+	mBlooming->Pass();
 }
-
 void MainScene::NextGameState()
 {
 	mGameState->Next();
+}
+
+shared_ptr<DiceSystem> MainScene::GetDiceSystem() const
+{
+	return mDiceSystem;
+}
+
+shared_ptr<WorldNode> MainScene::GetEarth() const
+{
+	return mEarth;
 }

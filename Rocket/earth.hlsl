@@ -253,7 +253,7 @@ float4 PS(GeoOut pin) : SV_Target
 	}
 	else if (countryColor == -1)
 	{
-		diffuse = float3(0, 0.75, 0.5) * textureColor;
+		diffuse = float3(0, 0.1, 0.9) * heightMap.Sample(textureSampler,pin.tex);
 		//normal = pin.normal;
 		normal = oceanNormalMap.Sample(textureSampler, pin.tex + float2(0,currentTime*0.005f)).rgb
 			+ ocean2NormalMap.Sample(textureSampler, pin.tex + float2(currentTime * 0.005f,0)).rgb;

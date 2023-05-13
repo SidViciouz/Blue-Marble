@@ -48,6 +48,13 @@ void Blooming::Resize(int width, int height)
 
 }
 
+void Blooming::Pass()
+{
+	DownScalePass();
+	BrightPass();
+	BlurPass();
+}
+
 void Blooming::DownScalePass()
 {
 	Engine::mCommandList->SetPipelineState(Engine::mPSOs["DownSampling"].Get());

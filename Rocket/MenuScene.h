@@ -23,5 +23,5 @@ public:
 	/*
 	* 이 scene의 각종 오브젝트들을 초기화한다.
 	*/
-	virtual void								UpdateScene(const Timer& timer) override;
+	virtual void								Update(const Timer& timer) override;
 };

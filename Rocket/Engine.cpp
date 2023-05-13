@@ -79,7 +79,7 @@ void Engine::Initialize()
 	mMeshManager = make_unique<MeshManager>();
 	mMeshManager->Load("ball", "Model/ball.obj");
 	mMeshManager->Load("box", "Model/box.obj");
-	mMeshManager->Load("inventory", "Model/inventory.obj");
+	mMeshManager->Load("square", "Model/square.obj");
 	mMeshManager->Load("menu", "Model/menu.obj");
 
 	mTextureManager = make_shared<TextureManager>();
@@ -313,7 +313,7 @@ void Engine::Update()
 	//실제 게임 데이터의 업데이트는 여기서부터 일어난다.
 	mInputManager->Dispatch();
 
-	mAllScenes[mCurrentSceneName]->UpdateScene(mTimer);
+	mAllScenes[mCurrentSceneName]->Update(mTimer);
 }
 
 void Engine::Draw()
@@ -356,7 +356,7 @@ void Engine::Draw()
 	/*
 	* scene의 object들을 draw한다.
 	*/
-	mAllScenes[mCurrentSceneName]->DrawScene();
+	mAllScenes[mCurrentSceneName]->Draw();
 
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;

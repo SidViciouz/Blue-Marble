@@ -20,11 +20,6 @@ namespace Physics
 		void									AddGameObject(PhysicsObject* o);
 		void									RemoveGameObject(PhysicsObject* o, bool andDelete = false);
 
-		void									ShuffleObjects(bool state)
-		{
-			shuffleObjects = state;
-		}
-
 		virtual void							UpdateWorld(float dt);
 
 		void									OperateOnContents(PhysicsObjectFunc f);
@@ -36,8 +31,6 @@ namespace Physics
 	protected:
 		std::vector<PhysicsObject*>				gameObjects;
 
-		bool									shuffleConstraints;
-		bool									shuffleObjects;
 		int										worldIDCounter;
 	};
 }

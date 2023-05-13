@@ -71,7 +71,6 @@ namespace Physics
 
 		Matrix3x3								GetInertiaTensor() const;
 
-		/*test*/
 		void									SetElasticity(float e);
 		float									GetElasticity() const;
 

@@ -9,7 +9,7 @@ Scene::Scene() :
 	mSceneRoot->SetScene(this);
 }
 
-void Scene::UpdateScene(const Timer& timer)
+void Scene::Update(const Timer& timer)
 {
 	static float time = 0;
 	for (int i = 0; i < mLightNodes.size(); ++i)
@@ -29,7 +29,7 @@ void Scene::UpdateScene(const Timer& timer)
 	mPhysicsManager->Update();
 }
 
-void Scene::DrawScene() const
+void Scene::Draw() const
 {
 	mSceneRoot->Draw();
 }

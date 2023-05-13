@@ -17,7 +17,7 @@ void MenuScene::Initialize()
 	menu->SetScale(12.0f, 12.0f, 12.0f);
 	camera->AddChild(menu);
 
-	shared_ptr<UINode> startButton = make_shared<UINode>("inventory");
+	shared_ptr<UINode> startButton = make_shared<UINode>("square");
 	startButton->SetTextureName("brick");
 	startButton->SetRelativePosition(0.0f, 0.0f, 11.0f);
 	startButton->SetScale(0.5f, 0.5f, 0.5f);
@@ -42,9 +42,9 @@ void MenuScene::Initialize()
 	mSceneRoot->Update();
 }
 
-void MenuScene::UpdateScene(const Timer& timer)
+void MenuScene::Update(const Timer& timer)
 {
-	Scene::UpdateScene(timer);
+	Scene::Update(timer);
 
 	mSceneRoot->Update();
 }

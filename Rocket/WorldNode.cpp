@@ -36,152 +36,24 @@ WorldNode::WorldNode(string name)
 		D3D12_UAV_DIMENSION_TEXTURE2D
 	);
 
-	Json::Value root;
-	std::ifstream config_doc("Data/world-administrative-boundaries.json", std::ifstream::binary);
-	config_doc >> root;
-	string str;
-
-	for (int i = 0; i < root.size(); ++i)
-	{
-		Json::Value field = root[i]["geo_shape"]["geometry"]["coordinates"];
-
-		Country info;
-
-		P minBound = { 90,180 };
-		P maxBound = { -90,-180 };
-
-		info.geo.x = root[i]["geo_point_2d"]["lon"].asDouble();
-		info.geo.y = root[i]["geo_point_2d"]["lat"].asDouble();
-
-		for (auto it = field.begin(); it != field.end(); it++)
-		{
-			vector<P> points;
-			for (auto jt = it->begin(); jt != it->end(); jt++)
-			{
-				if (jt->size() == 2)
-				{
-					int i = 0;
-					float coord[2];
-					bool isCoord = false;
-					for (auto ht = jt->begin(); ht != jt->end(); ht++)
-					{
-						isCoord = true;
-						Json::StyledWriter writer;
-						coord[i++] = ht->asDouble();
-					}
-					if (isCoord)
-					{
-						if (coord[1] < minBound.x)
-							minBound.x = coord[1];
-						if (coord[1] > maxBound.x)
-							maxBound.x = coord[1];
-						if(coord[0] < minBound.y)
-							minBound.y = coord[0];
-						if (coord[0] > maxBound.y)
-							maxBound.y = coord[0];
-
-						points.push_back({ coord[1] ,coord[0] });
-						data[1800 - (((int)(coord[1] * 10) + 900))][((int)(coord[0] * 10) + 1800)] = 1;
-					}
-
-					continue;
-				}
-
-				for (auto kt = jt->begin(); kt != jt->end(); kt++)
-				{
-					int i = 0;
-					float coord[2];
-					bool isCoord = false;
-					for (auto ht = kt->begin(); ht != kt->end(); ht++)
-					{
-						isCoord = true;
-						Json::StyledWriter writer;
-						coord[i++] = ht->asDouble();
-					}
-					if (isCoord)
-					{
-						if (coord[1] < minBound.x)
-							minBound.x = coord[1];
-						if (coord[1] > maxBound.x)
-							maxBound.x = coord[1];
-						if (coord[0] < minBound.y)
-							minBound.y = coord[0];
-						if (coord[0] > maxBound.y)
-							maxBound.y = coord[0];
-
-						points.push_back({ coord[1] ,coord[0] });
-						data[1800-(((int)(coord[1]*10)+900))][((int)(coord[0]*10)+1800)] = 1;
-					}
-				}
-			}
-			if (points.size() != 0)
-			{
-				info.points.push_back(points);
-			}
-		}
-		info.minBound = minBound;
-		info.maxBound = maxBound;
-		info.index = i;
-		mCountrys[root[i]["name"].asString()] = info;
-	}
-
-	int i = 0;
-	for (auto country : mCountrys)
-	{
-		int area = 0;
-		int num = 0;
-		for (auto points : country.second.points)
-		{
-			mCountryInfos[i].countryIndex = country.second.index;
-			mCountryInfos[i].areaIndex = area;
-			mCountryInfos[i].maxBound = country.second.maxBound;
-			mCountryInfos[i].minBound = country.second.minBound;
-			int pointSize = points.size();
-			if (pointSize > MAX_NUM_POINT)
-				mCountryInfos[i].numOfPoint = MAX_NUM_POINT;
-			else
-				mCountryInfos[i].numOfPoint = pointSize;
-
-			for (int k = 0,p = 0; k < pointSize; ++k)
-			{
-				if (k- MAX_NUM_POINT * p == MAX_NUM_POINT)
-				{
-					++i;
-					++p;
-					mCountryInfos[i].countryIndex = country.second.index;
-					mCountryInfos[i].areaIndex = area;
-					mCountryInfos[i].maxBound = country.second.maxBound;
-					mCountryInfos[i].minBound = country.second.minBound;
-					if (pointSize - MAX_NUM_POINT * p > MAX_NUM_POINT)
-						mCountryInfos[i].numOfPoint = MAX_NUM_POINT;
-					else
-						mCountryInfos[i].numOfPoint = pointSize - MAX_NUM_POINT * p;
-				}
-				
-				mCountryInfos[i].points[k-MAX_NUM_POINT*p] = points[k];
-			}
-			++i;
-			++area;
-			num += points.size();
-		}
-	}
+	LoadCountryData();
 
 
-	Engine::mResourceManager->UploadTexture2D(mUploadBufferIdx, data, 3600, 1800, 0, 0);
+	Engine::mResourceManager->UploadTexture2D(mUploadBufferIdx, mData, 3600, 1800, 0, 0);
 	Engine::mResourceManager->CopyUploadToTexture(mUploadBufferIdx, mBorderTextureIdx, 3600, 1800, 1, DXGI_FORMAT_R8_UNORM, 1);
 
-	mCountryInfoUploadBufferIdx = Engine::mResourceManager->CreateUploadBuffer(i * sizeof(CountryInfo));
-	mCountryInfoBufferIdx = Engine::mResourceManager->CreateDefaultBuffer(i * sizeof(CountryInfo));
+	mCountryInfoUploadBufferIdx = Engine::mResourceManager->CreateUploadBuffer(mCountryNum * sizeof(CountryInfo));
+	mCountryInfoBufferIdx = Engine::mResourceManager->CreateDefaultBuffer(mCountryNum * sizeof(CountryInfo));
 	mCountryInfoBufferSrvIdx = Engine::mDescriptorManager->CreateSrv(
 		Engine::mResourceManager->GetResource(mCountryInfoBufferIdx),
 		DXGI_FORMAT_UNKNOWN,
 		D3D12_SRV_DIMENSION_BUFFER,
 		1,
-		i,
+		mCountryNum,
 		sizeof(CountryInfo)
 	);
 
-	Engine::mResourceManager->Upload(mCountryInfoUploadBufferIdx, mCountryInfos, i * sizeof(CountryInfo), 0);
+	Engine::mResourceManager->Upload(mCountryInfoUploadBufferIdx, mCountryInfos, mCountryNum * sizeof(CountryInfo), 0);
 	Engine::mResourceManager->CopyUploadToBuffer(mCountryInfoUploadBufferIdx, mCountryInfoBufferIdx);
 
 	//Draw
@@ -196,7 +68,7 @@ WorldNode::WorldNode(string name)
 	Engine::mCommandList->SetComputeRootDescriptorTable(1,
 		Engine::mDescriptorManager->GetGpuHandle(mColorCountryTextureUavIdx, DescType::UAV));
 
-	Engine::mCommandList->SetComputeRoot32BitConstant(2, i, 0);
+	Engine::mCommandList->SetComputeRoot32BitConstant(2, mCountryNum, 0);
 
 	Engine::mCommandList->Dispatch(113,57,1);
 }
@@ -329,7 +201,7 @@ void WorldNode::PickCountry(const XMFLOAT3& pos)
 
 	//printf("latitude : %f, longitude : %f\n", latitude, longitude);
 	//printf("u : %f, v : %f\n", u, v);
-	for (auto country : mCountrys)
+	for (auto country : mCountries)
 	{
 		if(longitude >= country.second.minBound.y &&
 			longitude <= country.second.maxBound.y &&
@@ -435,4 +307,139 @@ void WorldNode::UpdateCharacter()
 bool WorldNode::GetIsMoving() const
 {
 	return isMoving;
+}
+
+void WorldNode::LoadCountryData()
+{
+	Json::Value root;
+	std::ifstream config_doc("Data/world-administrative-boundaries.json", std::ifstream::binary);
+	config_doc >> root;
+	string str;
+
+	for (int i = 0; i < root.size(); ++i)
+	{
+		Json::Value field = root[i]["geo_shape"]["geometry"]["coordinates"];
+
+		Country info;
+
+		P minBound = { 90,180 };
+		P maxBound = { -90,-180 };
+
+		info.geo.x = root[i]["geo_point_2d"]["lon"].asDouble();
+		info.geo.y = root[i]["geo_point_2d"]["lat"].asDouble();
+
+		for (auto it = field.begin(); it != field.end(); it++)
+		{
+			vector<P> points;
+			for (auto jt = it->begin(); jt != it->end(); jt++)
+			{
+				if (jt->size() == 2)
+				{
+					int i = 0;
+					float coord[2];
+					bool isCoord = false;
+					for (auto ht = jt->begin(); ht != jt->end(); ht++)
+					{
+						isCoord = true;
+						Json::StyledWriter writer;
+						coord[i++] = ht->asDouble();
+					}
+					if (isCoord)
+					{
+						if (coord[1] < minBound.x)
+							minBound.x = coord[1];
+						if (coord[1] > maxBound.x)
+							maxBound.x = coord[1];
+						if (coord[0] < minBound.y)
+							minBound.y = coord[0];
+						if (coord[0] > maxBound.y)
+							maxBound.y = coord[0];
+
+						points.push_back({ coord[1] ,coord[0] });
+						mData[1800 - (((int)(coord[1] * 10) + 900))][((int)(coord[0] * 10) + 1800)] = 1;
+					}
+
+					continue;
+				}
+
+				for (auto kt = jt->begin(); kt != jt->end(); kt++)
+				{
+					int i = 0;
+					float coord[2];
+					bool isCoord = false;
+					for (auto ht = kt->begin(); ht != kt->end(); ht++)
+					{
+						isCoord = true;
+						Json::StyledWriter writer;
+						coord[i++] = ht->asDouble();
+					}
+					if (isCoord)
+					{
+						if (coord[1] < minBound.x)
+							minBound.x = coord[1];
+						if (coord[1] > maxBound.x)
+							maxBound.x = coord[1];
+						if (coord[0] < minBound.y)
+							minBound.y = coord[0];
+						if (coord[0] > maxBound.y)
+							maxBound.y = coord[0];
+
+						points.push_back({ coord[1] ,coord[0] });
+						mData[1800 - (((int)(coord[1] * 10) + 900))][((int)(coord[0] * 10) + 1800)] = 1;
+					}
+				}
+			}
+			if (points.size() != 0)
+			{
+				info.points.push_back(points);
+			}
+		}
+		info.minBound = minBound;
+		info.maxBound = maxBound;
+		info.index = i;
+		mCountries[root[i]["name"].asString()] = info;
+	}
+
+	int i = 0;
+	for (auto country : mCountries)
+	{
+		int area = 0;
+		int num = 0;
+		for (auto points : country.second.points)
+		{
+			mCountryInfos[i].countryIndex = country.second.index;
+			mCountryInfos[i].areaIndex = area;
+			mCountryInfos[i].maxBound = country.second.maxBound;
+			mCountryInfos[i].minBound = country.second.minBound;
+			int pointSize = points.size();
+			if (pointSize > MAX_NUM_POINT)
+				mCountryInfos[i].numOfPoint = MAX_NUM_POINT;
+			else
+				mCountryInfos[i].numOfPoint = pointSize;
+
+			for (int k = 0, p = 0; k < pointSize; ++k)
+			{
+				if (k - MAX_NUM_POINT * p == MAX_NUM_POINT)
+				{
+					++i;
+					++p;
+					mCountryInfos[i].countryIndex = country.second.index;
+					mCountryInfos[i].areaIndex = area;
+					mCountryInfos[i].maxBound = country.second.maxBound;
+					mCountryInfos[i].minBound = country.second.minBound;
+					if (pointSize - MAX_NUM_POINT * p > MAX_NUM_POINT)
+						mCountryInfos[i].numOfPoint = MAX_NUM_POINT;
+					else
+						mCountryInfos[i].numOfPoint = pointSize - MAX_NUM_POINT * p;
+				}
+
+				mCountryInfos[i].points[k - MAX_NUM_POINT * p] = points[k];
+			}
+			++i;
+			++area;
+			num += points.size();
+		}
+	}
+
+	mCountryNum = i;
 }

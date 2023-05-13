@@ -29,16 +29,22 @@ public:
 	/*
 	* scene의 모드 오브젝트들을 프레임마다 업데이트한다.
 	*/
-	virtual void								UpdateScene(const Timer& timer) override;
-
-	virtual void								DrawScene() const override;
+	virtual void								Update(const Timer& timer) override;
+	/*
+	* Scene을 그린다.
+	*/
+	virtual void								Draw() const override;
 
 	void										NextGameState();
 
+	shared_ptr<DiceSystem>						GetDiceSystem() const;
+
+	shared_ptr<WorldNode>						GetEarth() const;
+
 protected:
 
-	shared_ptr<InventoryNode>					inventory;
-	shared_ptr<WorldNode>						worldMesh;
+	//shared_ptr<InventoryNode>					inventory;
+	shared_ptr<WorldNode>						mEarth;
 	shared_ptr<DiceSystem>						mDiceSystem;
 	shared_ptr<GameState>						mGameState;
 };

@@ -9,9 +9,9 @@ namespace Physics
 {
 	struct Point
 	{
-		Vector3 p; //Conserve Minkowski Difference
-		Vector3 a; //Result coordinate of object A's support function 
-		Vector3 b; //Result coordinate of object B's support function 
+		Vector3 p; //민코프스키 차
+		Vector3 a; //A의 support function
+		Vector3 b; //B의 support function
 	};
 
 	struct ContactPoint

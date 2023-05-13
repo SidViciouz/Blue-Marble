@@ -33,10 +33,16 @@ public:
 	float										GetSystemVelocity();
 
 protected:
-
+	/*
+	* scene의 node들의 physicsComponent들을 저장한다.
+	*/
 	vector<shared_ptr<PhysicsComponent>>		mPhysicsComponents;
-
+	/*
+	* physics object들을 가지고 있는 오브젝트이다.
+	*/
 	shared_ptr<PhysicsWorld>					mPhysicsWorld;
-
+	/*
+	* 물리적인 상태 업데이트등 물리 관련 로직을 수행하는 오브젝트이다.
+	*/
 	shared_ptr<PhysicsSystem>					mPhysicsSystem;
 };

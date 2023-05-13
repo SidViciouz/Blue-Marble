@@ -21,7 +21,6 @@ namespace Physics
 		void									Update(float dt);
 
 		bool bPhysics;
-		/*test*/
 
 		void									UseGravity(bool state)
 		{
@@ -36,17 +35,12 @@ namespace Physics
 		void									SetGravity(const Vector3& g);
 	protected:
 		void									BasicCollisionDetection();
-		//void BroadPhase();
-		//void NarrowPhase();
 
 		void									ClearForces();
 
 		void									IntegrateAccel(float dt);
+
 		void									IntegrateVelocity(float dt);
-
-		void									UpdateCollisionList();
-
-		//void UpdateObjectAABBs();
 
 		void									ImpulseResolveCollision(PhysicsObject& a, PhysicsObject& b, ContactPoint& p) const;
 

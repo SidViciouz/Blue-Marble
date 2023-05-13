@@ -124,16 +124,19 @@ void PhysicsObject::AddForceAtPosition(const Vector3& addedForce, const Vector3&
 	mTorque += Vector3::Cross(localPos, addedForce); // Why don't need to suit the Conversation of Energy?
 }
 
-void PhysicsObject::AddTorque(const Vector3& addedTorque) {
+void PhysicsObject::AddTorque(const Vector3& addedTorque)
+{
 	mTorque += addedTorque;
 }
 
-void PhysicsObject::ClearForces() {
+void PhysicsObject::ClearForces()
+{
 	mForce = Vector3();
 	mTorque = Vector3();
 }
 
-void PhysicsObject::InitCubeInertia() {
+void PhysicsObject::InitCubeInertia()
+{
 	Vector3 dimensions = mTransform.GetScale();
 
 	Vector3 fullWidth = dimensions * 2;
@@ -145,14 +148,16 @@ void PhysicsObject::InitCubeInertia() {
 	mInverseInertia.v.z = (12.0f * mInverseMass) / (dimsSqr.v.x + dimsSqr.v.y);
 }
 
-void PhysicsObject::InitSphereInertia() {
+void PhysicsObject::InitSphereInertia()
+{
 	float radius = mTransform.GetScale().GetMaxElement();
 	float i = 2.5f * mInverseMass / (radius * radius);
 
 	mInverseInertia = Vector3(i, i, i);
 }
 
-void PhysicsObject::UpdateInertiaTensor() {
+void PhysicsObject::UpdateInertiaTensor()
+{
 	Quaternion q = mTransform.GetOrientation();
 
 	Matrix3x3 invOrientation = Matrix3x3(q.Conjugate());

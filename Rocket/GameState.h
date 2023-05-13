@@ -1,5 +1,7 @@
 #pragma once
 
+class MainScene;
+
 enum class GamePhase
 {
 	ReadyToRollDice,
@@ -12,7 +14,7 @@ enum class GamePhase
 class GameState
 {
 public:
-												GameState();
+												GameState(MainScene& scene);
 												GameState(const GameState& gameState) = delete;
 												GameState(GameState&& gameState) = delete;
 	GameState&									operator=(const GameState& gameState) = delete;
@@ -20,7 +22,9 @@ public:
 
 	void										Next();
 	GamePhase									GetPhase();
+	void										Update();
 
 protected:
 	GamePhase									mGamePhase;
+	MainScene&									mScene;
 };

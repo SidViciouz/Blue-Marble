@@ -10,11 +10,14 @@ public:
 	Blooming&									operator=(Blooming&& b) = delete;
 
 	void										Resize(int width,int height);
+	void										Pass();
+
+protected:
+
 	void										DownScalePass();
 	void										BrightPass();
 	void										BlurPass();
 
-protected:
 	int											mDownScaledTextureIdx;
 	int											mDownScaledTextureUavIdx;
 

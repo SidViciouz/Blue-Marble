@@ -36,10 +36,7 @@ AnimatedNode::AnimatedNode()
 
     LoadMaterialData(scene1);
     LoadVertexData(scene1);
-    /*
-    SetCurrentAnimStack(scene1,0);
-    mCurrentScene = scene1;
-    */
+
     PlayStart(1);
 }
 
@@ -173,22 +170,18 @@ void AnimatedNode::LoadMaterialData(FbxScene* pScene)
         unsigned int lEmissiveTextureName;
         const FbxDouble3 lEmissive = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sEmissive, FbxSurfaceMaterial::sEmissiveFactor, lEmissiveTextureName);
-        printf("emissive %f %f %f, %u\n", lEmissive[0], lEmissive[1], lEmissive[2],lEmissiveTextureName);
         
         unsigned int lAmbientTextureName;
         const FbxDouble3 lAmbient = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sAmbient, FbxSurfaceMaterial::sAmbientFactor, lAmbientTextureName);
-        printf("ambient  %f %f %f, %u\n", lAmbient[0], lAmbient[1], lAmbient[2],lAmbientTextureName);
 
         unsigned int lDiffuseTextureName;
         const FbxDouble3 lDiffuse = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sDiffuse, FbxSurfaceMaterial::sDiffuseFactor, lDiffuseTextureName);
-        printf("diffuse  %f %f %f, %u\n", lDiffuse[0], lDiffuse[1], lDiffuse[2],lDiffuseTextureName);
 
         unsigned int lSpecularTextureName;
         const FbxDouble3 lSpecular = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sSpecular, FbxSurfaceMaterial::sSpecularFactor, lSpecularTextureName);
-        printf("specular  %f %f %f, %u\n", lSpecular[0], lSpecular[1], lSpecular[2],lSpecularTextureName);
     }
 
 }
@@ -558,7 +551,6 @@ void AnimatedNode::DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimL
     if (lVertexCount == 0)
         return;
 
-    //lMesh->GetUserDataPtr();
 
     const bool lHasVertexCache = lMesh->GetDeformerCount(FbxDeformer::eVertexCache) &&
         (static_cast<FbxVertexCacheDeformer*>(lMesh->GetDeformer(0, FbxDeformer::eVertexCache)))->Active;
@@ -566,7 +558,6 @@ void AnimatedNode::DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimL
     const bool lHasSkin = lMesh->GetDeformerCount(FbxDeformer::eSkin) > 0;
     const bool lHasDeformation = lHasVertexCache || lHasShape || lHasSkin;
     
-    //FbxVector4* lVertexArray = NULL;
 
     if (!mMeshCache && lHasDeformation)
     {
@@ -579,14 +570,12 @@ void AnimatedNode::DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimL
     {
         if (lHasVertexCache)
         {
-            //read vertex cache data
             ReadVertexCacheData(lMesh, pTime, lVertexArray);
         }
         else
         {
             if (lHasShape)
             {
-                //compute shape deformation
                 printf("compute shape deformation\n");
                 //ComputeShapeDeformation(lMesh, pTime, pAnimLayer, lVertexArray);
             }
@@ -599,12 +588,10 @@ void AnimatedNode::DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimL
             }
             if (lClusterCount)
             {
-                //compute skin deformation
                 ComputeSkinDeformation(pGlobalPosition, lMesh, pTime, lVertexArray, pPose);
             }
         }
 
-        //update vertex position
         UpdateVertexPosition(lMesh, lVertexArray);
     }
    
@@ -650,7 +637,6 @@ void AnimatedNode::ReadVertexCacheData(FbxMesh* pMesh, FbxTime& pTime, FbxVector
 void AnimatedNode::UpdateVertexPosition(const FbxMesh* pMesh, const FbxVector4* pVertices)
 {
     
-    // Convert to the same sequence with data in GPU.
     int lVertexCount = 0;
 
     if (mAllByControlPoint)
@@ -699,7 +685,6 @@ void AnimatedNode::UpdateVertexPosition(const FbxMesh* pMesh, const FbxVector4* 
             }
         }
     }
-    // Transfer into GPU.
 
     Engine::mResourceManager->Upload(mVertexBuffer, mVertex.data(), sizeof(Vertex) * mVertex.size(), 0);
     Engine::mResourceManager->Upload(mIndexBuffer, mIndex.data(), sizeof(uint16_t) * mIndex.size(), 0);
@@ -733,10 +718,6 @@ void AnimatedNode::ComputeSkinDeformation(FbxAMatrix& pGlobalPosition, FbxMesh* 
         ComputeLinearDeformation(pGlobalPosition, pMesh, pTime, lVertexArrayLinear, pPose);
         ComputeDualQuaternionDeformation(pGlobalPosition, pMesh, pTime, lVertexArrayDQ, pPose);
 
-        // To blend the skinning according to the blend weights
-        // Final vertex = DQSVertex * blend weight + LinearVertex * (1- blend weight)
-        // DQSVertex: vertex that is deformed by dual quaternion skinning method;
-        // LinearVertex: vertex that is deformed by classic linear skinning method;
         int lBlendWeightsCount = lSkinDeformer->GetControlPointIndicesCount();
         for (int lBWIndex = 0; lBWIndex < lBlendWeightsCount; ++lBWIndex)
         {
@@ -751,7 +732,6 @@ void AnimatedNode::ComputeSkinDeformation(FbxAMatrix& pGlobalPosition, FbxMesh* 
 void AnimatedNode::ComputeLinearDeformation(FbxAMatrix& pGlobalPosition, FbxMesh* pMesh, FbxTime& pTime, FbxVector4* pVertexArray, FbxPose* pPose)
 {
 
-    // All the links must have the same link mode.
     FbxCluster::ELinkMode lClusterMode = ((FbxSkin*)pMesh->GetDeformer(0, FbxDeformer::eSkin))->GetCluster(0)->GetLinkMode();
 
     int lVertexCount = pMesh->GetControlPointsCount();
@@ -769,8 +749,6 @@ void AnimatedNode::ComputeLinearDeformation(FbxAMatrix& pGlobalPosition, FbxMesh
         }
     }
 
-    // For all skins and all clusters, accumulate their deformation and weight
-    // on each vertices and store them in lClusterDeformation and lClusterWeight.
     int lSkinCount = pMesh->GetDeformerCount(FbxDeformer::eSkin);
     for (int lSkinIndex = 0; lSkinIndex < lSkinCount; ++lSkinIndex)
     {
@@ -791,8 +769,6 @@ void AnimatedNode::ComputeLinearDeformation(FbxAMatrix& pGlobalPosition, FbxMesh
             {
                 int lIndex = lCluster->GetControlPointIndices()[k];
 
-                // Sometimes, the mesh can have less points than at the time of the skinning
-                // because a smooth operator was active when skinning but has been deactivated during export.
                 if (lIndex >= lVertexCount)
                     continue;
 
@@ -803,50 +779,41 @@ void AnimatedNode::ComputeLinearDeformation(FbxAMatrix& pGlobalPosition, FbxMesh
                     continue;
                 }
 
-                // Compute the influence of the link on the vertex.
                 FbxAMatrix lInfluence = lVertexTransformMatrix;
                 MatrixScale(lInfluence, lWeight);
 
                 if (lClusterMode == FbxCluster::eAdditive)
                 {
-                    // Multiply with the product of the deformations on the vertex.
                     MatrixAddToDiagonal(lInfluence, 1.0 - lWeight);
                     lClusterDeformation[lIndex] = lInfluence * lClusterDeformation[lIndex];
 
-                    // Set the link to 1.0 just to know this vertex is influenced by a link.
                     lClusterWeight[lIndex] = 1.0;
                 }
-                else // lLinkMode == FbxCluster::eNormalize || lLinkMode == FbxCluster::eTotalOne
+                else
                 {
-                    // Add to the sum of the deformations on the vertex.
                     MatrixAdd(lClusterDeformation[lIndex], lInfluence);
 
-                    // Add to the sum of weights to either normalize or complete the vertex.
                     lClusterWeight[lIndex] += lWeight;
                 }
-            }//For each vertex			
-        }//lClusterCount
+            }			
+        }
     }
 
-    //Actually deform each vertices here by information stored in lClusterDeformation and lClusterWeight
     for (int i = 0; i < lVertexCount; i++)
     {
         FbxVector4 lSrcVertex = pVertexArray[i];
         FbxVector4& lDstVertex = pVertexArray[i];
         double lWeight = lClusterWeight[i];
 
-        // Deform the vertex if there was at least a link with an influence on the vertex,
         if (lWeight != 0.0)
         {
             lDstVertex = lClusterDeformation[i].MultT(lSrcVertex);
             if (lClusterMode == FbxCluster::eNormalize)
             {
-                // In the normalized link mode, a vertex is always totally influenced by the links. 
                 lDstVertex /= lWeight;
             }
             else if (lClusterMode == FbxCluster::eTotalOne)
             {
-                // In the total 1 link mode, a vertex can be partially influenced by the links. 
                 lSrcVertex *= (1.0 - lWeight);
                 lDstVertex += lSrcVertex;
             }
@@ -882,26 +849,23 @@ void AnimatedNode::ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
     if (lClusterMode == FbxCluster::eAdditive && pCluster->GetAssociateModel())
     {
         pCluster->GetTransformAssociateModelMatrix(lAssociateGlobalInitPosition);
-        // Geometric transform of the model
+
         lAssociateGeometry = GetGeometry(pCluster->GetAssociateModel());
         lAssociateGlobalInitPosition *= lAssociateGeometry;
         lAssociateGlobalCurrentPosition = GetGlobalPosition(pCluster->GetAssociateModel(), pTime, pPose);
 
         pCluster->GetTransformMatrix(lReferenceGlobalInitPosition);
-        // Multiply lReferenceGlobalInitPosition by Geometric Transformation
+
         lReferenceGeometry = GetGeometry(pMesh->GetNode());
         lReferenceGlobalInitPosition *= lReferenceGeometry;
         lReferenceGlobalCurrentPosition = pGlobalPosition;
 
-        // Get the link initial global position and the link current global position.
         pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
-        // Multiply lClusterGlobalInitPosition by Geometric Transformation
+
         lClusterGeometry = GetGeometry(pCluster->GetLink());
         lClusterGlobalInitPosition *= lClusterGeometry;
         lClusterGlobalCurrentPosition = GetGlobalPosition(pCluster->GetLink(), pTime, pPose);
 
-        // Compute the shift of the link relative to the reference.
-        //ModelM-1 * AssoM * AssoGX-1 * LinkGX * LinkM-1*ModelM
         pVertexTransformMatrix = lReferenceGlobalInitPosition.Inverse() * lAssociateGlobalInitPosition * lAssociateGlobalCurrentPosition.Inverse() *
             lClusterGlobalCurrentPosition * lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
     }
@@ -909,21 +873,17 @@ void AnimatedNode::ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
     {
         pCluster->GetTransformMatrix(lReferenceGlobalInitPosition);
         lReferenceGlobalCurrentPosition = pGlobalPosition;
-        // Multiply lReferenceGlobalInitPosition by Geometric Transformation
+
         lReferenceGeometry = GetGeometry(pMesh->GetNode());
         lReferenceGlobalInitPosition *= lReferenceGeometry;
 
-        // Get the link initial global position and the link current global position.
         pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
         lClusterGlobalCurrentPosition = GetGlobalPosition(pCluster->GetLink(), pTime, pPose);
 
-        // Compute the initial position of the link relative to the reference.
         lClusterRelativeInitPosition = lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
 
-        // Compute the current position of the link relative to the reference.
         lClusterRelativeCurrentPositionInverse = lReferenceGlobalCurrentPosition.Inverse() * lClusterGlobalCurrentPosition;
 
-        // Compute the shift of the link relative to the reference.
         pVertexTransformMatrix = lClusterRelativeCurrentPositionInverse * lClusterRelativeInitPosition;
     }
 
@@ -975,7 +935,6 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
     FbxMesh* pMesh, FbxTime& pTime, FbxVector4* pVertexArray, FbxPose* pPose)
 {
 
-    // All the links must have the same link mode.
     FbxCluster::ELinkMode lClusterMode = ((FbxSkin*)pMesh->GetDeformer(0, FbxDeformer::eSkin))->GetCluster(0)->GetLinkMode();
 
     int lVertexCount = pMesh->GetControlPointsCount();
@@ -987,8 +946,6 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
     double* lClusterWeight = new double[lVertexCount];
     memset(lClusterWeight, 0, lVertexCount * sizeof(double));
 
-    // For all skins and all clusters, accumulate their deformation and weight
-    // on each vertices and store them in lClusterDeformation and lClusterWeight.
     for (int lSkinIndex = 0; lSkinIndex < lSkinCount; ++lSkinIndex)
     {
         FbxSkin* lSkinDeformer = (FbxSkin*)pMesh->GetDeformer(lSkinIndex, FbxDeformer::eSkin);
@@ -1011,8 +968,6 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
             {
                 int lIndex = lCluster->GetControlPointIndices()[k];
 
-                // Sometimes, the mesh can have less points than at the time of the skinning
-                // because a smooth operator was active when skinning but has been deactivated during export.
                 if (lIndex >= lVertexCount)
                     continue;
 
@@ -1021,17 +976,14 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
                 if (lWeight == 0.0)
                     continue;
 
-                // Compute the influence of the link on the vertex.
                 FbxDualQuaternion lInfluence = lDualQuaternion * lWeight;
                 if (lClusterMode == FbxCluster::eAdditive)
                 {
-                    // Simply influenced by the dual quaternion.
                     lDQClusterDeformation[lIndex] = lInfluence;
 
-                    // Set the link to 1.0 just to know this vertex is influenced by a link.
                     lClusterWeight[lIndex] = 1.0;
                 }
-                else // lLinkMode == FbxCluster::eNormalize || lLinkMode == FbxCluster::eTotalOne
+                else
                 {
                     if (lClusterIndex == 0)
                     {
@@ -1039,9 +991,6 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
                     }
                     else
                     {
-                        // Add to the sum of the deformations on the vertex.
-                        // Make sure the deformation is accumulated in the same rotation direction. 
-                        // Use dot product to judge the sign.
                         double lSign = lDQClusterDeformation[lIndex].GetFirstQuaternion().DotProduct(lDualQuaternion.GetFirstQuaternion());
                         if (lSign >= 0.0)
                         {
@@ -1052,21 +1001,18 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
                             lDQClusterDeformation[lIndex] -= lInfluence;
                         }
                     }
-                    // Add to the sum of weights to either normalize or complete the vertex.
                     lClusterWeight[lIndex] += lWeight;
                 }
-            }//For each vertex
-        }//lClusterCount
+            }
+        }
     }
 
-    //Actually deform each vertices here by information stored in lClusterDeformation and lClusterWeight
     for (int i = 0; i < lVertexCount; i++)
     {
         FbxVector4 lSrcVertex = pVertexArray[i];
         FbxVector4& lDstVertex = pVertexArray[i];
         double lWeightSum = lClusterWeight[i];
 
-        // Deform the vertex if there was at least a link with an influence on the vertex,
         if (lWeightSum != 0.0)
         {
             lDQClusterDeformation[i].Normalize();
@@ -1074,12 +1020,10 @@ void AnimatedNode::ComputeDualQuaternionDeformation(FbxAMatrix& pGlobalPosition,
 
             if (lClusterMode == FbxCluster::eNormalize)
             {
-                // In the normalized link mode, a vertex is always totally influenced by the links. 
                 lDstVertex /= lWeightSum;
             }
             else if (lClusterMode == FbxCluster::eTotalOne)
             {
-                // In the total 1 link mode, a vertex can be partially influenced by the links. 
                 lSrcVertex *= (1.0 - lWeightSum);
                 lDstVertex += lSrcVertex;
             }

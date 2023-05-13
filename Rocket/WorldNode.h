@@ -53,7 +53,7 @@ public:
 
 protected:
 	void										UpdateCharacter();
-
+	void										LoadCountryData();
 
 	shared_ptr<AnimatedNode> 					mCharacter;
 	bool										isMoving = false;
@@ -70,10 +70,11 @@ protected:
 	int											mCountryInfoBufferSrvIdx;
 	int											mCountryInfoUploadBufferIdx;
 
-	char										data[1800][3600] = { 0, };
+	char										mData[1800][3600] = { 0, };
 
-	unordered_map<string, Country>				mCountrys;
+	unordered_map<string, Country>				mCountries;
 	CountryInfo									mCountryInfos[10000];
+	int											mCountryNum = 0;
 
 	int											mLatestClicked = -2;
 

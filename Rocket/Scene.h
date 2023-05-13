@@ -18,11 +18,11 @@ public:
 	/*
 	* scene의 정보들을 업데이트한다.
 	*/
-	virtual void								UpdateScene(const Timer& timer);
+	virtual void								Update(const Timer& timer);
 	/*
 	* scene을 draw한다.
 	*/
-	virtual void								DrawScene() const;
+	virtual void								Draw() const;
 	/*
 	* shadow Map에 scene을 draw한다.
 	*/
