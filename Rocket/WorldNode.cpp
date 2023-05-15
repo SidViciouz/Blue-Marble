@@ -274,8 +274,8 @@ void WorldNode::UpdateCharacter()
 
 	float lAngle = lAngularDistance / mMoveInfo.radius;
 
+	//position
 	XMVECTOR quat = XMQuaternionRotationAxis(XMLoadFloat3(&mMoveInfo.axis), lAngle);
-	//XMVECTOR quat = XMQuaternionRotationAxis(XMLoadFloat3(&mMoveInfo.axis), mMoveInfo.angle);
 
 	XMFLOAT3 curPos = mCharacter->GetAccumulatedPosition().v;
 	XMFLOAT3 center = mAccumulatedPosition.v;
@@ -293,15 +293,29 @@ void WorldNode::UpdateCharacter()
 
 	mCharacter->SetAccumulatedPosition(curPos);
 
-	//
 
+	//orientation
+	/*
 	XMVECTOR up = XMVectorSet(0, 1, 0, 1);
 	XMVECTOR axis = XMVector3Cross(up, cur);
 	float angle = XMVectorGetX(XMVector3AngleBetweenVectors(up, cur));
 	XMFLOAT4 newQuat;
 	XMStoreFloat4(&newQuat, XMQuaternionRotationAxis(axis, angle));
-
 	mCharacter->SetAccumulatedQuaternion(newQuat);
+	*/
+	//
+	XMVECTOR lUp = XMVector3Normalize(cur);
+	XMVECTOR lRight = XMVector3Normalize(XMLoadFloat3(&mMoveInfo.axis));
+	XMVECTOR lFront = XMVector3Cross(lRight, lUp);
+	XMVECTOR lEmpty = XMVectorSet(0, 0, 0, 1);
+
+	XMMATRIX lM = XMMATRIX(lRight, lUp, lFront,lEmpty);
+
+	XMVECTOR lRotation = XMQuaternionRotationMatrix(lM);
+	XMFLOAT4 lQuat;
+	XMStoreFloat4(&lQuat, lRotation);
+	mCharacter->SetAccumulatedQuaternion(lQuat);
+
 }
 
 bool WorldNode::GetIsMoving() const
