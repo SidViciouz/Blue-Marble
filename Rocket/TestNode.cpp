@@ -3,7 +3,7 @@
 
 TestNode::TestNode()
 {
-    filename = "Model/standing_idle.fbx";
+    filename = "Model/AnimMan.FBX";
 
     sdkManager = FbxManager::Create();
     ios = FbxIOSettings::Create(sdkManager, IOSROOT);
@@ -19,10 +19,13 @@ TestNode::TestNode()
     lImporter->Import(scene1);
     lImporter->Destroy();
 
+    Print(scene1->GetRootNode(), 0);
+
     LoadMaterialData(scene1);
     LoadVertexData(scene1);
 
     PlayStart(1);
+
 }
 
 void TestNode::Draw()
@@ -56,73 +59,46 @@ void TestNode::Update()
 
     FbxAMatrix lDummyGlobalPosition;
 
-    DrawNodeRecursive(mCurrentScene->GetRootNode(), mCurrentTime, currentAnimLayer, lDummyGlobalPosition, lPose);
+    DrawNodeRecursive(mCurrentScene->GetRootNode(), mCurrentTime, mCurrentAnimLayer, lDummyGlobalPosition, lPose);
 
     SceneNode::Update();
 }
 
-void TestNode::Print(FbxNode* obj, int tabs)
+void TestNode::Print(FbxNode* pObj, int pTabs)
 {
-    FbxSkeleton* skeleton = obj->GetSkeleton();
-    for (int i = 0; i < tabs; ++i)
-        printf("\t");
-    printf("name : %s | type name : %s\n", obj->GetName(), obj->GetTypeName());
-
-    if (skeleton != nullptr)
+    FbxAMatrix lTransform = pObj->EvaluateGlobalTransform(mCurrentTime);
+    /*
+    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
+        lTransform[0][0], lTransform[0][1], lTransform[0][2], lTransform[0][3],
+        lTransform[1][0], lTransform[1][1], lTransform[1][2], lTransform[1][3],
+        lTransform[2][0], lTransform[2][1], lTransform[2][2], lTransform[2][3],
+        lTransform[3][0], lTransform[3][1], lTransform[3][2], lTransform[3][3]);
+     */   
+    
+    if (pObj->GetNodeAttributeCount())
     {
-        for (int i = 0; i < tabs; ++i)
+        FbxNodeAttribute* lAtt = pObj->GetNodeAttribute();
+
+        FbxNodeAttribute::EType lType = lAtt->GetAttributeType();
+        
+        for(int i=0; i< pTabs; ++i)
             printf("\t");
-        printf("skeleton name : %s\n\n", skeleton->GetName());
-    }
-    FbxMesh* mesh = obj->GetMesh();
-    if (mesh != nullptr)
-    {
-        for (int i = 0; i < mesh->GetDeformerCount(); ++i)
-        {
-            FbxDeformer* deformer = mesh->GetDeformer(i);
-            for (int i = 0; i < tabs + 1; ++i)
-                printf("\t");
-            printf("[deformer] name : %s, type name : %s\n\n", deformer->GetName(), deformer->GetTypeName());
-            FbxSkin* skin = FbxCast<FbxSkin>(deformer);
-            if (skin != nullptr)
-            {
-                int clusterCount = skin->GetClusterCount();
-                for (int i = 0; i < clusterCount; ++i)
-                {
-                    FbxCluster* cluster = skin->GetCluster(i);
-
-                    for (int i = 0; i < tabs + 2; ++i)
-                        printf("\t");
-                    FbxNode* link = cluster->GetLink();
-                    int ctrlPointCount = cluster->GetControlPointIndicesCount();
-                    printf("[cluster link] name : %s, type name :%s, control point count : %d\n\n", link->GetName(), link->GetTypeName(), ctrlPointCount);
-
-                    FbxAnimEvaluator* eval = link->GetAnimationEvaluator();
-                    FbxTime time1, time2, time3;
-                    time1.SetSecondDouble(0);
-                    time2.SetSecondDouble(1);
-                    time3.SetSecondDouble(1.5f);
-                    for (int i = 0; i < tabs + 2; ++i)
-                        printf("\t");
-
-                    FbxVector4 before = eval->GetNodeLocalRotation(link, time1);
-                    FbxVector4 after = eval->GetNodeLocalRotation(link, time2);
-                    FbxVector4 after2 = eval->GetNodeLocalRotation(link, time3);
-                    printf("%f %f %f %f -> %f %f %f %f\n", before[0], before[1], before[2], before[3],
-                        after[0], after[1], after[2], after[3]);
-                    printf("-> %f %f %f %f\n", after2[0], after2[1], after2[2], after2[3]);
-                }
-            }
+        printf("%s\t", lAtt->GetName());
+        PrintAttributeType(lType);
+        
+        if (lType == FbxNodeAttribute::EType::eMesh)
+        {   
+            //PrintMesh(pObj->GetMesh(),pTabs);
         }
     }
 
-
-    int numChild = obj->GetChildCount();
+    int numChild = pObj->GetChildCount();
     for (int i = 0; i < numChild; ++i)
     {
-        FbxNode* child = obj->GetChild(i);
-        Print(child, tabs + 1);
+        FbxNode* child = pObj->GetChild(i);
+        Print(child, pTabs + 1);
     }
+    
 }
 
 D3D12_VERTEX_BUFFER_VIEW* TestNode::GetVertexBufferView()
@@ -151,7 +127,7 @@ void TestNode::LoadMaterialData(FbxScene* pScene)
     for (int i = 0; i < lMaterialCount; ++i)
     {
         FbxSurfaceMaterial* lMaterial = pScene->GetMaterial(i);
-
+        
         unsigned int lEmissiveTextureName;
         const FbxDouble3 lEmissive = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sEmissive, FbxSurfaceMaterial::sEmissiveFactor, lEmissiveTextureName);
@@ -355,16 +331,7 @@ void TestNode::LoadVertexData(FbxScene* pScene)
     mIndexBuffer = Engine::mResourceManager->CreateUploadBuffer(sizeof(uint16_t) * mIndex.size());
 
     Engine::mResourceManager->Upload(mVertexBuffer, mVertex.data(), sizeof(Vertex) * mVertex.size(), 0);
-    Engine::mResourceManager->Upload(mIndexBuffer, mIndex.data(), sizeof(uint16_t) * mIndex.size(), 0);
-
-    
-    FbxNode* root = scene1->GetRootNode();
-    int numChild = root->GetChildCount();
-    for (int i = 0; i < numChild; ++i)
-    {
-        FbxNode* obj = root->GetChild(i);
-        Print(obj, 1);
-    }
+    Engine::mResourceManager->Upload(mIndexBuffer, mIndex.data(), sizeof(uint16_t)* mIndex.size(), 0);
     
 }
 
@@ -384,7 +351,7 @@ bool TestNode::SetCurrentAnimStack(FbxScene* pScene, int pIndex)
         return false;
 
     //여기서 첫번째로 애니메이션 스택에 연결된 레이어가 베이스 레이어라고 가정한다.
-    currentAnimLayer = lCurrentAnimationStack->GetMember<FbxAnimLayer>();
+    mCurrentAnimLayer = lCurrentAnimationStack->GetMember<FbxAnimLayer>();
     pScene->SetCurrentAnimationStack(lCurrentAnimationStack);
 
     FbxTakeInfo* lCurrentTakeInfo = pScene->GetTakeInfo(*(mAnimStackNameArray[pIndex]));
@@ -464,7 +431,6 @@ FbxAMatrix TestNode::GetGlobalPosition(FbxNode* pNode, const FbxTime& pTime, Fbx
                         lParentGlobalPostion = GetGlobalPosition(pNode->GetParent(), pTime, pPose);
                     }
                 }
-
                 FbxAMatrix lLocalPosition = GetPoseMatrix(pPose, lNodeIndex);
                 lGlobalPosition = lParentGlobalPostion * lLocalPosition;
             }
@@ -910,6 +876,7 @@ void TestNode::ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
         // Multiply lReferenceGlobalInitPosition by Geometric Transformation
         lReferenceGeometry = GetGeometry(pMesh->GetNode());
         lReferenceGlobalInitPosition *= lReferenceGeometry;
+        /*
         if (strcmp(pCluster->GetName(), "Bone") == 0)
         {
             printf("%s\n\n", pCluster->GetName());
@@ -925,10 +892,11 @@ void TestNode::ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
                 lReferenceGlobalCurrentPosition[2][0], lReferenceGlobalCurrentPosition[2][1], lReferenceGlobalCurrentPosition[2][2], lReferenceGlobalCurrentPosition[2][3],
                 lReferenceGlobalCurrentPosition[3][0], lReferenceGlobalCurrentPosition[3][1], lReferenceGlobalCurrentPosition[3][2], lReferenceGlobalCurrentPosition[3][3]);
         }
-
+        */
         // Get the link initial global position and the link current global position.
         pCluster->GetTransformLinkMatrix(lClusterGlobalInitPosition);
         lClusterGlobalCurrentPosition = GetGlobalPosition(pCluster->GetLink(), pTime, pPose);
+        /*
         if (strcmp(pCluster->GetName(), "Bone") == 0)
         {
             printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
@@ -943,6 +911,7 @@ void TestNode::ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
                 lClusterGlobalCurrentPosition[2][0], lClusterGlobalCurrentPosition[2][1], lClusterGlobalCurrentPosition[2][2], lClusterGlobalCurrentPosition[2][3],
                 lClusterGlobalCurrentPosition[3][0], lClusterGlobalCurrentPosition[3][1], lClusterGlobalCurrentPosition[3][2], lClusterGlobalCurrentPosition[3][3]);
         }
+        */
         // Compute the initial position of the link relative to the reference.
         //lClusterRelativeInitPosition = lClusterGlobalInitPosition.Inverse() * lReferenceGlobalInitPosition;
         
@@ -956,6 +925,7 @@ void TestNode::ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
 
         // Compute the shift of the link relative to the reference.
         //pVertexTransformMatrix = lClusterRelativeCurrentPositionInverse * lClusterRelativeInitPosition;
+        /*
         if (strcmp(pCluster->GetName(), "Bone") == 0)
         {
             printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
@@ -976,6 +946,7 @@ void TestNode::ComputeClusterDeformation(FbxAMatrix& pGlobalPosition,
                 pVertexTransformMatrix[2][0], pVertexTransformMatrix[2][1], pVertexTransformMatrix[2][2], pVertexTransformMatrix[2][3],
                 pVertexTransformMatrix[3][0], pVertexTransformMatrix[3][1], pVertexTransformMatrix[3][2], pVertexTransformMatrix[3][3]);
         }
+        */
     }
 
 }
@@ -1163,4 +1134,181 @@ void TestNode::PlayStart(int index)
 void TestNode::PlayEnd()
 {
     mIsPlayed = false;
+}
+
+
+void TestNode::PrintAttributeType(FbxNodeAttribute::EType pType)
+{
+    switch (pType)
+    {
+    case FbxNodeAttribute::EType::eUnknown:
+        printf("Etype : eUnknown\n");
+        break;
+
+    case FbxNodeAttribute::EType::eNull:
+        printf("Etype : eNull\n");
+        break;
+
+    case FbxNodeAttribute::EType::eMarker:
+        printf("Etype : eMarker\n");
+        break;
+
+    case FbxNodeAttribute::EType::eSkeleton:
+        printf("Etype : eSkeleton\n");
+        break;
+
+    case FbxNodeAttribute::EType::eMesh:
+        printf("Etype : eMesh\n");
+        break;
+
+    case FbxNodeAttribute::EType::eNurbs:
+        printf("Etype : eNurbs\n");
+        break;
+
+    case FbxNodeAttribute::EType::ePatch:
+        printf("Etype : ePatch\n");
+        break;
+
+    case FbxNodeAttribute::EType::eCamera:
+        printf("Etype : eCamera\n");
+        break;
+
+    case FbxNodeAttribute::EType::eCameraStereo:
+        printf("Etype : eCameraStereo\n");
+        break;
+
+    case FbxNodeAttribute::EType::eCameraSwitcher:
+        printf("Etype : eCameraSwitcher\n");
+        break;
+
+    case FbxNodeAttribute::EType::eLight:
+        printf("Etype : eLight\n");
+        break;
+
+    case FbxNodeAttribute::EType::eOpticalReference:
+        printf("Etype : eOpticalReference\n");
+        break;
+
+    case FbxNodeAttribute::EType::eOpticalMarker:
+        printf("Etype : eOpticalMarker\n");
+        break;
+
+    case FbxNodeAttribute::EType::eNurbsCurve:
+        printf("Etype : eNurbsCurve\n");
+        break;
+
+    case FbxNodeAttribute::EType::eTrimNurbsSurface:
+        printf("Etype : eTrimNurbsSurface\n");
+        break;
+
+    case FbxNodeAttribute::EType::eBoundary:
+        printf("Etype : eBoundary\n");
+        break;
+
+    case FbxNodeAttribute::EType::eNurbsSurface:
+        printf("Etype : eNurbsSurface\n");
+        break;
+
+    case FbxNodeAttribute::EType::eShape:
+        printf("Etype : eShape\n");
+        break;
+
+    case FbxNodeAttribute::EType::eLODGroup:
+        printf("Etype : eLODGroup\n");
+        break;
+
+    case FbxNodeAttribute::EType::eSubDiv:
+        printf("Etype : eSubDiv\n");
+        break;
+
+    case FbxNodeAttribute::EType::eCachedEffect:
+        printf("Etype : eCachedEffect\n");
+        break;
+
+    case FbxNodeAttribute::EType::eLine :
+        printf("Etype : eLine\n");
+        break;
+    }
+}
+
+void TestNode::PrintMesh(FbxMesh* pMesh, int pTabs)
+{
+    
+    if (pMesh->GetDeformerCount(FbxDeformer::eSkin))
+    {
+        FbxSkin* lSkin = FbxCast<FbxSkin>(pMesh->GetDeformer(0, FbxDeformer::eSkin));
+
+        int lClusterCount = lSkin->GetClusterCount();
+        /*
+        printf("-----------------------------------\n");
+        for (int i = 0; i < lClusterCount; ++i)
+        {
+            FbxCluster* lCluster = lSkin->GetCluster(i);
+
+            FbxAMatrix lM1;
+            FbxAMatrix lM2;
+            lCluster->GetTransformMatrix(lM1);
+            lCluster->GetTransformLinkMatrix(lM2);
+
+            if (strcmp(lCluster->GetName(), "Bone") == 0)
+            {
+                FbxNode* lBone = lCluster->GetLink();
+                FbxVector4 lTrans = lBone->EvaluateGlobalTransform(mCurrentTime).GetT();
+                
+                FbxAnimCurveNode* lAnimCurveNode = lBone->LclTranslation.GetCurveNode(mCurrentAnimLayer,true);
+
+                
+                if (lAnimCurveNode == nullptr)
+                    printf("lAnimCurveNode is null\n");
+                else
+                {
+                    int lChannelCount = lAnimCurveNode->GetChannelsCount();
+                    //key(FbxAnimCurveKey) 추가
+                    FbxAnimCurve* lCurve = lAnimCurveNode->GetCurve(2);
+                    FbxTime lTime;
+                    int lKeyIndex = 0;
+                    lTime.SetSecondDouble(2.0f);
+                    
+                    lCurve->KeyModifyBegin();
+                    lKeyIndex = lCurve->KeyAdd(lTime);
+                    lCurve->KeySet(lKeyIndex, lTime, 0.01f, FbxAnimCurveDef::eInterpolationLinear);
+                    lCurve->KeyModifyEnd();
+
+                    for (int lChannelIdx = 0; lChannelIdx < lChannelCount; ++lChannelIdx)
+                    {
+                        printf("%s\n", lAnimCurveNode->GetChannelName(lChannelIdx).Buffer());
+                        
+                        FbxAnimCurve* lCurve =  lAnimCurveNode->GetCurve(lChannelIdx);
+
+                        int lKeyCount = lCurve->KeyGetCount();
+                        for (int lKeyIdx = 0; lKeyIdx < lKeyCount; ++lKeyIdx)
+                        {
+                            printf("[%f %f] ", lCurve->KeyGetTime(lKeyIdx).GetSecondDouble(),lCurve->KeyGetValue(lKeyIdx));
+                        }
+                        printf("\n");
+                    }
+                }
+                //printf("%f %f %f %f\n", lTrans[0], lTrans[1], lTrans[2], lTrans[3]);
+            }
+
+
+            
+            printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
+                lM1[0][0], lM1[0][1], lM1[0][2], lM1[0][3],
+                lM1[1][0], lM1[1][1], lM1[1][2], lM1[1][3],
+                lM1[2][0], lM1[2][1], lM1[2][2], lM1[2][3],
+                lM1[3][0], lM1[3][1], lM1[3][2], lM1[3][3]
+                );
+
+            printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n\n\n",
+                lM2[0][0], lM2[0][1], lM2[0][2], lM2[0][3],
+                lM2[1][0], lM2[1][1], lM2[1][2], lM2[1][3],
+                lM2[2][0], lM2[2][1], lM2[2][2], lM2[2][3],
+                lM2[3][0], lM2[3][1], lM2[3][2], lM2[3][3]
+            );
+                
+        }
+        printf("-----------------------------------\n");
+        */
+    }
 }

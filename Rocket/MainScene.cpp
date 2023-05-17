@@ -20,6 +20,9 @@ using namespace Physics;
 MainScene::MainScene()
 	: Scene()
 {
+	mCharacter = make_shared<Character>();
+	mCharacter->Initialize("Model/AnimMan.FBX");
+
 	mGameState = make_shared<GameState>(*this);
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();
@@ -78,16 +81,17 @@ void MainScene::Initialize()
 	mEarth->SetScale(30.0f, 30.0f, 30.0f);
 	mEarth->mInputComponent = Engine::mInputManager->Build<WorldInputComponent>(mEarth, "MainScene");
 
-	/*
+	
 	shared_ptr<TestNode> lTestNode = make_shared<TestNode>();
-	lTestNode->SetScale(0.1f, 0.1f, 0.1f);
+	lTestNode->SetScale(1.0f, 1.0f, 1.0f);
 	lTestNode->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
 	lTestNode->SetRelativePosition(5.0f, 5.0f, 0.0f);
-	*/
+	
+
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(32.0f, 30.0f);
 	mEarth->AddChild(cloud);
 	
-	//mSceneRoot->AddChild(lTestNode);
+	mSceneRoot->AddChild(lTestNode);
 	mSceneRoot->AddChild(mDiceSystem);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);

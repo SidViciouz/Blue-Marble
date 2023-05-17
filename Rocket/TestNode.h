@@ -16,7 +16,7 @@ public:
 	*/
 	virtual void								Update() override;
 
-	void										Print(FbxNode* obj, int tabs);
+	void										Print(FbxNode* pObj, int pTabs);
 
 	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
 	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
@@ -25,6 +25,9 @@ public:
 	void										PlayEnd();
 
 protected:
+
+	void										PrintAttributeType(FbxNodeAttribute::EType pType);
+	void										PrintMesh(FbxMesh* pMesh,int pTabs);
 
 	void										LoadMaterialData(FbxScene* pScene);
 	FbxDouble3									GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
@@ -92,7 +95,7 @@ protected:
 
 
 	FbxArray<FbxString*>						mAnimStackNameArray;
-	FbxAnimLayer* currentAnimLayer;
+	FbxAnimLayer*								mCurrentAnimLayer;
 	FbxTime										mStart;
 	FbxTime										mStop;
 	FbxTime										mCurrentTime;
