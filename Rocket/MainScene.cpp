@@ -22,6 +22,11 @@ MainScene::MainScene()
 {
 	mCharacter = make_shared<Character>();
 	mCharacter->Initialize("Model/AnimMan.FBX");
+	mCharacter->Upload();
+	mCharacter->AddAnimationLayer("Model/ALS_Mannequin_T_Pose.FBX");
+	mCharacter->AddAnimationLayer("Model/ALS_CLF_GetUp_Back.FBX");
+	mCharacter->SetScale(0.1f, 0.1f, 0.1f);
+	mCharacter->SetRelativeQuaternion(sinf(XMConvertToRadians(-45.0f)), 0.0f, 0.0f, cosf(XMConvertToRadians(-45.0f)));
 
 	mGameState = make_shared<GameState>(*this);
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
@@ -91,7 +96,8 @@ void MainScene::Initialize()
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(32.0f, 30.0f);
 	mEarth->AddChild(cloud);
 	
-	mSceneRoot->AddChild(lTestNode);
+	//mSceneRoot->AddChild(lTestNode);
+	mSceneRoot->AddChild(mCharacter);
 	mSceneRoot->AddChild(mDiceSystem);
 	mSceneRoot->AddChild(camera);
 	mSceneRoot->AddChild(light1);

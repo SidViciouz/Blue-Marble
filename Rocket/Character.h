@@ -2,6 +2,7 @@
 
 #include "Util.h"
 #include "fbxsdk.h"
+#include "SceneNode.h"
 
 struct ControlPoint
 {
@@ -20,6 +21,20 @@ struct ControlPoint
 		};
 	} position;
 
+	struct uv
+	{
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+			};
+
+			float data[2];
+		};
+	} uv;
+
 	struct normal
 	{
 		union
@@ -34,20 +49,6 @@ struct ControlPoint
 			float data[3];
 		};
 	} normal;
-
-	struct uv
-	{
-		union
-		{
-			struct
-			{
-				float x;
-				float y;
-			};
-
-			float data[2];
-		};
-	} uv;
 };
 
 class SubMesh
@@ -58,17 +59,23 @@ public:
 
 	void										SetMaterialIndex(int pIndex);
 
-	void										AddIndex(int pIndex);
+	void										AddIndex(uint16_t pIndex);
 
 	void										AddTriangle(int pNum = 1);
 	int											GetTriangleCount() const;
+	void										Draw();
+	void										Upload();
 
 protected:
 	int											mTriangleCount;
 
-	vector<int>									mIndices;
+	vector<uint16_t>							mIndices;
 
 	int											mMaterialIndex;
+
+	int											mIndexBuffer;
+	D3D12_INDEX_BUFFER_VIEW						mIndexBufferView;
+	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
 };
 
 class SkeletalMesh
@@ -79,12 +86,18 @@ public:
 												SkeletalMesh(FbxMesh* pMesh);
 
 	void										Load(int pMaterialCount);
+	void										Draw();
+	void										Upload();
 
 protected:
 
 	FbxMesh*									mFbxMesh;
 	vector<shared_ptr<SubMesh>>					mSubMeshes;
 	vector<ControlPoint>						mControlPoints;
+
+	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
+	int											mVertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW					mVertexBufferView;
 };
 
 class Material
@@ -111,6 +124,8 @@ public:
 												Skeletal(const char* pSkeletalMeshPath);
 
 	void										Load(FbxManager* pFbxManager);
+	void										Draw();
+	void										Upload();
 
 protected:
 
@@ -141,7 +156,7 @@ class AnimationLayer
 
 };
 
-class Character
+class Character : public SceneNode
 {
 public:
 												Character();
@@ -150,20 +165,8 @@ public:
 
 	void										Initialize(const char* pSkeletalMeshPath);
 
-	/*
-	* draw 관련(임시)
-	*/
+	virtual void								Draw() override;
 	void										Upload();
-	void										Draw();
-	int											mVertexBuffer;
-	int											mIndexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW					mVertexBufferView;
-	D3D12_INDEX_BUFFER_VIEW						mIndexBufferView;
-	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
-	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
-	/*
-	* draw 관련 end
-	*/
 
 protected:
 

@@ -1,4 +1,5 @@
 #include "Character.h"
+#include "Engine.h"
 
 /*
 *********************************************************************************
@@ -73,7 +74,7 @@ void SubMesh::SetMaterialIndex(int pIndex)
     mMaterialIndex = pIndex;
 }
 
-void SubMesh::AddIndex(int pIndex)
+void SubMesh::AddIndex(uint16_t pIndex)
 {
     mIndices.push_back(pIndex);
 }
@@ -86,6 +87,27 @@ void SubMesh::AddTriangle(int pNum)
 int	SubMesh::GetTriangleCount() const
 {
     return mTriangleCount;
+}
+
+void SubMesh::Draw()
+{
+    Engine::mCommandList->IASetIndexBuffer(GetIndexBufferView());
+    Engine::mCommandList->DrawIndexedInstanced(mIndices.size(), 1, 0, 0, 0);
+}
+
+void SubMesh::Upload()
+{
+    mIndexBuffer = Engine::mResourceManager->CreateUploadBuffer(sizeof(uint16_t) * mIndices.size());
+    Engine::mResourceManager->Upload(mIndexBuffer, mIndices.data(), sizeof(uint16_t) * mIndices.size(), 0);
+}
+
+D3D12_INDEX_BUFFER_VIEW* SubMesh::GetIndexBufferView()
+{
+    mIndexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mIndexBuffer)->GetGPUVirtualAddress();
+    mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+    mIndexBufferView.SizeInBytes = sizeof(uint16_t) * mIndices.size();
+
+    return &mIndexBufferView;
 }
 
 /*
@@ -183,7 +205,7 @@ void SkeletalMesh::Load(int pMaterialCount)
             for (int lPolygonPosition = 0; lPolygonPosition < 3; ++lPolygonPosition)
             {
                 int lIndex = mFbxMesh->GetPolygonVertex(lPolygonIndex, lPolygonPosition);
-                mSubMeshes[lMaterialIndex]->AddIndex(lIndex);
+                mSubMeshes[lMaterialIndex]->AddIndex(static_cast<uint16_t>(lIndex));
 
             }
 
@@ -194,7 +216,7 @@ void SkeletalMesh::Load(int pMaterialCount)
             for (int i = 0; i < 6; ++i)
             {
                 int lIndex = mFbxMesh->GetPolygonVertex(lPolygonIndex, mTriangle[i]);
-                mSubMeshes[lMaterialIndex]->AddIndex(lIndex);
+                mSubMeshes[lMaterialIndex]->AddIndex(static_cast<uint16_t>(lIndex));
 
             }
 
@@ -204,8 +226,37 @@ void SkeletalMesh::Load(int pMaterialCount)
         {
             printf("lPolygonSize is %d\n", lPolygonSize);
         }
-
     }
+}
+
+void SkeletalMesh::Draw()
+{
+    Engine::mCommandList->IASetVertexBuffers(0, 1, GetVertexBufferView());
+
+    for (auto lSubMesh : mSubMeshes)
+    {
+        lSubMesh->Draw();
+    }
+}
+
+void SkeletalMesh::Upload()
+{
+    mVertexBuffer = Engine::mResourceManager->CreateUploadBuffer(sizeof(ControlPoint) * mControlPoints.size());
+    Engine::mResourceManager->Upload(mVertexBuffer, mControlPoints.data(), sizeof(ControlPoint) * mControlPoints.size(), 0);
+  
+    for (auto lSubMesh : mSubMeshes)
+    {
+        lSubMesh->Upload();
+    }
+}
+
+D3D12_VERTEX_BUFFER_VIEW* SkeletalMesh::GetVertexBufferView()
+{
+    mVertexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mVertexBuffer)->GetGPUVirtualAddress();
+    mVertexBufferView.StrideInBytes = sizeof(ControlPoint);
+    mVertexBufferView.SizeInBytes = sizeof(ControlPoint) * mControlPoints.size();
+
+    return &mVertexBufferView;
 }
 
 /*
@@ -261,6 +312,16 @@ void Skeletal::LoadSkeletalMesh()
 
     mSkeletalMesh = make_shared<SkeletalMesh>(lMesh);
     mSkeletalMesh->Load(mMaterials.size());
+}
+
+void Skeletal::Draw()
+{
+    mSkeletalMesh->Draw();
+}
+
+void Skeletal::Upload()
+{
+    mSkeletalMesh->Upload();
 }
 
 void Skeletal::Print(FbxNode* pObj, int pTabs)
@@ -418,34 +479,21 @@ void Character::LoadSkeletal(const char* pSkeletalMeshPath)
     mSkeletal->Load(mFbxManager);
 }
 
+void Character::Draw()
+{
+    Engine::mCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    Engine::mCommandList->SetGraphicsRootSignature(Engine::mRootSignatures["Default"].Get());
+    Engine::mCommandList->SetPipelineState(Engine::mPSOs["Default"].Get());
+    Engine::mCommandList->SetGraphicsRootConstantBufferView(0,
+        Engine::mResourceManager->GetResource(Engine::mFrames[Engine::mCurrentFrame]->mObjConstantBufferIdx)->GetGPUVirtualAddress()
+        + mSceneNodeIndex * Engine::mResourceManager->CalculateAlignment(sizeof(obj), 256));
+    Engine::mCommandList->SetGraphicsRootDescriptorTable(2, Engine::mDescriptorManager->GetGpuHandle(
+        Engine::mTextureManager->GetTextureIndex("stone"), DescType::SRV));
 
+    mSkeletal->Draw();
+}
 
-/*
-#include "Engine.h"
 void Character::Upload()
 {
-    mVertexBuffer = Engine::mResourceManager->CreateUploadBuffer(sizeof(Vertex) * mVertex.size());
-    mIndexBuffer = Engine::mResourceManager->CreateUploadBuffer(sizeof(uint16_t) * mIndex.size());
-
-    Engine::mResourceManager->Upload(mVertexBuffer, mVertex.data(), sizeof(Vertex) * mVertex.size(), 0);
-    Engine::mResourceManager->Upload(mIndexBuffer, mIndex.data(), sizeof(uint16_t) * mIndex.size(), 0);
+    mSkeletal->Upload();
 }
-
-D3D12_VERTEX_BUFFER_VIEW* Character::GetVertexBufferView()
-{
-    mVertexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mVertexBuffer)->GetGPUVirtualAddress();
-    mVertexBufferView.StrideInBytes = sizeof(Vertex);
-    mVertexBufferView.SizeInBytes = sizeof(Vertex) * mVertex.size();
-
-    return &mVertexBufferView;
-}
-
-D3D12_INDEX_BUFFER_VIEW* Character::GetIndexBufferView()
-{
-    mIndexBufferView.BufferLocation = Engine::mResourceManager->GetResource(mIndexBuffer)->GetGPUVirtualAddress();
-    mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-    mIndexBufferView.SizeInBytes = sizeof(uint16_t) * mIndex.size();
-
-    return &mIndexBufferView;
-}
-*/
