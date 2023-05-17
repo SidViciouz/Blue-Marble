@@ -19,13 +19,13 @@ TestNode::TestNode()
     lImporter->Import(scene1);
     lImporter->Destroy();
 
-    Print(scene1->GetRootNode(), 0);
 
     LoadMaterialData(scene1);
     LoadVertexData(scene1);
 
     PlayStart(1);
 
+    //Print(scene1->GetRootNode(), 0);
 }
 
 void TestNode::Draw()
@@ -131,22 +131,22 @@ void TestNode::LoadMaterialData(FbxScene* pScene)
         unsigned int lEmissiveTextureName;
         const FbxDouble3 lEmissive = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sEmissive, FbxSurfaceMaterial::sEmissiveFactor, lEmissiveTextureName);
-        printf("emissive %f %f %f, %u\n", lEmissive[0], lEmissive[1], lEmissive[2], lEmissiveTextureName);
+        //printf("emissive %f %f %f, %u\n", lEmissive[0], lEmissive[1], lEmissive[2], lEmissiveTextureName);
 
         unsigned int lAmbientTextureName;
         const FbxDouble3 lAmbient = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sAmbient, FbxSurfaceMaterial::sAmbientFactor, lAmbientTextureName);
-        printf("ambient  %f %f %f, %u\n", lAmbient[0], lAmbient[1], lAmbient[2], lAmbientTextureName);
+        //printf("ambient  %f %f %f, %u\n", lAmbient[0], lAmbient[1], lAmbient[2], lAmbientTextureName);
 
         unsigned int lDiffuseTextureName;
         const FbxDouble3 lDiffuse = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sDiffuse, FbxSurfaceMaterial::sDiffuseFactor, lDiffuseTextureName);
-        printf("diffuse  %f %f %f, %u\n", lDiffuse[0], lDiffuse[1], lDiffuse[2], lDiffuseTextureName);
+        //printf("diffuse  %f %f %f, %u\n", lDiffuse[0], lDiffuse[1], lDiffuse[2], lDiffuseTextureName);
 
         unsigned int lSpecularTextureName;
         const FbxDouble3 lSpecular = GetMaterialProperty(lMaterial,
             FbxSurfaceMaterial::sSpecular, FbxSurfaceMaterial::sSpecularFactor, lSpecularTextureName);
-        printf("specular  %f %f %f, %u\n", lSpecular[0], lSpecular[1], lSpecular[2], lSpecularTextureName);
+        //printf("specular  %f %f %f, %u\n", lSpecular[0], lSpecular[1], lSpecular[2], lSpecularTextureName);
     }
 
 }

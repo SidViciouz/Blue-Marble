@@ -3,17 +3,106 @@
 #include "Util.h"
 #include "fbxsdk.h"
 
+struct ControlPoint
+{
+	struct position
+	{
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+				float z;
+			};
+
+			float data[3];
+		};
+	} position;
+
+	struct normal
+	{
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+				float z;
+			};
+
+			float data[3];
+		};
+	} normal;
+
+	struct uv
+	{
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+			};
+
+			float data[2];
+		};
+	} uv;
+};
+
+class SubMesh
+{
+
+public:
+												SubMesh();
+
+	void										SetMaterialIndex(int pIndex);
+
+	void										AddIndex(int pIndex);
+
+	void										AddTriangle(int pNum = 1);
+	int											GetTriangleCount() const;
+
+protected:
+	int											mTriangleCount;
+
+	vector<int>									mIndices;
+
+	int											mMaterialIndex;
+};
+
 class SkeletalMesh
 {
-public:
-												SkeletalMesh();
+	int											mTriangle[6] = { 0,1,2,0,2,3 };
 
-	void										Load();
+public:
+												SkeletalMesh(FbxMesh* pMesh);
+
+	void										Load(int pMaterialCount);
+
+protected:
+
+	FbxMesh*									mFbxMesh;
+	vector<shared_ptr<SubMesh>>					mSubMeshes;
+	vector<ControlPoint>						mControlPoints;
 };
 
 class Material
 {
+public:
+												Material(FbxSurfaceMaterial* pMaterial);
+	void										Print();
 
+protected:
+	void										Initialize(FbxSurfaceMaterial* pMaterial);
+
+	FbxDouble3									GetMaterialProperty(const FbxSurfaceMaterial* pMaterial,
+											const char* pPropertyName, const char* pFactorPropertyName);
+
+	FbxDouble3									mEmissive;
+	FbxDouble3									mAmbient;
+	FbxDouble3									mDiffuse;
+	FbxDouble3									mSpecular;
 };
 
 class Skeletal
@@ -24,6 +113,9 @@ public:
 	void										Load(FbxManager* pFbxManager);
 
 protected:
+
+	void										Print(FbxNode* pObj, int pTabs);
+	void										PrintAttributeType(FbxNodeAttribute::EType pType);
 
 	void										LoadScene(FbxManager* pFbxManager);
 
@@ -57,6 +149,21 @@ public:
 	void										AddAnimationLayer(const char* pAnimationPath);
 
 	void										Initialize(const char* pSkeletalMeshPath);
+
+	/*
+	* draw 관련(임시)
+	*/
+	void										Upload();
+	void										Draw();
+	int											mVertexBuffer;
+	int											mIndexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW					mVertexBufferView;
+	D3D12_INDEX_BUFFER_VIEW						mIndexBufferView;
+	D3D12_VERTEX_BUFFER_VIEW*					GetVertexBufferView();
+	D3D12_INDEX_BUFFER_VIEW*					GetIndexBufferView();
+	/*
+	* draw 관련 end
+	*/
 
 protected:
 
