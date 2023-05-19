@@ -21,10 +21,12 @@ MainScene::MainScene()
 	: Scene()
 {
 	mCharacter = make_shared<Character>();
+	mCharacter->AddAnimationLayer("Model/ALS_Mannequin_T_Pose.FBX","TPose");
+	mCharacter->AddAnimationLayer("Model/ALS_CLF_GetUp_Back.FBX", "GetUpBack");
+	mCharacter->AddAnimationLayer("Model/ALS_N_Walk_F.FBX", "WalkF");
+	mCharacter->AddAnimationLayer("Model/ALS_N_Run_F.FBX","RunF");
 	mCharacter->Initialize("Model/AnimMan.FBX");
 	mCharacter->Upload();
-	mCharacter->AddAnimationLayer("Model/ALS_Mannequin_T_Pose.FBX");
-	mCharacter->AddAnimationLayer("Model/ALS_CLF_GetUp_Back.FBX");
 	mCharacter->SetScale(0.1f, 0.1f, 0.1f);
 	mCharacter->SetRelativeQuaternion(sinf(XMConvertToRadians(-45.0f)), 0.0f, 0.0f, cosf(XMConvertToRadians(-45.0f)));
 
@@ -74,7 +76,8 @@ void MainScene::Initialize()
 	light3->SetTextureName("sun");
 	light3->SetColor(0.1f, 0.1f, 0.1f);
 	light3->SetDiffuseAlbedo(10.0f,10.0f,10.0f );
-	light3->SetRelativePosition(50.0, 50.0f, 0.0f);
+	light3->SetRelativePosition(40.0, 40.0f, 50.0f);
+	light3->SetScale(2.0f, 2.0f, 2.0f);
 	light3->SetDirection(-1.0f, -1.0f, 0.0f);
 	mLightNodes.push_back(light3);
 	
