@@ -1,5 +1,6 @@
 #include "Character.h"
 #include "Engine.h"
+#include <stack>
 
 /*
 *********************************************************************************
@@ -281,7 +282,6 @@ void SkeletalMesh::Deform(FbxAMatrix* pDeformation)
     for (int lControlPointIndex = 0; lControlPointIndex < lControlPointCount; ++lControlPointIndex)
     {
         FbxVector4 lPos = pDeformation[lControlPointIndex].MultT(mFbxMesh->GetControlPointAt(lControlPointIndex));
-        
         mControlPoints[lControlPointIndex].position = { (float)lPos[0],(float)lPos[1],(float)lPos[2] };
     }
 }
@@ -302,6 +302,7 @@ Bone::Bone(const char* pName, FbxNode* pBoneNode)
     {
         FbxNode* lChild = pBoneNode->GetChild(lChildIndex);
         mChildBones.push_back(make_shared<Bone>(lChild->GetName(), lChild));
+        mChildBones.back()->mParentBone = this;
     }
 }
 
@@ -314,6 +315,59 @@ void Bone::GetChildIterator(BoneIterator& pFirst, BoneIterator& pEnd) const
 {
     pFirst = mChildBones.cbegin();
     pEnd = mChildBones.cend();
+}
+
+void Bone::UpdateTransformMatrix(FbxTime pTime, FbxAMatrix pParentGlobalTransformMatrix)
+{
+    mGlobalTransformMatrix = mNode->EvaluateGlobalTransform(pTime);
+    mRelativeTransformMatrix = mNode->EvaluateLocalTransform(pTime);
+    //mRelativeTransformMatrix = mGlobalTransformMatrix* pParentGlobalTransformMatrix.Inverse();
+
+    /*
+    printf("[%s]\n", mNode->GetName());
+    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
+        mGlobalTransformMatrix[0][0], mGlobalTransformMatrix[0][1], mGlobalTransformMatrix[0][2], mGlobalTransformMatrix[0][3],
+        mGlobalTransformMatrix[1][0], mGlobalTransformMatrix[1][1], mGlobalTransformMatrix[1][2], mGlobalTransformMatrix[1][3],
+        mGlobalTransformMatrix[2][0], mGlobalTransformMatrix[2][1], mGlobalTransformMatrix[2][2], mGlobalTransformMatrix[2][3],
+        mGlobalTransformMatrix[3][0], mGlobalTransformMatrix[3][1], mGlobalTransformMatrix[3][2], mGlobalTransformMatrix[3][3]
+        );
+    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
+        mRelativeTransformMatrix[0][0], mRelativeTransformMatrix[0][1], mRelativeTransformMatrix[0][2], mRelativeTransformMatrix[0][3],
+        mRelativeTransformMatrix[1][0], mRelativeTransformMatrix[1][1], mRelativeTransformMatrix[1][2], mRelativeTransformMatrix[1][3],
+        mRelativeTransformMatrix[2][0], mRelativeTransformMatrix[2][1], mRelativeTransformMatrix[2][2], mRelativeTransformMatrix[2][3],
+        mRelativeTransformMatrix[3][0], mRelativeTransformMatrix[3][1], mRelativeTransformMatrix[3][2], mRelativeTransformMatrix[3][3]
+    );
+    printf("------------------------------------------------------------\n\n");
+    */
+    for (auto lChild : mChildBones)
+    {
+        lChild->UpdateTransformMatrix(pTime, mGlobalTransformMatrix);
+    }
+}
+
+const FbxAMatrix& Bone::GetGlobalTransformMatrix() const
+{
+    return mGlobalTransformMatrix;
+}
+
+const FbxAMatrix& Bone::GetRelativeTransformMatrix() const
+{
+    return mRelativeTransformMatrix;
+}
+
+void Bone::SetGlobalTransformMatrix(const FbxAMatrix& pMatrix)
+{
+    mGlobalTransformMatrix = pMatrix;
+}
+
+void Bone::SetRelativeTransformMatrix(const FbxAMatrix& pMatrix)
+{
+    mRelativeTransformMatrix = pMatrix;
+}
+
+Bone* Bone::GetParentBone() const
+{
+    return mParentBone;
 }
 
 /*
@@ -346,6 +400,34 @@ void Skeleton::ConstructBoneMap(shared_ptr<Bone> pBone)
     {
         ConstructBoneMap(*lIter);
     }
+}
+
+void Skeleton::UpdateBones(FbxTime pTime)
+{
+    FbxAMatrix lIdentity;
+    lIdentity.SetIdentity();
+    mRootBone->UpdateTransformMatrix(pTime, lIdentity);
+}
+
+const FbxAMatrix& Skeleton::GetBoneRelativeTransformMatrix(const char* pBoneName) const
+{
+    return mBonesWithNames.at(string(pBoneName))->GetRelativeTransformMatrix();
+}
+
+const FbxAMatrix& Skeleton::GetBoneGlobalTransformMatrix(const char* pBoneName) const
+{
+    return mBonesWithNames.at(string(pBoneName))->GetGlobalTransformMatrix();
+}
+
+
+shared_ptr<Bone> Skeleton::GetBone(const char* pBoneName) const
+{
+    return mBonesWithNames.at(string(pBoneName));
+}
+
+shared_ptr<Bone> Skeleton::GetRootBone() const
+{
+    return mRootBone;
 }
 
 /*
@@ -443,6 +525,11 @@ int	Skeletal::GetClusterCount() const
 void Skeletal::Deform(FbxAMatrix* pDeformation)
 {
     mSkeletalMesh->Deform(pDeformation);
+}
+
+shared_ptr<Skeleton> Skeletal::GetSkeleton() const
+{
+    return mSkeleton;
 }
 
 void Skeletal::Print(FbxNode* pObj, int pTabs)
@@ -621,6 +708,8 @@ void AnimationLayer::Load(FbxManager* pFbxManager)
 
     printf("current : %f\nstart : %f\nend: %f\n\n",
         mCurrentTime.GetSecondDouble(), mStart.GetSecondDouble(), mEnd.GetSecondDouble());
+
+    LoadSkeleton();
 }
 
 FbxAMatrix* AnimationLayer::GetClusterDeformation(FbxTime pTime)
@@ -772,18 +861,8 @@ FbxAMatrix* AnimationLayer::Blend(AnimationLayer* pA, AnimationLayer* pB, float 
         {
             lDeformation[lIndices[i]] = lM;
         }
-
     }
-    /*
-    for (int lVertexCount = 0; lVertexCount < size; ++lVertexCount)
-    {
-        FbxVector4 lT = (pA[lVertexCount].GetT() * (1.0f - pAlpha)) + (pB[lVertexCount].GetT() * pAlpha);
-        FbxQuaternion lQ = pA[lVertexCount].GetQ().Slerp(pB[lVertexCount].GetQ(), pAlpha);
-        FbxVector4 lS = (pA[lVertexCount].GetS() * (1.0f - pAlpha)) + (pB[lVertexCount].GetS() * pAlpha);
 
-        lNewDeformations[lVertexCount].SetTQS(lT, lQ, lS);
-    }
-    */
     return lDeformation;
 }
 
@@ -792,6 +871,18 @@ FbxAMatrix AnimationLayer::EvaluateBone(const char* pNodeName,FbxTime pTime)
     FbxNode* lNode = FbxCast<FbxNode>(mFbxScene->FindSrcObject(FbxCriteria::ObjectType(FbxNode::ClassId), pNodeName));
 
     return lNode->EvaluateGlobalTransform(pTime);
+}
+
+FbxAMatrix AnimationLayer::EvaluateBoneHierarchically(const char* pNodeName)
+{
+    //tree로 부터 해당 노드의 transform을 가져온다.
+    return mSkeleton->GetBoneRelativeTransformMatrix(pNodeName);
+}
+
+void AnimationLayer::UpdateTree(FbxTime pTime)
+{
+    // tree를 root부터 순서대로 업데이트한다.
+    mSkeleton->UpdateBones(pTime);
 }
 
 void AnimationLayer::Tick(float pDeltaTime)
@@ -814,6 +905,12 @@ void AnimationLayer::Tick(float pDeltaTime)
 FbxTime AnimationLayer::GetTimeSpan() const
 {
     return mEnd - mStart;
+}
+
+void AnimationLayer::LoadSkeleton()
+{
+    FbxSkeleton* lSkeleton = mFbxScene->GetSrcObject<FbxSkeleton>();
+    mSkeleton = make_shared<Skeleton>(lSkeleton);
 }
 
 /*
@@ -909,7 +1006,6 @@ void Character::Update()
 
 void Character::UpdateAnimation()
 {
-    //test
     //mAnimationLayers["RunF"]->Tick(Engine::mTimer.GetDeltaTime());
     //mAnimationLayers["WalkF"]->Tick(Engine::mTimer.GetDeltaTime());
 
@@ -918,12 +1014,107 @@ void Character::UpdateAnimation()
     //FbxAMatrix* lRunDeformation = mAnimationLayers["RunF"]->GetDeformation();
     //FbxAMatrix* lWalkDeformation = mAnimationLayers["WalkF"]->GetDeformation();
 
-    FbxAMatrix* lDeformation = AnimationLayer::Blend(mAnimationLayers["WalkF"].get(), mAnimationLayers["RunF"].get(), 0.5f, mSkeletal->GetControlPointCount(),mCurrentTime);
+    
+    double lATimeSpan = mAnimationLayers["WalkF"]->GetTimeSpan().GetSecondDouble();
+    double lBTimeSpan = mAnimationLayers["RunF"]->GetTimeSpan().GetSecondDouble();
+    FbxTime lATime, lBTime;
+    lATime.SetSecondDouble(mCurrentTime * lATimeSpan);
+    lBTime.SetSecondDouble(mCurrentTime * lBTimeSpan);
+    mAnimationLayers["WalkF"]->UpdateTree(lATime);
+    mAnimationLayers["RunF"]->UpdateTree(lBTime);
+    
+    mAlpha += Engine::mTimer.GetDeltaTime()/10.0f;
+    if (mAlpha > 1.0f)
+        mAlpha = 0.0f;
+
+    FbxAMatrix* lDeformation = BlendTree(mAnimationLayers["WalkF"].get(), mAnimationLayers["RunF"].get(), mAlpha);
+
+    //FbxAMatrix* lDeformation = AnimationLayer::Blend(mAnimationLayers["WalkF"].get(), mAnimationLayers["RunF"].get(), mAlpha, mSkeletal->GetControlPointCount(),mCurrentTime);
 
     mSkeletal->Deform(lDeformation);
 
     delete[] lDeformation;
 
     VertexUpload();
-    //test end
+    
+}
+
+FbxAMatrix* Character::BlendTree(AnimationLayer* pA, AnimationLayer* pB, float pAlpha)
+{
+    shared_ptr<Skeleton> lSkeleton = mSkeletal->GetSkeleton();
+
+    shared_ptr<Bone> lRootBone = lSkeleton->GetRootBone();
+
+    stack<shared_ptr<Bone>> lBoneStack;
+    lBoneStack.push(lRootBone);
+
+    //update relative transform matrix for all bones 
+    while (!lBoneStack.empty())
+    {
+        shared_ptr<Bone> lPop = lBoneStack.top();
+        lBoneStack.pop();
+
+        //evaluate and blend the transform of two bones
+        FbxAMatrix lRelativeA = pA->EvaluateBoneHierarchically(lPop->GetName().c_str());
+        FbxAMatrix lRelativeB = pB->EvaluateBoneHierarchically(lPop->GetName().c_str());
+
+        FbxVector4 lT = (lRelativeA.GetT() * (1.0f - pAlpha)) + (lRelativeB.GetT() * pAlpha);
+        FbxQuaternion lQ = lRelativeA.GetQ().Slerp(lRelativeB.GetQ(), pAlpha);
+        FbxVector4 lS = (lRelativeA.GetS() * (1.0f - pAlpha)) + (lRelativeB.GetS() * pAlpha);
+
+        FbxAMatrix lM;
+        lM.SetTQS(lT, lQ, lS);
+        
+        //update relative, global transform matrix
+        lPop->SetRelativeTransformMatrix(lM);
+        if(lPop->GetParentBone() == nullptr)
+            lPop->SetGlobalTransformMatrix(lM);
+        else
+            lPop->SetGlobalTransformMatrix(lPop->GetParentBone()->GetGlobalTransformMatrix()*lM);
+
+        //push child bone to the stack
+        Bone::BoneIterator lFirst, lEnd;
+        lPop->GetChildIterator(lFirst, lEnd);
+        for (auto lIt = lFirst; lIt != lEnd; lIt++)
+        {
+            lBoneStack.push(*lIt);
+        }
+    }
+
+    int lControlPointCount = mSkeletal->GetControlPointCount();
+    FbxAMatrix* lDeformation = new FbxAMatrix[lControlPointCount];
+
+    FbxMesh* lFbxMesh = mSkeletal->GetMesh();
+
+    FbxSkin* lSkin = FbxCast<FbxSkin>(lFbxMesh->GetDeformer(0, FbxDeformer::EDeformerType::eSkin));
+    if (lSkin == nullptr)
+    {
+        printf("lSkin is nullptr\n");
+        return lDeformation;
+    }
+
+    //printf("%d %d,\n", lSkin->GetSkinningType(), lSkin->GetCluster(0)->GetLinkMode());
+    //rigid, and totalOne
+    int lClusterCount = lSkin->GetClusterCount();
+    for (int lClusterIndex = 0; lClusterIndex < lClusterCount; ++lClusterIndex)
+    {
+        FbxAMatrix lInitM;
+        FbxCluster* lCluster = lSkin->GetCluster(lClusterIndex);
+
+        int lCount = lCluster->GetControlPointIndicesCount();
+        int* lIndices = lCluster->GetControlPointIndices();
+        double* lWeights = lCluster->GetControlPointWeights();
+        lCluster->GetTransformLinkMatrix(lInitM);
+        
+        const char* lBoneName = lCluster->GetLink()->GetName();
+
+        FbxAMatrix lDeformationMatrix = lSkeleton->GetBoneGlobalTransformMatrix(lBoneName) * lInitM.Inverse();
+        
+        for (int i = 0; i < lCount; ++i)
+        {
+            lDeformation[lIndices[i]] = lDeformationMatrix;
+        }
+    }
+
+    return lDeformation;
 }

@@ -20,16 +20,19 @@ using namespace Physics;
 MainScene::MainScene()
 	: Scene()
 {
+	
 	mCharacter = make_shared<Character>();
 	mCharacter->AddAnimationLayer("Model/ALS_Mannequin_T_Pose.FBX","TPose");
 	mCharacter->AddAnimationLayer("Model/ALS_CLF_GetUp_Back.FBX", "GetUpBack");
 	mCharacter->AddAnimationLayer("Model/ALS_N_Walk_F.FBX", "WalkF");
+	mCharacter->AddAnimationLayer("Model/ALS_N_WalkPose_F.FBX", "WalkPoseF");
 	mCharacter->AddAnimationLayer("Model/ALS_N_Run_F.FBX","RunF");
 	mCharacter->Initialize("Model/AnimMan.FBX");
 	mCharacter->Upload();
 	mCharacter->SetScale(0.1f, 0.1f, 0.1f);
+	mCharacter->SetRelativePosition(0, -10, -3);
 	mCharacter->SetRelativeQuaternion(sinf(XMConvertToRadians(-45.0f)), 0.0f, 0.0f, cosf(XMConvertToRadians(-45.0f)));
-
+	
 	mGameState = make_shared<GameState>(*this);
 	mBlooming = make_shared<Blooming>(Engine::mWidth, Engine::mHeight);
 	Initialize();

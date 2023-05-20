@@ -162,6 +162,12 @@ using BoneIterator = std::vector<shared_ptr<Bone>>::const_iterator;
 												Bone(const char* pName, FbxNode* pBoneNode);
 	string										GetName() const;
 	void										GetChildIterator(BoneIterator& pFirst, BoneIterator& pEnd) const;
+	void										UpdateTransformMatrix(FbxTime pTime,FbxAMatrix pParentGlobalTransformMatrix);
+	const FbxAMatrix&							GetGlobalTransformMatrix() const;
+	const FbxAMatrix&							GetRelativeTransformMatrix() const;
+	void										SetGlobalTransformMatrix(const FbxAMatrix& pMatrix);
+	void										SetRelativeTransformMatrix(const FbxAMatrix& pMatrix);
+	Bone*										GetParentBone() const;
 
 protected:
 
@@ -169,7 +175,10 @@ protected:
 
 	FbxNode*									mNode;
 
-	Bone*										mParentBone;
+	FbxAMatrix									mGlobalTransformMatrix;
+	FbxAMatrix									mRelativeTransformMatrix;
+
+	Bone*										mParentBone = nullptr;
 	vector<shared_ptr<Bone>>					mChildBones;
 };
 
@@ -186,6 +195,13 @@ public:
 
 	void										ContrustBoneTree(FbxNode* pBoneNode);
 	void										ConstructBoneMap(shared_ptr<Bone> pBone);
+
+	void										UpdateBones(FbxTime pTime);
+	const FbxAMatrix&							GetBoneRelativeTransformMatrix(const char* pBoneName) const;
+	const FbxAMatrix&							GetBoneGlobalTransformMatrix(const char* pBoneName) const;
+
+	shared_ptr<Bone>							GetBone(const char* pBoneName) const;
+	shared_ptr<Bone>							GetRootBone() const;
 
 protected:
 	FbxSkeleton*								mFbxSkeleton;
@@ -214,7 +230,7 @@ public:
 	FbxMesh*									GetMesh() const;
 	int											GetClusterCount() const;
 	void										Deform(FbxAMatrix* pDeformation);
-
+	shared_ptr<Skeleton>						GetSkeleton() const;
 
 protected:
 
@@ -259,7 +275,9 @@ public:
 	FbxAMatrix*									GetClusterDeformation(FbxTime pTime);
 	FbxAMatrix*									GetControlPointDeformation(FbxTime pTime);
 
-	FbxAMatrix									EvaluateBone(const char* pNodeName,FbxTime pTime);
+	FbxAMatrix									EvaluateBone(const char* pNodeName, FbxTime pTime);
+	FbxAMatrix									EvaluateBoneHierarchically(const char* pNodeName);
+	void										UpdateTree(FbxTime pTime);
 
 	void										Tick(float pDeltaTime);
 
@@ -288,6 +306,10 @@ protected:
 	FbxTime										mStart;
 	FbxTime										mEnd;
 	FbxTime										mCurrentTime;
+
+	void										LoadSkeleton();
+	shared_ptr<Skeleton>						mSkeleton;
+
 };
 
 /*
@@ -342,4 +364,7 @@ protected:
 	double										mStart;
 	double										mEnd;
 	double										mCurrentTime;
+
+	FbxAMatrix*									BlendTree(AnimationLayer* pA, AnimationLayer* pB, float pAlpha);
+	float										mAlpha = 0.0f;
 };

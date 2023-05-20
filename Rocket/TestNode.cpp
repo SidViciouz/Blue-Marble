@@ -3,7 +3,7 @@
 
 TestNode::TestNode()
 {
-    filename = "Model/AnimMan.FBX";
+    filename = "Model/untitled.FBX";
 
     sdkManager = FbxManager::Create();
     ios = FbxIOSettings::Create(sdkManager, IOSROOT);
@@ -25,7 +25,9 @@ TestNode::TestNode()
 
     PlayStart(1);
 
-    //Print(scene1->GetRootNode(), 0);
+    FbxAMatrix lIdentity;
+    lIdentity.SetIdentity();
+    Print(scene1->GetRootNode(), 0, lIdentity);
 }
 
 void TestNode::Draw()
@@ -64,17 +66,12 @@ void TestNode::Update()
     SceneNode::Update();
 }
 
-void TestNode::Print(FbxNode* pObj, int pTabs)
+void TestNode::Print(FbxNode* pObj, int pTabs,FbxAMatrix pAccum)
 {
-    FbxAMatrix lTransform = pObj->EvaluateGlobalTransform(mCurrentTime);
-    /*
-    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-        lTransform[0][0], lTransform[0][1], lTransform[0][2], lTransform[0][3],
-        lTransform[1][0], lTransform[1][1], lTransform[1][2], lTransform[1][3],
-        lTransform[2][0], lTransform[2][1], lTransform[2][2], lTransform[2][3],
-        lTransform[3][0], lTransform[3][1], lTransform[3][2], lTransform[3][3]);
-     */   
-    
+    FbxAMatrix lGlobal = pObj->EvaluateGlobalTransform(mCurrentTime);
+    FbxAMatrix lLocal = pObj->EvaluateLocalTransform(mCurrentTime);
+    FbxAMatrix lAccum =  pAccum * lLocal;
+
     if (pObj->GetNodeAttributeCount())
     {
         FbxNodeAttribute* lAtt = pObj->GetNodeAttribute();
@@ -86,6 +83,24 @@ void TestNode::Print(FbxNode* pObj, int pTabs)
         printf("%s\t", lAtt->GetName());
         PrintAttributeType(lType);
         
+        FbxAMatrix Matrix[3] = {
+            lGlobal, lLocal, lAccum
+        };
+
+        for (int i = 0; i < 3; ++i)
+        {
+            FbxVector4 lT = Matrix[i].GetT();
+            FbxVector4 lS = Matrix[i].GetS();
+            FbxQuaternion lQ = Matrix[i].GetQ();
+
+            printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
+                lT[0], lT[1], lT[2], lT[3],
+                lS[0], lS[1], lS[2], lS[3],
+                lQ[0], lQ[1], lQ[2], lQ[3]
+            );
+        }
+        printf("--------------------------------------------\n\n\n");
+
         if (lType == FbxNodeAttribute::EType::eMesh)
         {   
             //PrintMesh(pObj->GetMesh(),pTabs);
@@ -96,7 +111,7 @@ void TestNode::Print(FbxNode* pObj, int pTabs)
     for (int i = 0; i < numChild; ++i)
     {
         FbxNode* child = pObj->GetChild(i);
-        Print(child, pTabs + 1);
+        Print(child, pTabs + 1, lAccum);
     }
     
 }
