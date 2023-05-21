@@ -992,13 +992,6 @@ void Character::VertexUpload()
 
 void Character::Update()
 {
-    mCurrentTime += Engine::mTimer.GetDeltaTime();
-    
-    if (mCurrentTime > mEnd)
-    {
-        mCurrentTime = mStart;
-    }
-
     UpdateAnimation();
 
     SceneNode::Update();
@@ -1015,19 +1008,35 @@ void Character::UpdateAnimation()
     //FbxAMatrix* lWalkDeformation = mAnimationLayers["WalkF"]->GetDeformation();
 
     
-    double lATimeSpan = mAnimationLayers["WalkF"]->GetTimeSpan().GetSecondDouble();
+    //alpha 변화에 따라서 timespan과 current Time을 변경
+    mAlpha += Engine::mTimer.GetDeltaTime() / 5.0f;
+    while (mAlpha > 1.0f)
+        mAlpha -= 1.0f;
+    
+    double lATimeSpan = mAnimationLayers["CLFWalkF"]->GetTimeSpan().GetSecondDouble();
     double lBTimeSpan = mAnimationLayers["RunF"]->GetTimeSpan().GetSecondDouble();
+    
+    double lEndBefore = mEnd;
+
+    mEnd = (lATimeSpan * (1 - mAlpha)) + (lBTimeSpan * mAlpha);
+    mCurrentTime = mCurrentTime / (lEndBefore - mStart) * (mEnd - mStart);
+    
+    // currentTimem += delta Time
+    mCurrentTime += Engine::mTimer.GetDeltaTime();
+    while (mCurrentTime > mEnd)
+    {
+        mCurrentTime -= mEnd;
+    }
+
     FbxTime lATime, lBTime;
     lATime.SetSecondDouble(mCurrentTime * lATimeSpan);
     lBTime.SetSecondDouble(mCurrentTime * lBTimeSpan);
-    mAnimationLayers["WalkF"]->UpdateTree(lATime);
+    
+    mAnimationLayers["CLFWalkF"]->UpdateTree(lATime);
     mAnimationLayers["RunF"]->UpdateTree(lBTime);
     
-    mAlpha += Engine::mTimer.GetDeltaTime()/10.0f;
-    if (mAlpha > 1.0f)
-        mAlpha = 0.0f;
 
-    FbxAMatrix* lDeformation = BlendTree(mAnimationLayers["WalkF"].get(), mAnimationLayers["RunF"].get(), mAlpha);
+    FbxAMatrix* lDeformation = BlendTree(mAnimationLayers["CLFWalkF"].get(), mAnimationLayers["RunF"].get(), mAlpha);
 
     //FbxAMatrix* lDeformation = AnimationLayer::Blend(mAnimationLayers["WalkF"].get(), mAnimationLayers["RunF"].get(), mAlpha, mSkeletal->GetControlPointCount(),mCurrentTime);
 
