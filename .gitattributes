@@ -62,3 +62,4 @@ Rocket/Texture/earth.dds filter=lfs diff=lfs merge=lfs -text
 Rocket/Texture/earth_normal.dds filter=lfs diff=lfs merge=lfs -text
 Rocket/Texture/rp_sophia_animated_003_dif.dds filter=lfs diff=lfs merge=lfs -text
 Rocket/Texture/world.dds filter=lfs diff=lfs merge=lfs -text
+Rocket/lib/*.lib filter=lfs diff=lfs merge=lfs -text
