@@ -87,12 +87,12 @@ namespace Physics
 
 		float									mInverseMass;
 
-		//linear stuff
+		//linear values
 		Vector3									mLinearVelocity;
 		Vector3									mForce;
 
 
-		//angular stuff
+		//angular values
 		Vector3									mAngularVelocity;
 		Vector3									mTorque;
 		Vector3									mInverseInertia;

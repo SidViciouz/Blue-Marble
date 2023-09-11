@@ -34,13 +34,13 @@ namespace Physics
 
 		void									SetGravity(const Vector3& g);
 	protected:
-		void									BasicCollisionDetection();
+		void									CollisionDetection();
 
 		void									ClearForces();
 
-		void									IntegrateAccel(float dt);
+		void									ApplyForce(float dt);
 
-		void									IntegrateVelocity(float dt);
+		void									UpdateVelocity(float dt);
 
 		void									ImpulseResolveCollision(PhysicsObject& a, PhysicsObject& b, ContactPoint& p) const;
 

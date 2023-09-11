@@ -51,11 +51,11 @@ void PhysicsSystem::Update(float dt)
 	//fixed update
 	while (dTOffset >= realDT) 
 	{
-		IntegrateAccel(realDT);
+		ApplyForce(realDT);
 
-		BasicCollisionDetection();
+		CollisionDetection();
 
-		IntegrateVelocity(realDT);
+		UpdateVelocity(realDT);
 
 		dTOffset -= realDT;
 	}
@@ -64,7 +64,7 @@ void PhysicsSystem::Update(float dt)
 }
 
 
-void PhysicsSystem::BasicCollisionDetection()
+void PhysicsSystem::CollisionDetection()
 {
 	std::vector < PhysicsObject* >::const_iterator first;
 	std::vector < PhysicsObject* >::const_iterator last;
@@ -159,7 +159,7 @@ void PhysicsSystem::ImpulseResolveCollision(PhysicsObject& a, PhysicsObject& b, 
 }
 
 
-void PhysicsSystem::IntegrateAccel(float dt) {
+void PhysicsSystem::ApplyForce(float dt) {
 	std::vector < PhysicsObject* >::const_iterator first;
 	std::vector < PhysicsObject* >::const_iterator last;
 	physicsWorld->GetObjectIterators(first, last);
@@ -202,7 +202,7 @@ void PhysicsSystem::IntegrateAccel(float dt) {
 	}
 }
 
-void PhysicsSystem::IntegrateVelocity(float dt) {
+void PhysicsSystem::UpdateVelocity(float dt) {
 
 	std::vector < PhysicsObject* >::const_iterator first;
 	std::vector < PhysicsObject* >::const_iterator last;

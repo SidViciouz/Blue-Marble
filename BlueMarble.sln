@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32901.82
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BlueMarble", "BlueMarble\BlueMarble.vcxproj", "{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Physics", "Physics\Physics.vcxproj", "{76AA2FE6-3569-4C7C-9372-BD21580F098C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B} = {4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Maths", "Maths\Maths.vcxproj", "{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ORBIS = Debug|ORBIS
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ORBIS = Release|ORBIS
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Debug|ORBIS.ActiveCfg = Debug|Win32
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Debug|x64.ActiveCfg = Debug|x64
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Debug|x64.Build.0 = Debug|x64
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Debug|x86.ActiveCfg = Debug|Win32
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Debug|x86.Build.0 = Debug|Win32
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Release|ORBIS.ActiveCfg = Release|Win32
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Release|x64.ActiveCfg = Release|x64
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Release|x64.Build.0 = Release|x64
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Release|x86.ActiveCfg = Release|Win32
+		{8135DD5B-2EBE-4606-BC6C-087A16DBFF45}.Release|x86.Build.0 = Release|Win32
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Debug|ORBIS.ActiveCfg = Debug|Win32
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Debug|x64.ActiveCfg = Debug|x64
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Debug|x64.Build.0 = Debug|x64
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Debug|x86.ActiveCfg = Debug|Win32
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Debug|x86.Build.0 = Debug|Win32
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Release|ORBIS.ActiveCfg = Release|Win32
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Release|x64.ActiveCfg = Release|x64
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Release|x64.Build.0 = Release|x64
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Release|x86.ActiveCfg = Release|Win32
+		{76AA2FE6-3569-4C7C-9372-BD21580F098C}.Release|x86.Build.0 = Release|Win32
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Debug|ORBIS.ActiveCfg = Debug|Win32
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Debug|x64.ActiveCfg = Debug|x64
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Debug|x64.Build.0 = Debug|x64
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Debug|x86.ActiveCfg = Debug|Win32
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Debug|x86.Build.0 = Debug|Win32
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Release|ORBIS.ActiveCfg = Release|Win32
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Release|x64.ActiveCfg = Release|x64
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Release|x64.Build.0 = Release|x64
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Release|x86.ActiveCfg = Release|Win32
+		{4FE76411-0BD4-4742-B2DF-2B0AA8B92E5B}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3EDFFB3E-2A2C-402A-B45F-580DE26BB37B}
+	EndGlobalSection
+EndGlobal
