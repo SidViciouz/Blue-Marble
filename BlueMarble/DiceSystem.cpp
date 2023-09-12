@@ -58,17 +58,18 @@ DiceSystem::DiceSystem(shared_ptr<PhysicsManager> physicsManager) :
 	AddChild(mBackWall);
 	AddChild(mFrontWall);
 
+
 }
 
 void DiceSystem::Roll()
 {
-	mDice1->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(3, 5, 3));
+	mDice1->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(3, 1, 3));
 	mDice1->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(1, 5, 0));
 
-	mDice2->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(3, 5, 3));
+	mDice2->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(3, 1, 3));
 	mDice2->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 6, 0));
 
-	mDice3->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(-3, 5, -3));
+	mDice3->GetPhysicsComponent()->ApplyLinearImpulse(Vector3(-3, 1, -3));
 	mDice3->GetPhysicsComponent()->ApplyAngularImpulse(Vector3(0, 5, 1));
 }
 
