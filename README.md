@@ -19,3 +19,8 @@ gif 재생되지 않을 시 사진 클릭
 gif 재생되지 않을 시 사진 클릭
 
 * 나라 이동
+
+
+## 진입점
+
+BlueMarble/BlueMarble.cpp의 wWinMain()이 진입점입니다.
