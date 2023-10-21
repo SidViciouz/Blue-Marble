@@ -11,9 +11,7 @@ class PhysicsComponent
 	friend class PhysicsManager;
 
 public:
-												PhysicsComponent(shared_ptr<SceneNode> NodeAttachedTo,
-													PhysicsType physicsType = PhysicsType::Static,
-													ColliderType colliderType = ColliderType::None);
+												PhysicsComponent(shared_ptr<SceneNode> NodeAttachedTo, PhysicsType physicsType = PhysicsType::Static);
 
 	void										ApplyLinearImpulse(const Maths::Vector3& force);
 	void										ApplyAngularImpulse(const Maths::Vector3& force);

@@ -7,30 +7,23 @@
 namespace Physics
 {
 	using PhysicsObjectFunc = std::function<void(PhysicsObject*)>;
-	using PhysicsObjectIterator = std::vector<PhysicsObject*>::const_iterator;
 
 	class PhysicsWorld {
 	public:
 												PhysicsWorld();
-												~PhysicsWorld();
+												~PhysicsWorld() {};
 
-		void									Clear();
-		void									ClearAndErase();
+		void									ClearForces();
 
-		void									AddGameObject(PhysicsObject* o);
-		void									RemoveGameObject(PhysicsObject* o, bool andDelete = false);
+		void									AddPhysicsObject(PhysicsObject* object);
 
-		virtual void							UpdateWorld(float dt);
+		void									UpdateVelocity(float deltaTime);
 
-		void									OperateOnContents(PhysicsObjectFunc f);
+		void									ApplyForce(float deltaTime);
 
-		void									GetObjectIterators(
-													PhysicsObjectIterator& first,
-													PhysicsObjectIterator& last) const;
+		void									GetObjectIterators(std::vector<PhysicsObject*>::const_iterator& first, std::vector<PhysicsObject*>::const_iterator& last) const;
 
 	protected:
-		std::vector<PhysicsObject*>				gameObjects;
-
-		int										worldIDCounter;
+		std::vector<PhysicsObject*>				mGameObjects;
 	};
 }

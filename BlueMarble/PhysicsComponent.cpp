@@ -1,8 +1,6 @@
 #include "PhysicsComponent.h"
 
-PhysicsComponent::PhysicsComponent(shared_ptr<SceneNode> NodeAttachedTo,
-	PhysicsType physicsType,
-	ColliderType colliderType)
+PhysicsComponent::PhysicsComponent(shared_ptr<SceneNode> NodeAttachedTo, PhysicsType physicsType)
 	: mNode(NodeAttachedTo)
 {
 	mPhysicsObject = make_shared<PhysicsObject>(physicsType);

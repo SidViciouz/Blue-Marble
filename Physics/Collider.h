@@ -2,30 +2,33 @@
 
 #include "../Maths/Vector3.h"
 #include "../Maths/Transform.h"
+#include "../Maths/Matrix3x3.h"
 
 using namespace Maths;
 
 namespace Physics
 {
-	enum class ColliderType
-	{
-		None = 0,
-		Sphere = 1,
-		Capsule = 2,
-		AABB = 3
-	};
 
 	class Collider
 	{
 	public:
-												Collider();
+												Collider() {}
 												~Collider() {}
 
 		virtual Vector3							Support(const Vector3& dir, const Transform& transform) = 0;
 
-		const ColliderType&						GetType() const;
-	protected:
+	};
 
-		ColliderType							mType;
+	class AABBCollider : Collider
+	{
+
+	public:
+		AABBCollider(const Vector3& halfSize);
+		~AABBCollider() {}
+
+		Vector3 Support(const Vector3& direction, const Transform& transform);
+
+	protected:
+		Vector3 halfSize;
 	};
 }

@@ -4,54 +4,48 @@
 
 #define GJK_MAX_NUM_ITERATIONS 64
 
-bool Physics::GJKCalculation(PhysicsObject* coll1, PhysicsObject* coll2, CollisionInfo& collisionInfo)
+bool Physics::GJK(CollisionInfo& collisionInfo)
 {
-	collisionInfo.a = coll1;
-	collisionInfo.b = coll2;
-
-	Vector3* mtv;
-	
-	Vector3 coll1Pos = coll1->GetTransform().GetPosition();
-	Vector3 coll2Pos = coll2->GetTransform().GetPosition();
-
+	Vector3 objectAPos = collisionInfo.a->GetTransform().GetPosition();
+	Vector3 objectBPos = collisionInfo.b->GetTransform().GetPosition();
 
 	Point a, b, c, d;
-	Vector3 search_dir = coll1Pos - coll2Pos;
+	Vector3 searchDirection = objectAPos - objectBPos;
 
-	CalculateSearchPoint(c, search_dir, coll1, coll2);
-	search_dir = -c.p;
+	SearchPoint(c, searchDirection, collisionInfo.a, collisionInfo.b);
+	searchDirection = -c.difference;
 
-	CalculateSearchPoint(b, search_dir, coll1, coll2);
+	SearchPoint(b, searchDirection, collisionInfo.a, collisionInfo.b);
 
 	//simplex 내부에 원점이 존재하지 않는 경우
-	if (Vector3::Dot(b.p, search_dir) < 0)
+	if (Vector3::Dot(b.difference, searchDirection) < 0)
 		return false;
 
 	//직선 bc에 수직이고 원점을 향하는 벡터
-	search_dir = Vector3::Cross(Vector3::Cross(c.p - b.p, -b.p), c.p - b.p);
-	if (search_dir == Vector3(0, 0, 0))  //직선 bc 위에 원점이 존재하는 경우
+	searchDirection = Vector3::Cross(Vector3::Cross(c.difference - b.difference, -b.difference), c.difference - b.difference);
+	if (searchDirection == Vector3(0, 0, 0))  //직선 bc 위에 원점이 존재하는 경우
 	{ 
-		search_dir = Vector3::Cross(c.p - b.p, Vector3(1, 0, 0));
-		if (search_dir == Vector3(0, 0, 0))
-			search_dir = Vector3::Cross(c.p - b.p, Vector3(0, 0, -1));
+		searchDirection = Vector3::Cross(c.difference - b.difference, Vector3(1, 0, 0));
+		if (searchDirection == Vector3(0, 0, 0))
+			searchDirection = Vector3::Cross(c.difference - b.difference, Vector3(0, 0, -1));
 	}
-	int simp_dim = 2;
+	int dimension = 2;
 
 	for (int iterations = 0; iterations < GJK_MAX_NUM_ITERATIONS; iterations++)
 	{
-		CalculateSearchPoint(a, search_dir, coll1, coll2);
+		SearchPoint(a, searchDirection, collisionInfo.a, collisionInfo.b);
 
 		//simplex 내부에 원점이 존재하지 않는 경우
-		if (Vector3::Dot(a.p, search_dir) < 0)
+		if (Vector3::Dot(a.difference, searchDirection) < 0)
 			return false;
 
-		simp_dim++;
-		if (simp_dim == 3) 
-			update_simplex3(a, b, c, d, simp_dim, search_dir);
+		dimension++;
+		if (dimension == 3) 
+			UpdateSimplex3(a, b, c, d, dimension, searchDirection);
 
-		else if (update_simplex4(a, b, c, d, simp_dim, search_dir))
+		else if (UpdateSimplex4(a, b, c, d, dimension, searchDirection))
 		{
-			EPA(a, b, c, d, coll1, coll2, collisionInfo);
+			EPA(a, b, c, d, collisionInfo);
 			return true;
 		}
 	}
@@ -59,74 +53,67 @@ bool Physics::GJKCalculation(PhysicsObject* coll1, PhysicsObject* coll2, Collisi
 	return false;
 }
 
-void Physics::update_simplex3(Point& a, Point& b, Point& c, Point& d, int& simp_dim, Vector3& search_dir)
+void Physics::UpdateSimplex3(Point& a, Point& b, Point& c, Point& d, int& dimension, Vector3& searchDirection)
 {
-	/* Required winding order:
-	   //  b
-	   //  | \
-	   //  |   \
-	   //  |    a
-	   //  |   /
-	   //  | /
-	   //  c
-	   */
-	Vector3 n = Vector3::Cross(b.p - a.p, c.p - a.p);
-	Vector3 AO = -a.p;
+	// 반시계 방향으로 winding된다.
 
-	simp_dim = 2;
+	Vector3 n = Vector3::Cross(b.difference - a.difference, c.difference - a.difference);
+	Vector3 AO = -a.difference;
+
+	dimension = 2;
 	// 원점이 AB 바깥에 존재
-	if (Vector3::Dot(Vector3::Cross(b.p - a.p, n), AO) > 0) {
+	if (Vector3::Dot(Vector3::Cross(b.difference - a.difference, n), AO) > 0) {
 		c = a;
-		search_dir = Vector3::Cross(Vector3::Cross(b.p - a.p, AO), b.p - a.p);
+		searchDirection = Vector3::Cross(Vector3::Cross(b.difference - a.difference, AO), b.difference - a.difference);
 		return;
 	}
 	// 원점이 AC 바깥에 존재
-	if (Vector3::Dot(Vector3::Cross(n, c.p - a.p), AO) > 0) {
+	if (Vector3::Dot(Vector3::Cross(n, c.difference - a.difference), AO) > 0) {
 		b = a;
-		search_dir = Vector3::Cross(Vector3::Cross(c.p - a.p, AO), c.p - a.p);
+		searchDirection = Vector3::Cross(Vector3::Cross(c.difference - a.difference, AO), c.difference - a.difference);
 		return;
 	}
 
-	simp_dim = 3;
+	dimension = 3;
 	//원점이 삼각형 위쪽에 존재
 	if (Vector3::Dot(n, AO) > 0)
 	{
 		d = c;
 		c = b;
 		b = a;
-		search_dir = n;
+		searchDirection = n;
 		return;
 	}
 	
 	//원점이 삼각형 아래쪽에 존재
 	d = b;
 	b = a;
-	search_dir = -n;
+	searchDirection = -n;
 	return;
 }
 
-bool Physics::update_simplex4(Point& a, Point& b, Point& c, Point& d, int& simp_dim, Vector3& search_dir)
+bool Physics::UpdateSimplex4(Point& a, Point& b, Point& c, Point& d, int& dimension, Vector3& searchDirection)
 {
-	Vector3 ABC = Vector3::Cross(b.p - a.p, c.p - a.p);
-	Vector3 ACD = Vector3::Cross(c.p - a.p, d.p - a.p);
-	Vector3 ADB = Vector3::Cross(d.p - a.p, b.p - a.p);
+	Vector3 ABC = Vector3::Cross(b.difference - a.difference, c.difference - a.difference);
+	Vector3 ACD = Vector3::Cross(c.difference - a.difference, d.difference - a.difference);
+	Vector3 ADB = Vector3::Cross(d.difference - a.difference, b.difference - a.difference);
 
-	Vector3 AO = -a.p;
-	simp_dim = 3;
+	Vector3 AO = -a.difference;
+	dimension = 3;
 
 	// 원점이 ABC 바깥에 존재
 	if (Vector3::Dot(ABC, AO) > 0) {
 		d = c;
 		c = b;
 		b = a;
-		search_dir = ABC;
+		searchDirection = ABC;
 		return false;
 	}
 
 	// 원점이 ACD 바깥에 존재
 	if (Vector3::Dot(ACD, AO) > 0) {
 		b = a;
-		search_dir = ACD;
+		searchDirection = ACD;
 		return false;
 	}
 
@@ -135,7 +122,7 @@ bool Physics::update_simplex4(Point& a, Point& b, Point& c, Point& d, int& simp_
 		c = d;
 		d = b;
 		b = a;
-		search_dir = ADB;
+		searchDirection = ADB;
 		return false;
 	}
 
@@ -147,7 +134,7 @@ bool Physics::update_simplex4(Point& a, Point& b, Point& c, Point& d, int& simp_
 #define EPA_MAX_NUM_FACES 64
 #define EPA_MAX_NUM_LOOSE_EDGES 32
 #define EPA_MAX_NUM_ITERATIONS 64
-void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, PhysicsObject* coll2, CollisionInfo& collisionInfo)
+void Physics::EPA(Point& a, Point& b, Point& c, Point& d, CollisionInfo& collisionInfo)
 {
 	//face들의 배열, 3개의 점과, 1개의 normal
 	Point faces[EPA_MAX_NUM_FACES][4];
@@ -159,29 +146,29 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 	faces[0][0] = a;
 	faces[0][1] = b;
 	faces[0][2] = c;
-	faces[0][3].p = (Vector3::Cross(b.p - a.p, c.p - a.p)).Normalized(); //ABC
+	faces[0][3].difference = (Vector3::Cross(b.difference - a.difference, c.difference - a.difference)).Normalized(); //ABC
 	faces[1][0] = a;
 	faces[1][1] = c;
 	faces[1][2] = d;
-	faces[1][3].p = (Vector3::Cross(c.p - a.p, d.p - a.p)).Normalized(); //ACD
+	faces[1][3].difference = (Vector3::Cross(c.difference - a.difference, d.difference - a.difference)).Normalized(); //ACD
 	faces[2][0] = a;
 	faces[2][1] = d;
 	faces[2][2] = b;
-	faces[2][3].p = (Vector3::Cross(d.p - a.p, b.p - a.p)).Normalized(); //ADB
+	faces[2][3].difference = (Vector3::Cross(d.difference - a.difference, b.difference - a.difference)).Normalized(); //ADB
 	faces[3][0] = b;
 	faces[3][1] = d;
 	faces[3][2] = c;
-	faces[3][3].p = (Vector3::Cross(d.p - b.p, c.p - b.p)).Normalized(); //BDC
+	faces[3][3].difference = (Vector3::Cross(d.difference - b.difference, c.difference - b.difference)).Normalized(); //BDC
 
 	int num_faces = 4;
 	int closest_face;
 
 	for (int iterations = 0; iterations < EPA_MAX_NUM_ITERATIONS; iterations++) {
 		// 원점과 가장 가까운 face를 찾는다.
-		float min_dist = Vector3::Dot(faces[0][0].p, faces[0][3].p);
+		float min_dist = Vector3::Dot(faces[0][0].difference, faces[0][3].difference);
 		closest_face = 0;
 		for (int i = 1; i < num_faces; i++) {
-			float dist = Vector3::Dot(faces[i][0].p, faces[i][3].p);
+			float dist = Vector3::Dot(faces[i][0].difference, faces[i][3].difference);
 			if (dist < min_dist) {
 				min_dist = dist;
 				closest_face = i;
@@ -189,18 +176,18 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 		}
 
 		//원점에서 가장 가까운 face의 normal을 찾는다
-		Vector3 search_dir = faces[closest_face][3].p;
+		Vector3 searchDirection = faces[closest_face][3].difference;
 
 		Point p;
-		CalculateSearchPoint(p, search_dir, coll1, coll2);
+		SearchPoint(p, searchDirection, collisionInfo.a, collisionInfo.b);
 
-		if (Vector3::Dot(p.p, search_dir) - min_dist < EPA_TOLERANCE) {
+		if (Vector3::Dot(p.difference, searchDirection) - min_dist < EPA_TOLERANCE) {
 
 			//충돌 정보 계산
-			Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p); //가장 가까운 삼각형 face의 plane
+			Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].difference, faces[closest_face][1].difference, faces[closest_face][2].difference); //가장 가까운 삼각형 face의 plane
 			Vector3 projectionPoint = closestPlane.ProjectPointOntoPlane(Vector3(0, 0, 0)); //원점을 삼각형에 투영(민코프스키 공간에서)
 			float u, v, w;
-			Barycentric(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p,
+			Barycentric(faces[closest_face][0].difference, faces[closest_face][1].difference, faces[closest_face][2].difference,
 				projectionPoint, u, v, w); //이 삼각형으로의 투영 점의 barycentric coordinate를 찾는다
 
 			//contact points는 support function의 결과로 얻은 좌표로 구성된 삼각형과 같은 barycentric 좌표를 갖는다
@@ -210,10 +197,10 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 			Vector3 normal = (localA - localB).Normalized();
 
 			//Convergence
-			localA -= coll1->GetTransform().GetPosition();
-			localB -= coll2->GetTransform().GetPosition();
+			localA -= collisionInfo.a->GetTransform().GetPosition();
+			localB -= collisionInfo.b->GetTransform().GetPosition();
 
-			collisionInfo.AddContactPoint(localA, localB, normal, penetration);
+			collisionInfo.AddContactInfo(localA, localB, normal, penetration);
 
 			return;
 		}
@@ -225,7 +212,7 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 		//p를 바라보는 모든 삼각형을 찾는다.
 		for (int i = 0; i < num_faces; i++)
 		{
-			if (Vector3::Dot(faces[i][3].p, p.p - faces[i][0].p) > 0) //triangle i faces p, remove it
+			if (Vector3::Dot(faces[i][3].difference, p.difference - faces[i][0].difference) > 0) //triangle i faces p, remove it
 			{
 				// loose edge list에 제거된 삼각형 edge들을 추가한다.
 				// 이미 존재하면, 제거한다.
@@ -235,7 +222,7 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 					bool found_edge = false;
 					for (int k = 0; k < num_loose_edges; k++) //현재 edge가 이미 list에 있는지 확인한다
 					{
-						if (loose_edges[k][1].p == current_edge[0].p && loose_edges[k][0].p == current_edge[1].p)
+						if (loose_edges[k][1].difference == current_edge[0].difference && loose_edges[k][0].difference == current_edge[1].difference)
 						{
 							loose_edges[k][0] = loose_edges[num_loose_edges - 1][0]; //현재 edge를 list의 마지막 edge로 덮어쓴다
 							loose_edges[k][1] = loose_edges[num_loose_edges - 1][1];
@@ -272,44 +259,44 @@ void Physics::EPA(Point& a, Point& b, Point& c, Point& d, PhysicsObject* coll1, 
 			faces[num_faces][0] = loose_edges[i][0];
 			faces[num_faces][1] = loose_edges[i][1];
 			faces[num_faces][2] = p;
-			faces[num_faces][3].p = Vector3::Cross(loose_edges[i][0].p - loose_edges[i][1].p, loose_edges[i][0].p - p.p).Normalized();
+			faces[num_faces][3].difference = Vector3::Cross(loose_edges[i][0].difference - loose_edges[i][1].difference, loose_edges[i][0].difference - p.difference).Normalized();
 
 			//ccw winding을 유지하기 위해서 잘못된 normal을 확인한다.
 			float bias = 0.000001; // dot 결과가 아주 조금 < 0 인 경우 (원점이 face에 존재해서)
-			if (Vector3::Dot(faces[num_faces][0].p, faces[num_faces][3].p) + bias < 0) {
+			if (Vector3::Dot(faces[num_faces][0].difference, faces[num_faces][3].difference) + bias < 0) {
 				Point temp = faces[num_faces][0];
 				faces[num_faces][0] = faces[num_faces][1];
 				faces[num_faces][1] = temp;
-				faces[num_faces][3].p = -faces[num_faces][3].p;
+				faces[num_faces][3].difference = -faces[num_faces][3].difference;
 			}
 			num_faces++;
 		}
 	}
 	printf("EPA did not converge\n");
 	//가장 최근의 가까운 점을 반환한다
-	Vector3 search_dir = faces[closest_face][3].p;
+	Vector3 searchDirection = faces[closest_face][3].difference;
 
 	Point p;
-	CalculateSearchPoint(p, search_dir, coll1, coll2);
+	SearchPoint(p, searchDirection, collisionInfo.a, collisionInfo.b);
 
-	Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p);
+	Plane closestPlane = Plane::PlaneFromTri(faces[closest_face][0].difference, faces[closest_face][1].difference, faces[closest_face][2].difference);
 	Vector3 projectionPoint = closestPlane.ProjectPointOntoPlane(Vector3(0, 0, 0));
 	float u, v, w;
-	Barycentric(faces[closest_face][0].p, faces[closest_face][1].p, faces[closest_face][2].p,
+	Barycentric(faces[closest_face][0].difference, faces[closest_face][1].difference, faces[closest_face][2].difference,
 		projectionPoint, u, v, w);
 	Vector3 localA = faces[closest_face][0].a * u + faces[closest_face][1].a * v + faces[closest_face][2].a * w;
 	Vector3 localB = faces[closest_face][0].b * u + faces[closest_face][1].b * v + faces[closest_face][2].b * w;
 	float penetration = (localA - localB).Length();
 	Vector3 normal = (localA - localB).Normalized();
 
-	collisionInfo.AddContactPoint(localA, localB, normal, penetration);
+	collisionInfo.AddContactInfo(localA, localB, normal, penetration);
 
 	return;
 }
 
-void Physics::CalculateSearchPoint(Point& point, Vector3& search_dir, PhysicsObject* coll1, PhysicsObject* coll2)
+void Physics::SearchPoint(Point& point, Vector3& searchDirectionection, PhysicsObject* objectA, PhysicsObject* objectB)
 {
-	point.b = coll2->GetCollider()->Support(search_dir, coll2->GetTransform());
-	point.a = coll1->GetCollider()->Support(-search_dir, coll1->GetTransform());
-	point.p = point.b - point.a;
+	point.b = objectB->GetCollider()->Support(searchDirectionection, objectB->GetTransform());
+	point.a = objectA->GetCollider()->Support(-searchDirectionection, objectA->GetTransform());
+	point.difference = point.b - point.a;
 }

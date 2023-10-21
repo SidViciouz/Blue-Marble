@@ -13,8 +13,7 @@ namespace Physics
 	enum class PhysicsType
 	{
 		Static = 0,
-		Dynamic = 1,
-		Pawn = 2
+		Dynamic = 1
 	};
 
 	class PhysicsObject
@@ -32,10 +31,6 @@ namespace Physics
 
 		PhysicsType								GetPhysicsType() const;
 
-		void									SetWorldID(int newID);
-
-		int										GetWorldID() const;
-
 		void									SetInverseMass(float invMass);
 
 		float									GetInverseMass() const;
@@ -49,53 +44,49 @@ namespace Physics
 		Vector3									GetForce() const;
 
 		void									ApplyAngularImpulse(const Vector3& force);
+
 		void									ApplyLinearImpulse(const Vector3& force);
 
 		void									AddForce(const Vector3& force);
 
-		void									AddForceAtPosition(const Vector3& force, const Vector3& position);
-
 		void									AddTorque(const Vector3& torque);
-
 
 		void									ClearForces();
 
-		void									SetLinearVelocity(const Vector3& v);
+		void									SetLinearVelocity(const Vector3& velocity);
 
-		void									SetAngularVelocity(const Vector3& v);
+		void									SetAngularVelocity(const Vector3& velocity);
 
-		void									InitCubeInertia();
-		void									InitSphereInertia();
+		void									InitializeCubeInertia();
 
 		void									UpdateInertiaTensor();
 
 		Matrix3x3								GetInertiaTensor() const;
 
-		void									SetElasticity(float e);
+		void									SetElasticity(float elasticity);
+
 		float									GetElasticity() const;
 
-		int										staticPositionCount;
-
 	protected:
+
 		Transform								mTransform;
 
 		Collider*								mCollider;
 
 		PhysicsType								mPhysicsType;
 
-		int										mWorldID;
-
 		float									mInverseMass;
 
-		//linear values
 		Vector3									mLinearVelocity;
+
 		Vector3									mForce;
 
-
-		//angular values
 		Vector3									mAngularVelocity;
+
 		Vector3									mTorque;
+
 		Vector3									mInverseInertia;
+
 		Matrix3x3								mInverseInteriaTensor;
 
 		float									mElasticity;

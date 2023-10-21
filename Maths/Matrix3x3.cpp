@@ -108,26 +108,20 @@ void Matrix3x3::ToZero()
 
 Vector3 Matrix3x3::ToEuler() const
 {
-
 	float testVal = abs(array[2]) + 0.00001f;
 
 	if (testVal < 1.0f) {
-		float theta1 = -asin(array[2]);
-		float theta2 = XM_PI - theta1;
+		float theta = -asin(array[2]);
 
-		float cost1 = cos(theta1);
-		//float cost2 = cos(theta2);
+		float cost = cos(theta);
 
-		float psi1 = XMConvertToDegrees(atan2(array[5] / cost1, array[8] / cost1));
-		//float psi2 = Maths::RadiansToDegrees(atan2(array[5] / cost2, array[8] / cost2));
+		float psi = XMConvertToDegrees(atan2(array[5] / cost, array[8] / cost));
 
-		float phi1 = XMConvertToDegrees(atan2(array[1] / cost1, array[0] / cost1));
-		//float phi2 = Maths::RadiansToDegrees(atan2(array[1] / cost2, array[0] / cost2));
+		float phi = XMConvertToDegrees(atan2(array[1] / cost, array[0] / cost));
 
-		theta1 = XMConvertToDegrees(theta1);
-		//theta2 = Maths::RadiansToDegrees(theta2);
+		theta = XMConvertToDegrees(theta);
 
-		return Vector3(psi1, theta1, phi1);
+		return Vector3(psi, theta, phi);
 	}
 	else {
 		float phi = 0.0f;	//x

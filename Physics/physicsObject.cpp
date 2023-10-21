@@ -35,15 +35,6 @@ PhysicsType PhysicsObject::GetPhysicsType() const
 	return mPhysicsType;
 }
 
-void PhysicsObject::SetWorldID(int newID)
-{
-	mWorldID = newID;
-}
-
-int PhysicsObject::GetWorldID() const
-{
-	return mWorldID;
-}
 
 void PhysicsObject::SetInverseMass(float invMass)
 {
@@ -73,14 +64,14 @@ Vector3 PhysicsObject::GetForce() const
 	return mForce;
 }
 
-void PhysicsObject::SetLinearVelocity(const Vector3& v)
+void PhysicsObject::SetLinearVelocity(const Vector3& velocity)
 {
-	mLinearVelocity = v;
+	mLinearVelocity = velocity;
 }
 
-void PhysicsObject::SetAngularVelocity(const Vector3& v)
+void PhysicsObject::SetAngularVelocity(const Vector3& velocity)
 {
-	mAngularVelocity = v;
+	mAngularVelocity = velocity;
 }
 
 
@@ -89,9 +80,9 @@ Matrix3x3 PhysicsObject::GetInertiaTensor() const
 	return mInverseInteriaTensor;
 }
 
-void PhysicsObject::SetElasticity(float e)
+void PhysicsObject::SetElasticity(float elasticity)
 { 
-	mElasticity = e; 
+	mElasticity = elasticity;
 }
 float PhysicsObject::GetElasticity() const
 {
@@ -100,9 +91,6 @@ float PhysicsObject::GetElasticity() const
 
 void PhysicsObject::ApplyAngularImpulse(const Vector3& force)
 {
-	if (force.Length() > 0) {
-		bool a = true;
-	}
 	mAngularVelocity += mInverseInteriaTensor * force;
 }
 
@@ -116,14 +104,6 @@ void PhysicsObject::AddForce(const Vector3& addedForce)
 	mForce += addedForce;
 }
 
-void PhysicsObject::AddForceAtPosition(const Vector3& addedForce, const Vector3& position)
-{
-	Vector3 localPos = position - mTransform.GetPosition();
-
-	mForce += addedForce;
-	mTorque += Vector3::Cross(localPos, addedForce); // Why don't need to suit the Conversation of Energy?
-}
-
 void PhysicsObject::AddTorque(const Vector3& addedTorque)
 {
 	mTorque += addedTorque;
@@ -135,26 +115,19 @@ void PhysicsObject::ClearForces()
 	mTorque = Vector3();
 }
 
-void PhysicsObject::InitCubeInertia()
+void PhysicsObject::InitializeCubeInertia()
 {
 	Vector3 dimensions = mTransform.GetScale();
 
-	Vector3 fullWidth = dimensions * 2;
+	Vector3 dimsionSqr = dimensions * dimensions * 4;
 
-	Vector3 dimsSqr = fullWidth * fullWidth;
+	float im = 12.0f * mInverseMass;
 
-	mInverseInertia.v.x = (12.0f * mInverseMass) / (dimsSqr.v.y + dimsSqr.v.z);
-	mInverseInertia.v.y = (12.0f * mInverseMass) / (dimsSqr.v.x + dimsSqr.v.z);
-	mInverseInertia.v.z = (12.0f * mInverseMass) / (dimsSqr.v.x + dimsSqr.v.y);
+	mInverseInertia.v.x = im / (dimsionSqr.v.y + dimsionSqr.v.z);
+	mInverseInertia.v.y = im / (dimsionSqr.v.x + dimsionSqr.v.z);
+	mInverseInertia.v.z = im / (dimsionSqr.v.x + dimsionSqr.v.y);
 }
 
-void PhysicsObject::InitSphereInertia()
-{
-	float radius = mTransform.GetScale().GetMaxElement();
-	float i = 2.5f * mInverseMass / (radius * radius);
-
-	mInverseInertia = Vector3(i, i, i);
-}
 
 void PhysicsObject::UpdateInertiaTensor()
 {

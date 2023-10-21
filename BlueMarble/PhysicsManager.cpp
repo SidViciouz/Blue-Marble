@@ -1,13 +1,12 @@
 #include "PhysicsManager.h"
 #include "PhysicsComponent.h"
-#include "../Physics/AABBCollider.h"
+#include "../Physics/Collider.h"
 #include "Engine.h"
 
 PhysicsManager::PhysicsManager()
 {
 	mPhysicsWorld = make_shared<PhysicsWorld>();
 	mPhysicsSystem = make_shared<PhysicsSystem>(mPhysicsWorld);
-	mPhysicsSystem->UseGravity(true);
 }
 
 shared_ptr<PhysicsComponent> PhysicsManager::BuildCube(
@@ -18,19 +17,17 @@ shared_ptr<PhysicsComponent> PhysicsManager::BuildCube(
 	float inverseMass,
 	float elasticity)
 {
-	shared_ptr<PhysicsComponent> pc = make_shared<PhysicsComponent>(NodeAttachedTo, physicsType, ColliderType::AABB);
+	shared_ptr<PhysicsComponent> pc = make_shared<PhysicsComponent>(NodeAttachedTo, physicsType);
 	AABBCollider* collider = new AABBCollider(scale);
 
 	pc->mPhysicsObject->SetCollider((Collider*)collider);
-	pc->mPhysicsObject->GetTransform()
-		.SetPosition(position)
-		.SetScale(scale*2);
+	pc->mPhysicsObject->GetTransform().SetPosition(position).SetScale(scale*2);
 	pc->mPhysicsObject->SetInverseMass(inverseMass);
-	pc->mPhysicsObject->InitCubeInertia();
+	pc->mPhysicsObject->InitializeCubeInertia();
 	pc->mPhysicsObject->SetElasticity(elasticity);
 	pc->mPhysicsObject->SetPhysicsType(physicsType);
 
-	mPhysicsWorld->AddGameObject(pc->mPhysicsObject.get());
+	mPhysicsWorld->AddPhysicsObject(pc->mPhysicsObject.get());
 
 	mPhysicsComponents.push_back(pc);
 
