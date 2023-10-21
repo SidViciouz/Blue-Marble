@@ -321,24 +321,7 @@ void Bone::UpdateTransformMatrix(FbxTime pTime, FbxAMatrix pParentGlobalTransfor
 {
     mGlobalTransformMatrix = mNode->EvaluateGlobalTransform(pTime);
     mRelativeTransformMatrix = mNode->EvaluateLocalTransform(pTime);
-    //mRelativeTransformMatrix = mGlobalTransformMatrix* pParentGlobalTransformMatrix.Inverse();
 
-    /*
-    printf("[%s]\n", mNode->GetName());
-    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
-        mGlobalTransformMatrix[0][0], mGlobalTransformMatrix[0][1], mGlobalTransformMatrix[0][2], mGlobalTransformMatrix[0][3],
-        mGlobalTransformMatrix[1][0], mGlobalTransformMatrix[1][1], mGlobalTransformMatrix[1][2], mGlobalTransformMatrix[1][3],
-        mGlobalTransformMatrix[2][0], mGlobalTransformMatrix[2][1], mGlobalTransformMatrix[2][2], mGlobalTransformMatrix[2][3],
-        mGlobalTransformMatrix[3][0], mGlobalTransformMatrix[3][1], mGlobalTransformMatrix[3][2], mGlobalTransformMatrix[3][3]
-        );
-    printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n\n",
-        mRelativeTransformMatrix[0][0], mRelativeTransformMatrix[0][1], mRelativeTransformMatrix[0][2], mRelativeTransformMatrix[0][3],
-        mRelativeTransformMatrix[1][0], mRelativeTransformMatrix[1][1], mRelativeTransformMatrix[1][2], mRelativeTransformMatrix[1][3],
-        mRelativeTransformMatrix[2][0], mRelativeTransformMatrix[2][1], mRelativeTransformMatrix[2][2], mRelativeTransformMatrix[2][3],
-        mRelativeTransformMatrix[3][0], mRelativeTransformMatrix[3][1], mRelativeTransformMatrix[3][2], mRelativeTransformMatrix[3][3]
-    );
-    printf("------------------------------------------------------------\n\n");
-    */
     for (auto lChild : mChildBones)
     {
         lChild->UpdateTransformMatrix(pTime, mGlobalTransformMatrix);
@@ -774,8 +757,6 @@ FbxAMatrix* AnimationLayer::GetControlPointDeformation(FbxTime pTime)
         return lDeformation;
     }
 
-    //printf("%d %d,\n", lSkin->GetSkinningType(), lSkin->GetCluster(0)->GetLinkMode());
-    //rigid, and totalOne
 
     int lClusterCount = lSkin->GetClusterCount();
     for (int lClusterIndex = 0; lClusterIndex < lClusterCount; ++lClusterIndex)
@@ -835,8 +816,6 @@ FbxAMatrix* AnimationLayer::Blend(AnimationLayer* pA, AnimationLayer* pB, float 
         return lDeformation;
     }
 
-    //printf("%d %d,\n", lSkin->GetSkinningType(), lSkin->GetCluster(0)->GetLinkMode());
-    //rigid, and totalOne
 
     int lClusterCount = lSkin->GetClusterCount();
     for (int lClusterIndex = 0; lClusterIndex < lClusterCount; ++lClusterIndex)
@@ -999,15 +978,7 @@ void Character::Update()
 
 void Character::UpdateAnimation()
 {
-    //mAnimationLayers["RunF"]->Tick(Engine::mTimer.GetDeltaTime());
-    //mAnimationLayers["WalkF"]->Tick(Engine::mTimer.GetDeltaTime());
-
-    //current time도 blend해야한다. (움직임의 sync 맞추기 위해서)
-
-    //FbxAMatrix* lRunDeformation = mAnimationLayers["RunF"]->GetDeformation();
-    //FbxAMatrix* lWalkDeformation = mAnimationLayers["WalkF"]->GetDeformation();
-
-    
+ 
     //alpha 변화에 따라서 timespan과 current Time을 변경
     mAlpha += Engine::mTimer.GetDeltaTime() / 5.0f;
     while (mAlpha > 1.0f)
@@ -1021,7 +992,6 @@ void Character::UpdateAnimation()
     mEnd = (lATimeSpan * (1 - mAlpha)) + (lBTimeSpan * mAlpha);
     mCurrentTime = mCurrentTime / (lEndBefore - mStart) * (mEnd - mStart);
     
-    // currentTimem += delta Time
     mCurrentTime += Engine::mTimer.GetDeltaTime();
     while (mCurrentTime > mEnd)
     {
@@ -1037,8 +1007,6 @@ void Character::UpdateAnimation()
     
 
     FbxAMatrix* lDeformation = BlendTree(mAnimationLayers["CLFWalkF"].get(), mAnimationLayers["RunF"].get(), mAlpha);
-
-    //FbxAMatrix* lDeformation = AnimationLayer::Blend(mAnimationLayers["WalkF"].get(), mAnimationLayers["RunF"].get(), mAlpha, mSkeletal->GetControlPointCount(),mCurrentTime);
 
     mSkeletal->Deform(lDeformation);
 
@@ -1102,8 +1070,6 @@ FbxAMatrix* Character::BlendTree(AnimationLayer* pA, AnimationLayer* pB, float p
         return lDeformation;
     }
 
-    //printf("%d %d,\n", lSkin->GetSkinningType(), lSkin->GetCluster(0)->GetLinkMode());
-    //rigid, and totalOne
     int lClusterCount = lSkin->GetClusterCount();
     for (int lClusterIndex = 0; lClusterIndex < lClusterCount; ++lClusterIndex)
     {

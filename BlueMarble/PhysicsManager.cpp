@@ -18,6 +18,7 @@ shared_ptr<PhysicsComponent> PhysicsManager::BuildCube(
 	float elasticity)
 {
 	shared_ptr<PhysicsComponent> pc = make_shared<PhysicsComponent>(NodeAttachedTo, physicsType);
+
 	AABBCollider* collider = new AABBCollider(scale);
 
 	pc->mPhysicsObject->SetCollider((Collider*)collider);

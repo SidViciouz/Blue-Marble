@@ -46,5 +46,5 @@ namespace Physics
 
 	void										UpdateSimplex3(Point& a, Point& b, Point& c, Point& d, int& dimension, Vector3& searchDirection);
 
-	bool										UpdateSimplex4(Point& a, Point& b, Point& c, Point& d, int& dimension, Vector3& searchDirection);
+	bool										UpdateSimplex4(Point& a, Point& b, Point& c, Point& d, Vector3& searchDirection);
 }
