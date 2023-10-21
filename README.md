@@ -1,5 +1,8 @@
 # Rocket
 
+## 진입점
+BlueMarble/BlueMarble.cpp의 wWinMain()이 진입점입니다.
+
 
 ## 주사위 던지기
 ![시작_주사위](https://github.com/SidViciouz/Rocket/assets/70373435/008a6355-a44b-43ab-82ac-a89685f3fbcc)
@@ -19,3 +22,6 @@ gif 재생되지 않을 시 사진 클릭
 gif 재생되지 않을 시 사진 클릭
 
 * 나라 이동
+
+
+
