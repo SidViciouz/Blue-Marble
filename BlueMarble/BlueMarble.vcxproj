@@ -154,11 +154,8 @@
     <ClInclude Include="DiceSystemInputComponent.h" />
     <ClInclude Include="Fbx.h" />
     <ClInclude Include="GameState.h" />
-    <ClInclude Include="GaugeNode.h" />
     <ClInclude Include="HollowSphereVolumeNode.h" />
-    <ClInclude Include="ItemInputComponent.h" />
     <ClInclude Include="ItemNode.h" />
-    <ClInclude Include="InventoryNode.h" />
     <ClInclude Include="LightNode.h" />
     <ClInclude Include="MenuScene.h" />
     <ClInclude Include="PhysicsComponent.h" />
@@ -169,7 +166,6 @@
     <ClInclude Include="TextManager.h" />
     <ClInclude Include="TextNode.h" />
     <ClInclude Include="TextureManager.h" />
-    <ClInclude Include="UIInputComponent.h" />
     <ClInclude Include="UINode.h" />
     <ClInclude Include="Constant.h" />
     <ClInclude Include="d3dx12.h" />
@@ -210,7 +206,6 @@
     <ClCompile Include="DiceSystem.cpp" />
     <ClCompile Include="Fbx.cpp" />
     <ClCompile Include="GameState.cpp" />
-    <ClCompile Include="GaugeNode.cpp" />
     <ClCompile Include="HollowSphereVolumeNode.cpp" />
     <ClCompile Include="PhysicsComponent.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
@@ -221,7 +216,6 @@
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="ItemNode.cpp" />
     <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="InventoryNode.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightNode.cpp" />
     <ClCompile Include="MainScene.cpp" />
