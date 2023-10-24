@@ -5,7 +5,6 @@
 #include "../Physics/PhysicsWorld.h"
 #include "DiceSystem.h"
 #include "GameState.h"
-#include "Character.h"
 
 /*
 * 게임의 메인 scene이다.
@@ -43,10 +42,8 @@ public:
 
 protected:
 
-	//shared_ptr<InventoryNode>					inventory;
 	shared_ptr<WorldNode>						mEarth;
 	shared_ptr<DiceSystem>						mDiceSystem;
 	shared_ptr<GameState>						mGameState;
-	shared_ptr<Character>						mCharacter;
 
 };

@@ -12,7 +12,6 @@
 #include "ResourceManager.h"
 #include "PerlinMap.h"
 #include "MeshManager.h"
-#include "VolumeNode.h"
 #include "InputManager.h"
 #include "TextManager.h"
 #include "TextureManager.h"

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Scene.h"
-#include "VolumeNode.h"
 #include "MeshNode.h"
 #include "CameraNode.h"
 #include "UINode.h"

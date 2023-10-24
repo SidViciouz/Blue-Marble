@@ -4,13 +4,11 @@
 #include "HollowSphereVolumeNode.h"
 #include "WorldInputComponent.h"
 #include "TextNode.h"
-#include "ItemNode.h"
 #include "WorldNode.h"
 #include "DiceNode.h"
 #include "Fbx.h"
 #include "AnimationNode.h"
 #include "DiceSystemInputComponent.h"
-#include "TestNode.h"
 
 using namespace Physics;
 
@@ -61,11 +59,6 @@ void MainScene::Initialize()
 	mEarth->SetScale(30.0f, 30.0f, 30.0f);
 	mEarth->mInputComponent = Engine::mInputManager->Build<WorldInputComponent>(mEarth, "MainScene");
 
-	
-	shared_ptr<TestNode> lTestNode = make_shared<TestNode>();
-	lTestNode->SetScale(1.0f, 1.0f, 1.0f);
-	lTestNode->SetDiffuseAlbedo(1.0f, 1.0f, 1.0f);
-	lTestNode->SetRelativePosition(5.0f, 5.0f, 0.0f);
 
 	shared_ptr<HollowSphereVolumeNode> cloud = make_shared<HollowSphereVolumeNode>(32.0f, 30.0f);
 	mEarth->AddChild(cloud);
