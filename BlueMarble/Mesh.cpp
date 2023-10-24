@@ -236,13 +236,8 @@ void Mesh::CalculateTB()
 		};
 		XMFLOAT3 T = { coef* TB[0][0], coef*TB[0][1], coef*TB[0][2] };
 		XMFLOAT3 B = { coef* TB[1][0], coef*TB[1][1], coef*TB[1][2] };
-		/*
-		XMVECTOR xmtangent = XMLoadFloat3(&T);
-		XMStoreFloat3(&T, XMVector3Normalize(xmtangent));
 
-		XMVECTOR xmbitangent = XMLoadFloat3(&B);
-		XMStoreFloat3(&B, XMVector3Normalize(xmbitangent));
-		*/
+
 		for (int j = 0; j < 3; ++j)
 		{
 			averageCoef[a[j]]++;
@@ -267,15 +262,7 @@ void Mesh::CalculateTB()
 			mTBs[a[j]].bitangent.y += B.y;
 			mTBs[a[j]].bitangent.z += B.z;
 		}
-		/*
-		printf("%f %f %f, %f %f %f\n",
-			mTBs[mIndices[i]].tangent.x,
-			mTBs[mIndices[i]].tangent.y,
-			mTBs[mIndices[i]].tangent.z,
-			mTBs[mIndices[i]].bitangent.x,
-			mTBs[mIndices[i]].bitangent.y,
-			mTBs[mIndices[i]].bitangent.z);
-			*/
+
 	}
 
 	for (auto index : mIndices)
@@ -292,15 +279,7 @@ void Mesh::CalculateTB()
 		xmbitangent = xmbitangent - XMVector3Dot(xmbitangent, xmnormal) * xmnormal
 			- XMVector3Dot(xmbitangent, xmtangent) * xmtangent;
 		XMStoreFloat3(&mTBs[index].bitangent, xmbitangent);
-		/*
-		printf("%f %f %f, %f %f %f\n",
-			mTBs[index].tangent.x,
-			mTBs[index].tangent.y,
-			mTBs[index].tangent.z,
-			mTBs[index].bitangent.x,
-			mTBs[index].bitangent.y,
-			mTBs[index].bitangent.z);
-		*/
+
 	}
 }
 
