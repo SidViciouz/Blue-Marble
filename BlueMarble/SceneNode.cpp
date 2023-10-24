@@ -53,13 +53,14 @@ void SceneNode::Update()
 
 	else
 	{
+		XMFLOAT4 currentQuat = mRelativeQuaternion.Get();
 		XMFLOAT4 parentQuat = mParentNode->mAccumulatedQuaternion.Get();
 		XMMATRIX xmParentQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&parentQuat));
-		XMFLOAT4 currentQuat = mRelativeQuaternion.Get();
-		XMMATRIX xmCurrentQuat = XMMatrixRotationQuaternion(XMLoadFloat4(&currentQuat));
-		XMMATRIX xmCurrentTranslation = XMMatrixTranslation(mRelativePosition.v.x, mRelativePosition.v.y, mRelativePosition.v.z);
 
-		XMVECTOR xmGlobalQuat = XMQuaternionRotationMatrix(xmCurrentQuat * xmCurrentTranslation * xmParentQuat);
+		XMVECTOR parentQuaternion = XMLoadFloat4(&parentQuat);
+		XMVECTOR currentQuaternion = XMLoadFloat4(&currentQuat);
+		
+		XMVECTOR xmGlobalQuat = XMQuaternionMultiply(currentQuaternion, parentQuaternion); // XMQuaternionRotationMatrix(xmCurrentQuat * xmParentQuat);
 		XMFLOAT4 GlobalQuat;
 		XMStoreFloat4(&GlobalQuat, xmGlobalQuat);
 

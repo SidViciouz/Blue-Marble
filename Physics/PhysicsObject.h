@@ -63,10 +63,6 @@ namespace Physics
 
 		Matrix3x3								GetInertiaTensor() const;
 
-		void									SetElasticity(float elasticity);
-
-		float									GetElasticity() const;
-
 	protected:
 
 		Transform								mTransform;
@@ -88,8 +84,6 @@ namespace Physics
 		Vector3									mInverseInertia;
 
 		Matrix3x3								mInverseInteriaTensor;
-
-		float									mElasticity;
 
 	};
 }

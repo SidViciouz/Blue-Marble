@@ -74,9 +74,7 @@ void PhysicsSystem::ResolveCollisionByImpulse(PhysicsObject& a, PhysicsObject& b
 	float MassSum = A->GetInverseMass() + B->GetInverseMass();
 
 	if (MassSum == 0)
-	{
 		return;
-	}
 
 	transformA.SetPosition(transformA.GetPosition() - (info.normal * info.depth * (A->GetInverseMass() / MassSum)));
 	transformB.SetPosition(transformB.GetPosition() + (info.normal * info.depth * (B->GetInverseMass() / MassSum)));
@@ -86,18 +84,13 @@ void PhysicsSystem::ResolveCollisionByImpulse(PhysicsObject& a, PhysicsObject& b
 
 	float impulseForce = Vector3::Dot(VelocityB - VelocityA, info.normal);
 
-	Vector3 inertiaA = Vector3::Cross(A->GetInertiaTensor() * Vector3::Cross(info.a, info.normal), info.a);
-	Vector3 inertiaB = Vector3::Cross(B->GetInertiaTensor() * Vector3::Cross(info.b, info.normal), info.b);
+	Vector3 Impulse = info.normal * impulseForce / MassSum;
 
-	float Coefficient = (-(A->GetElasticity() * B->GetElasticity() + 1.0f) * impulseForce) / (MassSum + Vector3::Dot(inertiaA + inertiaB, info.normal));
+	A->ApplyLinearImpulse(Impulse);
+	B->ApplyLinearImpulse(-Impulse);
 
-	Vector3 Impulse = info.normal * Coefficient;
-
-	A->ApplyLinearImpulse(-Impulse);
-	B->ApplyLinearImpulse(Impulse);
-
-	A->ApplyAngularImpulse(Vector3::Cross(info.a, -Impulse));
-	B->ApplyAngularImpulse(Vector3::Cross(info.b, Impulse));
+	A->ApplyAngularImpulse(Vector3::Cross(info.a, Impulse));
+	B->ApplyAngularImpulse(Vector3::Cross(info.b, -Impulse));
 }
 
 

@@ -9,13 +9,7 @@ PhysicsManager::PhysicsManager()
 	mPhysicsSystem = make_shared<PhysicsSystem>(mPhysicsWorld);
 }
 
-shared_ptr<PhysicsComponent> PhysicsManager::BuildCube(
-	shared_ptr<SceneNode> NodeAttachedTo,
-	PhysicsType physicsType,
-	const Vector3& position,
-	const Vector3& scale,
-	float inverseMass,
-	float elasticity)
+shared_ptr<PhysicsComponent> PhysicsManager::BuildCube(shared_ptr<SceneNode> NodeAttachedTo, PhysicsType physicsType, const Vector3& position, const Vector3& scale, float inverseMass)
 {
 	shared_ptr<PhysicsComponent> pc = make_shared<PhysicsComponent>(NodeAttachedTo, physicsType);
 
@@ -25,7 +19,6 @@ shared_ptr<PhysicsComponent> PhysicsManager::BuildCube(
 	pc->mPhysicsObject->GetTransform().SetPosition(position).SetScale(scale*2);
 	pc->mPhysicsObject->SetInverseMass(inverseMass);
 	pc->mPhysicsObject->InitializeCubeInertia();
-	pc->mPhysicsObject->SetElasticity(elasticity);
 	pc->mPhysicsObject->SetPhysicsType(physicsType);
 
 	mPhysicsWorld->AddPhysicsObject(pc->mPhysicsObject.get());

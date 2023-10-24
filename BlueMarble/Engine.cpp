@@ -455,25 +455,6 @@ void Engine::CreateShaderAndRootSignature()
 		L"compile shader error!");
 	mShaders["VolumeCubePS"] = move(blob);
 
-	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["planetVS"] = move(blob);
-
-	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "HS", "hs_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["planetHS"] = move(blob);
-
-	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "DS", "ds_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["planetDS"] = move(blob);
-
-	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "GS", "gs_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["planetGS"] = move(blob);
-
-	IfError::Throw(D3DCompileFromFile(L"planet.hlsl", nullptr, nullptr, "PS", "ps_5_1", 0, 0, &blob, nullptr),
-		L"compile shader error!");
-	mShaders["planetPS"] = move(blob);
 
 	IfError::Throw(D3DCompileFromFile(L"ColliderShape.hlsl", nullptr, nullptr, "VS", "vs_5_1", 0, 0, &blob, nullptr),
 		L"compile shader error!");
@@ -639,73 +620,6 @@ void Engine::CreateShaderAndRootSignature()
 	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
 		L"create root signature error!");
 	mRootSignatures["VolumeSphere"] = move(rs);
-
-	D3D12_DESCRIPTOR_RANGE rangePlanet[4];
-	rangePlanet[0].BaseShaderRegister = 0;
-	rangePlanet[0].NumDescriptors = 1;
-	rangePlanet[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	rangePlanet[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	rangePlanet[0].RegisterSpace = 0;
-	rangePlanet[1].BaseShaderRegister = 1;
-	rangePlanet[1].NumDescriptors = 1;
-	rangePlanet[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	rangePlanet[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	rangePlanet[1].RegisterSpace = 0;
-	rangePlanet[2].BaseShaderRegister = 2;
-	rangePlanet[2].NumDescriptors = 1;
-	rangePlanet[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	rangePlanet[2].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	rangePlanet[2].RegisterSpace = 0;
-	rangePlanet[3].BaseShaderRegister = 3;
-	rangePlanet[3].NumDescriptors = 1;
-	rangePlanet[3].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	rangePlanet[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	rangePlanet[3].RegisterSpace = 0;
-
-
-	D3D12_ROOT_PARAMETER rootParameterPlanet[7];
-	rootParameterPlanet[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameterPlanet[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterPlanet[0].Descriptor.RegisterSpace = 0;
-	rootParameterPlanet[0].Descriptor.ShaderRegister = 0;
-	rootParameterPlanet[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameterPlanet[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterPlanet[1].Descriptor.RegisterSpace = 0;
-	rootParameterPlanet[1].Descriptor.ShaderRegister = 1;
-	rootParameterPlanet[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterPlanet[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterPlanet[2].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameterPlanet[2].DescriptorTable.pDescriptorRanges = &rangePlanet[0];
-	rootParameterPlanet[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterPlanet[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterPlanet[3].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameterPlanet[3].DescriptorTable.pDescriptorRanges = &rangePlanet[1];
-	rootParameterPlanet[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-	rootParameterPlanet[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterPlanet[4].Constants.Num32BitValues = 1;
-	rootParameterPlanet[4].Constants.RegisterSpace = 0;
-	rootParameterPlanet[4].Constants.ShaderRegister = 2;
-	rootParameterPlanet[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterPlanet[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterPlanet[5].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameterPlanet[5].DescriptorTable.pDescriptorRanges = &rangePlanet[2];
-	rootParameterPlanet[6].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameterPlanet[6].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	rootParameterPlanet[6].DescriptorTable.NumDescriptorRanges = 1;
-	rootParameterPlanet[6].DescriptorTable.pDescriptorRanges = &rangePlanet[3];
-
-
-
-	rsDesc.NumParameters = 7;
-	rsDesc.pParameters = rootParameterPlanet;
-	rsDesc.NumStaticSamplers = 1;
-	rsDesc.pStaticSamplers = &samplerDesc;
-	rsDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-	IfError::Throw(D3D12SerializeRootSignature(&rsDesc, D3D_ROOT_SIGNATURE_VERSION_1, serialized.GetAddressOf(), nullptr),
-		L"serialize root signature error!");
-	IfError::Throw(mDevice->CreateRootSignature(0, serialized->GetBufferPointer(), serialized->GetBufferSize(), IID_PPV_ARGS(rs.GetAddressOf())),
-		L"create root signature error!");
-	mRootSignatures["planet"] = move(rs);
 
 
 	D3D12_ROOT_PARAMETER rootParameterCollider[3];
@@ -1165,36 +1079,12 @@ void Engine::CreatePso()
 	mPSOs["ColliderShape"] = move(pso);
 
 
-	inputElements[0] = { "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	inputElements[1] = { "TEXTURE",0,DXGI_FORMAT_R32G32_FLOAT,0,12,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	inputElements[2] = { "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,20,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA ,0 };
-	psoDesc.InputLayout.NumElements = 3;
-	psoDesc.InputLayout.pInputElementDescs = inputElements;
-	psoDesc.pRootSignature = mRootSignatures["planet"].Get();
-	psoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
-	psoDesc.VS.pShaderBytecode = mShaders["planetVS"]->GetBufferPointer();
-	psoDesc.VS.BytecodeLength = mShaders["planetVS"]->GetBufferSize();
-	psoDesc.PS.pShaderBytecode = mShaders["planetPS"]->GetBufferPointer();
-	psoDesc.PS.BytecodeLength = mShaders["planetPS"]->GetBufferSize();
-	psoDesc.HS.pShaderBytecode = mShaders["planetHS"]->GetBufferPointer();
-	psoDesc.HS.BytecodeLength = mShaders["planetHS"]->GetBufferSize();
-	psoDesc.DS.pShaderBytecode = mShaders["planetDS"]->GetBufferPointer();
-	psoDesc.DS.BytecodeLength = mShaders["planetDS"]->GetBufferSize();
-	psoDesc.GS.pShaderBytecode = mShaders["planetGS"]->GetBufferPointer();
-	psoDesc.GS.BytecodeLength = mShaders["planetGS"]->GetBufferSize();
-	psoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 	psoDesc.RasterizerState.DepthClipEnable = true;
 	psoDesc.RasterizerState.DepthBias = 100;
 	psoDesc.RasterizerState.DepthBiasClamp = 0.0f;
 	psoDesc.RasterizerState.SlopeScaledDepthBias = 1.0f;
-	psoDesc.DepthStencilState.DepthEnable = true;
-	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
-	psoDesc.DepthStencilState.StencilEnable = false;
-	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
-	psoDesc.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
-	IfError::Throw(mDevice->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(pso.GetAddressOf())),
-		L"create graphics pso error!");
-	mPSOs["planet"] = move(pso);
+
+
 
 	psoDesc.InputLayout.NumElements = 0;
 	psoDesc.InputLayout.pInputElementDescs = nullptr;

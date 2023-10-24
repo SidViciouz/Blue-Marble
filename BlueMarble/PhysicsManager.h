@@ -19,12 +19,7 @@ public:
 	/*
 	* physics component를 생성한다.
 	*/
-	shared_ptr<PhysicsComponent>				BuildCube(shared_ptr<SceneNode> NodeAttachedTo,
-															PhysicsType physicsType,
-															const Vector3& position,
-															const Vector3& scale,
-															float inverseMass = 5.0f,
-															float elasticity = 0.8f);
+	shared_ptr<PhysicsComponent>				BuildCube(shared_ptr<SceneNode> NodeAttachedTo, PhysicsType physicsType, const Vector3& position, const Vector3& scale, float inverseMass = 5.0f);
 	/*
 	* physics component들을 업데이트하고, 이를 node에 적용한다.
 	*/

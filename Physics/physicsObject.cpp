@@ -80,15 +80,6 @@ Matrix3x3 PhysicsObject::GetInertiaTensor() const
 	return mInverseInteriaTensor;
 }
 
-void PhysicsObject::SetElasticity(float elasticity)
-{ 
-	mElasticity = elasticity;
-}
-float PhysicsObject::GetElasticity() const
-{
-	return mElasticity;
-}
-
 void PhysicsObject::ApplyAngularImpulse(const Vector3& force)
 {
 	mAngularVelocity += mInverseInteriaTensor * force;
