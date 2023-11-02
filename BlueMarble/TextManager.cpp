@@ -27,10 +27,6 @@ TextManager::TextManager()
 		printf("FT_Set_Pixel_Sizes error!\n");
 	}
 
-	//if (mFace->available_sizes == NULL)
-	//	printf("available size is NULL\n");
-
-
 	//font 비트맵을 저장할 텍스처 생성
 	mTextureIdx = Engine::mResourceManager->CreateTexture2D(
 		256,
