@@ -34,8 +34,8 @@ namespace Physics
 
 		Vector3									gravity;
 
-		float									dTOffset;
+		float									deltaTimeOffset;
 
-		float									realDT;
+		float									fixedDeltaTime;
 	};
 }

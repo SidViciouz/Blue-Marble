@@ -10,25 +10,25 @@ using namespace Physics;
 PhysicsSystem::PhysicsSystem(shared_ptr<PhysicsWorld> physicsWorld) :
 	physicsWorld(physicsWorld)
 {
-	dTOffset = 0.0f;
-	realDT = 1.0f / 120.0f;
+	deltaTimeOffset = 0.0f;
+	fixedDeltaTime = 1.0f / 120.0f;
 }
 
 
 void PhysicsSystem::Update(float deltaTime)
 {
-	dTOffset += deltaTime;
+	deltaTimeOffset += deltaTime;
 
 	//fixed update
-	while (dTOffset >= realDT)
+	while (deltaTimeOffset >= fixedDeltaTime)
 	{
-		ApplyForce(realDT);
+		ApplyForce(fixedDeltaTime);
 
 		CollisionDetection();
 
-		UpdateVelocity(realDT);
+		UpdateVelocity(fixedDeltaTime);
 
-		dTOffset -= realDT;
+		deltaTimeOffset -= fixedDeltaTime;
 	}
 
 	ClearForces();
